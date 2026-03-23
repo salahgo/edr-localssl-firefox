@@ -99,6 +99,7 @@ class SummarizationFragment : BottomSheetDialogFragment() {
             settings = SummarizationSettings.dataStore(requireContext()),
             pageContentExtractor = engineSession.asPageContentExtractor(),
             pageMetadataExtractor = engineSession.asPageMetadataExtractor(),
+            errorReporter = { requireComponents.analytics.crashReporter.submitCaughtException(it) },
         )
     }
 
