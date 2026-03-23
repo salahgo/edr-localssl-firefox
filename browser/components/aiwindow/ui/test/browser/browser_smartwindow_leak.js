@@ -3,10 +3,6 @@
 
 "use strict";
 
-const { AIWindowUI } = ChromeUtils.importESModule(
-  "moz-src:///browser/components/aiwindow/ui/modules/AIWindowUI.sys.mjs"
-);
-
 /**
  * Test for memory leaks from loading the smart window page.
  */
@@ -21,10 +17,6 @@ add_task(async function test_smart_window_leaks() {
   await BrowserTestUtils.withNewTab({ url: AIWINDOW_URL, gBrowser }, () => {
     Assert.ok(true, "It's a test");
   });
-
-  // Explicitly close sidebar to prevent leak from our new default behavior
-  AIWindowUI.closeSidebar(window);
-
   AIWindow.toggleAIWindow(window, false);
 
   await SpecialPowers.popPrefEnv();
