@@ -30,6 +30,7 @@
 #include "js/StructuredClone.h"
 #include "mozilla/EndianUtils.h"
 #include "mozilla/ErrorResult.h"
+#include "mozilla/ScopeExit.h"
 #include "mozilla/dom/BindingUtils.h"
 #include "mozilla/dom/BlobBinding.h"
 #include "mozilla/dom/Document.h"
@@ -754,14 +755,15 @@ void IDBObjectStore::GetAddInfo(JSContext* aCx, ValueWrapper& aValueWrapper,
 
   if (!HasValidKeyPath()) {
     // Out-of-line keys must be passed in.
-    auto result = aKey.SetFromJSVal(aCx, aKeyVal);
+    auto result =
+        aKey.SetFromJSVal(aCx, aKeyVal, mTransaction.unsafeGetRawPtr());
     if (result.isErr()) {
       aRv = result.unwrapErr().ExtractErrorResult(
           InvalidMapsTo<NS_ERROR_DOM_INDEXEDDB_DATA_ERR>);
       return;
     }
   } else if (!isAutoIncrement) {
-    if (!aValueWrapper.Clone(aCx)) {
+    if (!aValueWrapper.Clone(aCx, mTransaction.unsafeGetRawPtr())) {
       aRv.Throw(NS_ERROR_DOM_DATA_CLONE_ERR);
       return;
     }
@@ -781,7 +783,8 @@ void IDBObjectStore::GetAddInfo(JSContext* aCx, ValueWrapper& aValueWrapper,
 
   // Figure out indexes and the index values to update here.
 
-  if (mSpec->indexes().Length() && !aValueWrapper.Clone(aCx)) {
+  if (mSpec->indexes().Length() &&
+      !aValueWrapper.Clone(aCx, mTransaction.unsafeGetRawPtr())) {
     aRv.Throw(NS_ERROR_DOM_DATA_CLONE_ERR);
     return;
   }
@@ -821,7 +824,7 @@ void IDBObjectStore::GetAddInfo(JSContext* aCx, ValueWrapper& aValueWrapper,
   }
 
   if (isAutoIncrement && HasValidKeyPath()) {
-    if (!aValueWrapper.Clone(aCx)) {
+    if (!aValueWrapper.Clone(aCx, mTransaction.unsafeGetRawPtr())) {
       aRv.Throw(NS_ERROR_DOM_DATA_CLONE_ERR);
       return;
     }
@@ -868,28 +871,7 @@ RefPtr<IDBRequest> IDBObjectStore::AddOrPut(JSContext* aCx,
   StructuredCloneWriteInfo cloneWriteInfo(mTransaction->Database());
   nsTArray<IndexUpdateInfo> updateInfos;
 
-  // According to spec https://w3c.github.io/IndexedDB/#clone-value,
-  // the transaction must be in inactive state during clone
-  mTransaction->TransitionToInactive();
-
-#ifdef DEBUG
-  const uint32_t previousPendingRequestCount{
-      mTransaction->GetPendingRequestCount()};
-#endif
   GetAddInfo(aCx, aValueWrapper, aKey, cloneWriteInfo, key, updateInfos, aRv);
-  // Check that new requests were rejected in the Inactive state
-  // and possibly in the Finished state, if the transaction has been aborted,
-  // during the structured cloning.
-  MOZ_ASSERT(mTransaction->GetPendingRequestCount() ==
-             previousPendingRequestCount);
-
-  if (!mTransaction->IsAborted()) {
-    mTransaction->TransitionToActive();
-  } else if (!aRv.Failed()) {
-    aRv.Throw(NS_ERROR_DOM_INDEXEDDB_ABORT_ERR);
-    return nullptr;  // It is mandatory to return right after throw
-  }
-
   if (aRv.Failed()) {
     return nullptr;
   }
@@ -1058,7 +1040,8 @@ RefPtr<IDBRequest> IDBObjectStore::GetAllInternal(
   }
 
   RefPtr<IDBKeyRange> keyRange;
-  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv);
+  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv,
+                         mTransaction.unsafeGetRawPtr());
   if (NS_WARN_IF(aRv.Failed())) {
     return nullptr;
   }
@@ -1377,7 +1360,8 @@ RefPtr<IDBRequest> IDBObjectStore::GetInternal(bool aKeyOnly, JSContext* aCx,
   }
 
   RefPtr<IDBKeyRange> keyRange;
-  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv);
+  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv,
+                         mTransaction.unsafeGetRawPtr());
   if (aRv.Failed()) {
     return nullptr;
   }
@@ -1439,7 +1423,8 @@ RefPtr<IDBRequest> IDBObjectStore::DeleteInternal(JSContext* aCx,
   }
 
   RefPtr<IDBKeyRange> keyRange;
-  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv);
+  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv,
+                         mTransaction.unsafeGetRawPtr());
   if (NS_WARN_IF((aRv.Failed()))) {
     return nullptr;
   }
@@ -1687,7 +1672,8 @@ RefPtr<IDBRequest> IDBObjectStore::Count(JSContext* aCx,
   }
 
   RefPtr<IDBKeyRange> keyRange;
-  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv);
+  IDBKeyRange::FromJSVal(aCx, aKey, &keyRange, aRv,
+                         mTransaction.unsafeGetRawPtr());
   if (aRv.Failed()) {
     return nullptr;
   }
@@ -1738,7 +1724,8 @@ RefPtr<IDBRequest> IDBObjectStore::OpenCursorInternal(
   }
 
   RefPtr<IDBKeyRange> keyRange;
-  IDBKeyRange::FromJSVal(aCx, aRange, &keyRange, aRv);
+  IDBKeyRange::FromJSVal(aCx, aRange, &keyRange, aRv,
+                         mTransaction.unsafeGetRawPtr());
   if (NS_WARN_IF(aRv.Failed())) {
     return nullptr;
   }
@@ -1936,10 +1923,21 @@ bool IDBObjectStore::HasValidKeyPath() const {
   return GetKeyPath().IsValid();
 }
 
-bool IDBObjectStore::ValueWrapper::Clone(JSContext* aCx) {
+bool IDBObjectStore::ValueWrapper::Clone(JSContext* aCx,
+                                         IDBTransaction* aTransaction) {
   if (mCloned) {
     return true;
   }
+
+  const bool shouldInactivate = aTransaction && aTransaction->IsActive();
+  if (shouldInactivate) {
+    aTransaction->TransitionToInactive();
+  }
+  auto guard = MakeScopeExit([&]() {
+    if (shouldInactivate && !aTransaction->IsAborted()) {
+      aTransaction->TransitionToActive();
+    }
+  });
 
   static const JSStructuredCloneCallbacks callbacks = {
       CopyingStructuredCloneReadCallback /* read */,
@@ -1956,6 +1954,10 @@ bool IDBObjectStore::ValueWrapper::Clone(JSContext* aCx) {
 
   JS::Rooted<JS::Value> clonedValue(aCx);
   if (!JS_StructuredClone(aCx, mValue, &clonedValue, &callbacks, &cloneInfo)) {
+    return false;
+  }
+
+  if (aTransaction && aTransaction->IsAborted()) {
     return false;
   }
 
