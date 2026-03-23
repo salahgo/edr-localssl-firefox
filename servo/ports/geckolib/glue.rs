@@ -114,8 +114,8 @@ use style::stylesheets::{
     CssRuleType, CssRuleTypes, CssRules, CustomMediaCondition, CustomMediaEvaluator,
     CustomMediaRule, DocumentRule, FontFaceRule, FontFeatureValuesRule, FontPaletteValuesRule,
     ImportRule, KeyframesRule, LayerBlockRule, LayerStatementRule, MarginRule, MediaRule,
-    NamespaceRule, NestedDeclarationsRule, Origin, OriginSet, PagePseudoClassFlags, PageRule,
-    PositionTryRule, PropertyRule, SanitizationData, SanitizationKind, ScopeRule,
+    NamespaceRule, NavigationType, NestedDeclarationsRule, Origin, OriginSet, PagePseudoClassFlags,
+    PageRule, PositionTryRule, PropertyRule, SanitizationData, SanitizationKind, ScopeRule,
     StartingStyleRule, StyleRule, StylesheetContents, StylesheetInDocument,
     StylesheetLoader as StyleStylesheetLoader, SupportsRule, UrlExtraData, ViewTransitionRule,
 };
@@ -9696,6 +9696,13 @@ pub extern "C" fn Servo_LayerStatementRule_GetNameAt(
     if let Some(ref name) = rule.names.get(index) {
         name.to_css(&mut CssWriter::new(result)).unwrap()
     }
+}
+
+#[no_mangle]
+pub extern "C" fn Servo_ViewTransitionRule_GetNavigationDescriptor(
+    rule: &ViewTransitionRule,
+) -> NavigationType {
+    rule.descriptors.navigation.unwrap_or_default()
 }
 
 #[no_mangle]
