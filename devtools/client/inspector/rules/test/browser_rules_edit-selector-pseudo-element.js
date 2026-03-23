@@ -25,22 +25,7 @@ add_task(async function test_inline_sheet() {
   info("Check that we can edit the selectors in the pseudo elements section");
   await selectNode("h1", inspector);
 
-  info("Expand pseudo elements section");
-  const pseudoElementToggle = view.styleDocument.querySelector(
-    `[aria-controls="pseudo-elements-container"]`
-  );
-  // sanity check
-  is(
-    pseudoElementToggle.ariaExpanded,
-    "false",
-    "pseudo element section is collapsed at first"
-  );
-  pseudoElementToggle.click();
-  is(
-    pseudoElementToggle.ariaExpanded,
-    "true",
-    "pseudo element section is now expanded"
-  );
+  expandPseudoElementContainer(view);
 
   info(`Modify "h1::before" into ".foo::before"`);
   let ruleEditor = getRuleViewRuleEditorAt(view, 0);

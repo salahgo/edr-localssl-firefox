@@ -1647,3 +1647,28 @@ function assertRuleViewHeaders(view, expected) {
 
   return headers;
 }
+
+/**
+ * Expand the pseudo element container.
+ * This assumes it was collapsed and allows interacting with pseudo element rules.
+ *
+ * @param {RuleView} view
+ */
+function expandPseudoElementContainer(view) {
+  info("Expand the pseudo element section");
+  const pseudoElementToggle = view.styleDocument.querySelector(
+    `[aria-controls="pseudo-elements-container"]`
+  );
+  // sanity check
+  is(
+    pseudoElementToggle.ariaExpanded,
+    "false",
+    "pseudo element section is collapsed at first"
+  );
+  pseudoElementToggle.click();
+  is(
+    pseudoElementToggle.ariaExpanded,
+    "true",
+    "pseudo element section is now expanded"
+  );
+}

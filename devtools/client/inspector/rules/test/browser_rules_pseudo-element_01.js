@@ -46,37 +46,7 @@ async function testTopLeft(inspector, view) {
     beforeRules: 2,
   });
 
-  const gutters = assertHeaders(view);
-
-  info("Make sure that clicking on the twisty hides pseudo elements");
-  const expander = gutters[0].querySelector(".ruleview-expander");
-  ok(!getPseudoElementContainer(view).hidden, "Pseudo Elements are expanded");
-
-  expander.click();
-  ok(
-    getPseudoElementContainer(view).hidden,
-    "Pseudo Elements are collapsed by twisty"
-  );
-
-  expander.click();
-  ok(
-    !getPseudoElementContainer(view).hidden,
-    "Pseudo Elements are expanded again"
-  );
-
-  info(
-    "Make sure that dblclicking on the header container also toggles " +
-      "the pseudo elements"
-  );
-  EventUtils.synthesizeMouseAtCenter(
-    gutters[0],
-    { clickCount: 2 },
-    view.styleWindow
-  );
-  ok(
-    getPseudoElementContainer(view).hidden,
-    "Pseudo Elements are collapsed by dblclicking"
-  );
+  assertHeaders(view);
 
   const elementRuleView = getRuleViewRuleEditorAt(view, 7);
   is(
@@ -159,6 +129,26 @@ async function testTopLeft(inspector, view) {
     await getComputedStyleProperty(id, ":first-line", "background-color"),
     "rgb(0, 255, 0)",
     "Added prop does not apply to pseudo"
+  );
+
+  // This will also ensure that the pseudo elements are hidden before switching to another test
+  info("Make sure that clicking on the twity re-hide the pseudo elements");
+  // Retrieve a fresh reference to the pseudo elements expander as the DOM Element may have been replaced
+  const expander = view.element.querySelector(
+    ".ruleview-header:not([hidden]) .ruleview-expander"
+  );
+
+  ok(!getPseudoElementContainer(view).hidden, "Pseudo Elements are expanded");
+
+  expander.click();
+  ok(
+    getPseudoElementContainer(view).hidden,
+    "Pseudo Elements are collapsed by twisty"
+  );
+  is(
+    expander.closest("button").ariaExpanded,
+    "false",
+    "pseudo element section is now collapsed"
   );
 }
 
