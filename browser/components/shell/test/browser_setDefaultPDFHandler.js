@@ -335,6 +335,7 @@ add_task(async function test_setAsDefaultPDFHandler_fallback() {
     info(
       "When userChoice fails and open-with picker succeeds, should not fall back to settings dialog"
     );
+    Services.fog.testResetFOG();
     await ShellService.setAsDefaultPDFHandler(false);
 
     Assert.ok(userChoiceStub.called, "Attempted userChoice");
@@ -346,6 +347,31 @@ add_task(async function test_setAsDefaultPDFHandler_fallback() {
       launchModernSettingsDialogDefaultAppsStub.notCalled,
       "Did not fall back to settings dialog"
     );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerUserChoiceResult.ErrOther.testGetValue(),
+      1,
+      "Recorded user-choice failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerUserChoiceResult.Success.testGetValue(),
+      undefined,
+      "Did not record user-choice success"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerOpenWithResult.Success.testGetValue(),
+      1,
+      "Recorded open-with success"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerOpenWithResult.Failure.testGetValue(),
+      undefined,
+      "Did not record open-with failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerModernSettingsResult.Success.testGetValue(),
+      undefined,
+      "Did not record modern settings result"
+    );
     userChoiceStub.resetHistory();
     launchOpenWithDefaultPickerForFileTypeStub.resetHistory();
     launchModernSettingsDialogDefaultAppsStub.resetHistory();
@@ -353,6 +379,7 @@ add_task(async function test_setAsDefaultPDFHandler_fallback() {
     info(
       "When userChoice fails and open-with picker fails, should fall back to settings dialog"
     );
+    Services.fog.testResetFOG();
     launchOpenWithDefaultPickerForFileTypeStub.throws(
       new Error("mock IOpenWithLauncher failure")
     );
@@ -366,6 +393,74 @@ add_task(async function test_setAsDefaultPDFHandler_fallback() {
     Assert.ok(
       launchModernSettingsDialogDefaultAppsStub.called,
       "Fell back to settings dialog"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerUserChoiceResult.ErrOther.testGetValue(),
+      1,
+      "Recorded user-choice failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerUserChoiceResult.Success.testGetValue(),
+      undefined,
+      "Did not record user-choice success"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerOpenWithResult.Failure.testGetValue(),
+      1,
+      "Recorded open-with failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerOpenWithResult.Success.testGetValue(),
+      undefined,
+      "Did not record open-with success"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerModernSettingsResult.Success.testGetValue(),
+      1,
+      "Recorded modern settings success"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerModernSettingsResult.Failure.testGetValue(),
+      undefined,
+      "Did not record modern settings failure"
+    );
+    userChoiceStub.resetHistory();
+    launchOpenWithDefaultPickerForFileTypeStub.resetHistory();
+    launchModernSettingsDialogDefaultAppsStub.resetHistory();
+
+    info(
+      "When userChoice fails, open-with fails, and modern settings fails, should record all failures"
+    );
+    Services.fog.testResetFOG();
+    launchModernSettingsDialogDefaultAppsStub.throws(
+      new Error("mock modern settings failure")
+    );
+    await ShellService.setAsDefaultPDFHandler(false);
+
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerUserChoiceResult.ErrOther.testGetValue(),
+      1,
+      "Recorded user-choice failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerUserChoiceResult.Success.testGetValue(),
+      undefined,
+      "Did not record user-choice success"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerOpenWithResult.Failure.testGetValue(),
+      1,
+      "Recorded open-with failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerModernSettingsResult.Failure.testGetValue(),
+      1,
+      "Recorded modern settings failure"
+    );
+    Assert.equal(
+      Glean.browser.setDefaultPdfHandlerModernSettingsResult.Success.testGetValue(),
+      undefined,
+      "Did not record modern settings success"
     );
   } finally {
     launchOpenWithDefaultPickerForFileTypeStub.reset();
