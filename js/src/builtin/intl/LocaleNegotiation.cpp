@@ -71,8 +71,8 @@ static mozilla::Maybe<UnicodeExtensionKey> ToUnicodeExtensionKey(
   return mozilla::Nothing();
 }
 
-static bool AssertCanonicalLocaleWithoutUnicodeExtension(
-    JSContext* cx, Handle<JSLinearString*> locale) {
+static bool AssertCanonicalLocale(JSContext* cx,
+                                  Handle<JSLinearString*> locale) {
 #ifdef DEBUG
   MOZ_ASSERT(StringIsAscii(locale), "language tags are ASCII-only");
 
@@ -97,9 +97,6 @@ static bool AssertCanonicalLocaleWithoutUnicodeExtension(
     ReportInternalError(cx);
     return false;
   }
-
-  MOZ_ASSERT(!tag.GetUnicodeExtension(),
-             "locale must contain no Unicode extensions");
 
   if (auto result = tag.Canonicalize(); result.isErr()) {
     MOZ_ASSERT(result.unwrapErr() !=
@@ -194,7 +191,7 @@ static bool BestAvailableLocale(JSContext* cx,
                                 Handle<JSLinearString*> locale,
                                 mozilla::Maybe<LanguageId> defaultLocale,
                                 mozilla::Maybe<LanguageId>* result) {
-  if (!AssertCanonicalLocaleWithoutUnicodeExtension(cx, locale)) {
+  if (!AssertCanonicalLocale(cx, locale)) {
     return false;
   }
 
@@ -224,28 +221,6 @@ bool js::intl::BestAvailableLocale(JSContext* cx,
                              result);
 }
 
-template <typename CharT>
-static size_t BaseNameLength(mozilla::Range<const CharT> locale) {
-  // Search for the start of the first singleton subtag.
-  for (size_t i = 0; i < locale.length(); i++) {
-    if (locale[i] == '-') {
-      MOZ_RELEASE_ASSERT(i + 2 < locale.length(), "invalid locale");
-      if (locale[i + 2] == '-') {
-        return i;
-      }
-    }
-  }
-  return locale.length();
-}
-
-static size_t BaseNameLength(JSLinearString* locale) {
-  JS::AutoCheckCannotGC nogc;
-  if (locale->hasLatin1Chars()) {
-    return BaseNameLength(locale->latin1Range(nogc));
-  }
-  return BaseNameLength(locale->twoByteRange(nogc));
-}
-
 /**
  * Returns the subset of requestedLocales for which availableLocales has a
  * matching (possibly fallback) locale. Locales appear in the same order in the
@@ -267,23 +242,12 @@ static bool LookupSupportedLocales(
   }
 
   // Step 2.
-  Rooted<JSLinearString*> noExtensionsLocale(cx);
-  Rooted<JSLinearString*> availableLocale(cx);
   for (size_t i = 0; i < requestedLocales.length(); i++) {
     auto locale = requestedLocales[i];
 
-    // Step 2.a.
-    //
-    // Use the base name to ignore any extension sequences.
-    noExtensionsLocale =
-        NewDependentString(cx, locale, 0, BaseNameLength(locale));
-    if (!noExtensionsLocale) {
-      return false;
-    }
-
-    // Step 2.b.
+    // Steps 2.a-b.
     mozilla::Maybe<LanguageId> availableLocale{};
-    if (!BestAvailableLocale(cx, availableLocales, noExtensionsLocale,
+    if (!BestAvailableLocale(cx, availableLocales, locale,
                              mozilla::Some(defaultLocale), &availableLocale)) {
       return false;
     }
@@ -349,7 +313,7 @@ static bool SupportedLocales(JSContext* cx,
  */
 template <typename CharT>
 static std::pair<size_t, size_t> FindUnicodeExtensionSequence(
-    mozilla::Range<const CharT> locale) {
+    std::basic_string_view<CharT> locale) {
   // Return early if the locale string is too small to hold any Unicode
   // extension sequences. (This is the common case, so handle it first.)
   //
@@ -411,35 +375,28 @@ static std::pair<size_t, size_t> FindUnicodeExtensionSequence(
   return {start, locale.length()};
 }
 
-static auto FindUnicodeExtensionSequence(const JSLinearString* locale) {
-  JS::AutoCheckCannotGC nogc;
-  if (locale->hasLatin1Chars()) {
-    return FindUnicodeExtensionSequence(locale->latin1Range(nogc));
-  }
-  return FindUnicodeExtensionSequence(locale->twoByteRange(nogc));
-}
-
 class LookupMatcherResult final {
   LanguageId locale_ = LanguageId::und();
-  JSLinearString* extension_ = nullptr;
+  JSLinearString* requestedLocale_ = nullptr;
 
  public:
   LookupMatcherResult() = default;
-  LookupMatcherResult(LanguageId locale, JSLinearString* extension)
-      : locale_(locale), extension_(extension) {}
+  LookupMatcherResult(LanguageId locale, JSLinearString* requestedLocale)
+      : locale_(locale), requestedLocale_(requestedLocale) {}
 
   auto locale() const { return locale_; }
-  auto* extension() const { return extension_; }
+  auto* requestedLocale() const { return requestedLocale_; }
 
   // Helper method for WrappedPtrOperations.
-  auto extensionDoNotUse() const { return &extension_; }
+  auto requestedLocaleDoNotUse() const { return &requestedLocale_; }
 
   // Trace implementation.
   void trace(JSTracer* trc);
 };
 
 void LookupMatcherResult::trace(JSTracer* trc) {
-  TraceNullableRoot(trc, &extension_, "LookupMatcherResult::extension");
+  TraceNullableRoot(trc, &requestedLocale_,
+                    "LookupMatcherResult::requestedLocale");
 }
 
 namespace js {
@@ -452,9 +409,9 @@ class WrappedPtrOperations<LookupMatcherResult, Wrapper> {
  public:
   LanguageId locale() const { return container().locale(); }
 
-  JS::Handle<JSLinearString*> extension() const {
+  JS::Handle<JSLinearString*> requestedLocale() const {
     return JS::Handle<JSLinearString*>::fromMarkedLocation(
-        container().extensionDoNotUse());
+        container().requestedLocaleDoNotUse());
   }
 };
 }  // namespace js
@@ -487,58 +444,25 @@ static bool LookupMatcher(JSContext* cx, AvailableLocaleKind availableLocales,
 
   // Step 2.
   Rooted<JSLinearString*> locale(cx);
-  Rooted<JSLinearString*> noExtensionsLocale(cx);
   for (size_t i = 0, length = locales->length(); i < length; i++) {
     locale = locales->getDenseElement(i).toString()->ensureLinear(cx);
     if (!locale) {
       return false;
     }
 
-    // Step 2.a.
-    //
-    // Use the base name to ignore any extension sequences.
-    noExtensionsLocale =
-        NewDependentString(cx, locale, 0, BaseNameLength(locale));
-    if (!noExtensionsLocale) {
-      return false;
-    }
-
-    // Step 2.b.
+    // Steps 2.a-b.
     mozilla::Maybe<LanguageId> availableLocale{};
-    if (!BestAvailableLocale(cx, availableLocales, noExtensionsLocale,
+    if (!BestAvailableLocale(cx, availableLocales, locale,
                              mozilla::Some(defaultLocale), &availableLocale)) {
       return false;
     }
 
     // Step 2.c.
     if (availableLocale) {
-      // Step 2.c.i. (Not applicable)
-
-      // Step 2.c.ii.
-      //
-      // Search for Unicode extension sequences if |locale| contains any
-      // extension subtags.
-      JSLinearString* extension = nullptr;
-      if (locale->length() > noExtensionsLocale->length()) {
-        auto [startOfUnicodeExtensions, endOfUnicodeExtensions] =
-            FindUnicodeExtensionSequence(locale);
-
-        // Extract the Unicode extension sequence of |locale|.
-        if (startOfUnicodeExtensions) {
-          MOZ_ASSERT(startOfUnicodeExtensions < endOfUnicodeExtensions);
-          MOZ_ASSERT(endOfUnicodeExtensions <= locale->length());
-
-          extension = NewDependentString(
-              cx, locale, startOfUnicodeExtensions,
-              endOfUnicodeExtensions - startOfUnicodeExtensions);
-          if (!extension) {
-            return false;
-          }
-        }
-      }
+      // Steps 2.c.i-ii. (Not applicable)
 
       // Step 2.c.iii.
-      result.set({*availableLocale, extension});
+      result.set({*availableLocale, locale});
       return true;
     }
   }
@@ -623,8 +547,24 @@ class UnicodeExtensionKeywords {
  * UnicodeExtensionComponents ( extension )
  */
 template <typename CharT>
-static auto UnicodeExtensionComponents(
-    std::basic_string_view<CharT> extension) {
+static auto UnicodeExtensionComponents(std::basic_string_view<CharT> locale) {
+  // Search for Unicode extension sequences in |locale|.
+  auto [startOfUnicodeExtensions, endOfUnicodeExtensions] =
+      FindUnicodeExtensionSequence(locale);
+
+  // Return early if |locale| contains no Unicode extension sequences.
+  if (!startOfUnicodeExtensions) {
+    return UnicodeExtensionKeywords{};
+  }
+
+  // Extract the Unicode extension sequence of |locale|.
+  MOZ_ASSERT(startOfUnicodeExtensions < endOfUnicodeExtensions);
+  MOZ_ASSERT(endOfUnicodeExtensions <= locale.length());
+
+  auto extension =
+      locale.substr(startOfUnicodeExtensions,
+                    endOfUnicodeExtensions - startOfUnicodeExtensions);
+
   // Step 1.
   MOZ_ASSERT(std::all_of(extension.begin(), extension.end(), [](auto ch) {
     return mozilla::IsAscii(ch) && !mozilla::IsAsciiUppercaseAlpha(ch);
@@ -664,7 +604,7 @@ static auto UnicodeExtensionComponents(
 
       if (key && !keywords.has(*key)) {
         // Record keyword start position.
-        keywords.get(*key) = {k + 3, 0};
+        keywords.get(*key) = {startOfUnicodeExtensions + k + 3, 0};
       } else {
         // Ignore duplicate or irrelevant keywords.
         key = mozilla::Nothing();
@@ -690,20 +630,32 @@ static auto UnicodeExtensionComponents(
 /**
  * UnicodeExtensionComponents ( extension )
  */
-static auto UnicodeExtensionComponents(const JSLinearString* extension) {
-  MOZ_ASSERT(StringIsAscii(extension));
+static bool CanHaveUnicodeExtensionComponents(const JSLinearString* locale) {
+  // Smallest language subtag has two characters.
+  // Smallest Unicode extension sequence has five characters
+  constexpr size_t minLength = 2 + 5;
+
+  // NB: |locale| can be nullptr when the default locale is used.
+  return locale && locale->length() >= minLength;
+}
+
+/**
+ * UnicodeExtensionComponents ( extension )
+ */
+static auto UnicodeExtensionComponents(const JSLinearString* locale) {
+  MOZ_ASSERT(CanHaveUnicodeExtensionComponents(locale));
+  MOZ_ASSERT(StringIsAscii(locale));
 
   JS::AutoCheckCannotGC nogc;
 
-  if (extension->hasLatin1Chars()) {
-    const auto* chars = extension->latin1Chars(nogc);
-    std::string_view sv{reinterpret_cast<const char*>(chars),
-                        extension->length()};
+  if (locale->hasLatin1Chars()) {
+    const auto* chars = locale->latin1Chars(nogc);
+    std::string_view sv{reinterpret_cast<const char*>(chars), locale->length()};
     return UnicodeExtensionComponents(sv);
   }
 
-  const auto* chars = extension->twoByteChars(nogc);
-  std::u16string_view sv{chars, extension->length()};
+  const auto* chars = locale->twoByteChars(nogc);
+  std::u16string_view sv{chars, locale->length()};
   return UnicodeExtensionComponents(sv);
 }
 
@@ -1081,8 +1033,8 @@ bool js::intl::ResolveLocale(
 
   // Steps 10-11.
   UnicodeExtensionKeywords keywords{};
-  if (match.extension()) {
-    keywords = UnicodeExtensionComponents(match.extension());
+  if (CanHaveUnicodeExtensionComponents(match.requestedLocale())) {
+    keywords = UnicodeExtensionComponents(match.requestedLocale());
   }
 
   // Step 12.
@@ -1109,10 +1061,10 @@ bool js::intl::ResolveLocale(
 
       // Step 13.f.ii.
       if (length > 0) {
-        MOZ_ASSERT(start + length <= match.extension()->length());
+        MOZ_ASSERT(start + length <= match.requestedLocale()->length());
 
         keywordsValue =
-            NewDependentString(cx, match.extension(), start, length);
+            NewDependentString(cx, match.requestedLocale(), start, length);
         if (!keywordsValue) {
           return false;
         }
