@@ -141,7 +141,7 @@ static auto ToLanguageId(const JSLinearString* locale) {
  */
 static bool BestAvailableLocale(JSContext* cx,
                                 AvailableLocaleKind availableLocales,
-                                Handle<JSLinearString*> locale,
+                                LanguageId locale,
                                 mozilla::Maybe<LanguageId> defaultLocale,
                                 mozilla::Maybe<LanguageId>* result) {
   // In the spec, [[availableLocales]] is formally a list of all available
@@ -157,22 +157,8 @@ static bool BestAvailableLocale(JSContext* cx,
 
   auto& sharedIntlData = cx->runtime()->sharedIntlData.ref();
 
-  if (!AssertCanonicalLocaleWithoutUnicodeExtension(cx, locale)) {
-    return false;
-  }
-
   // Step 1.
-  auto parsedLangId = ToLanguageId(locale);
-
-  // Reject locales with overlong language subtags.
-  if (!parsedLangId) {
-    *result = mozilla::Nothing();
-    return true;
-  }
-
-  // Variant and extension subtags are ignored, because all supported available
-  // locales only consist of language, script, and region subtags.
-  auto candidate = parsedLangId->first;
+  auto candidate = locale;
 
   // Step 2.
   while (candidate != LanguageId::und()) {
@@ -198,6 +184,44 @@ static bool BestAvailableLocale(JSContext* cx,
 
   *result = mozilla::Nothing();
   return true;
+}
+
+/**
+ * 9.2.2 BestAvailableLocale ( availableLocales, locale )
+ */
+static bool BestAvailableLocale(JSContext* cx,
+                                AvailableLocaleKind availableLocales,
+                                Handle<JSLinearString*> locale,
+                                mozilla::Maybe<LanguageId> defaultLocale,
+                                mozilla::Maybe<LanguageId>* result) {
+  if (!AssertCanonicalLocaleWithoutUnicodeExtension(cx, locale)) {
+    return false;
+  }
+
+  auto parsedLangId = ToLanguageId(locale);
+
+  // Reject locales with overlong language subtags.
+  if (!parsedLangId) {
+    *result = mozilla::Nothing();
+    return true;
+  }
+
+  // Variant and extension subtags in |locale| are ignored, because all
+  // supported available locales only consist of language, script, and region
+  // subtags.
+  return BestAvailableLocale(cx, availableLocales, parsedLangId->first,
+                             defaultLocale, result);
+}
+
+/**
+ * 9.2.2 BestAvailableLocale ( availableLocales, locale )
+ */
+static bool BestAvailableLocale(JSContext* cx,
+                                AvailableLocaleKind availableLocales,
+                                LanguageId locale,
+                                mozilla::Maybe<LanguageId>* result) {
+  return BestAvailableLocale(cx, availableLocales, locale, mozilla::Nothing(),
+                             result);
 }
 
 /**
@@ -1274,19 +1298,43 @@ ArrayObject* js::intl::CanonicalizeLocaleList(JSContext* cx,
   return LocalesListToArray(cx, requestedLocales);
 }
 
+static mozilla::Maybe<LanguageId> FromLocale(
+    const mozilla::intl::Locale& locale) {
+  MOZ_ASSERT(locale.Language().Present());
+
+  // Reject overlong language subtags.
+  if (locale.Language().Length() > 3) {
+    return mozilla::Nothing();
+  }
+
+  // The default locale must be in [[AvailableLocales]], and that list must
+  // not contain any locales with Unicode extension sequences, so remove any
+  // present in the candidate.
+
+  auto toStringView = [](auto span) {
+    return std::string_view{span.data(), span.size()};
+  };
+
+  auto language = toStringView(locale.Language().Span());
+  auto script = toStringView(locale.Script().Span());
+  auto region = toStringView(locale.Region().Span());
+
+  return mozilla::Some(LanguageId::fromParts(language, script, region));
+}
+
 /**
  * Certain old, commonly-used language tags that lack a script, are expected to
  * nonetheless imply one. This object maps these old-style tags to modern
  * equivalents.
  */
 struct OldStyleLanguageTagMapping {
-  std::string_view oldStyle;
-  std::string_view modernStyle;
+  LanguageId oldStyle;
+  LanguageId modernStyle;
 
-  // Provide a constructor to catch missing initializers in the mappings array.
-  constexpr OldStyleLanguageTagMapping(std::string_view oldStyle,
+  consteval OldStyleLanguageTagMapping(std::string_view oldStyle,
                                        std::string_view modernStyle)
-      : oldStyle(oldStyle), modernStyle(modernStyle) {}
+      : oldStyle(LanguageId::fromValidBcp49(oldStyle)),
+        modernStyle(LanguageId::fromValidBcp49(modernStyle)) {}
 };
 
 static constexpr OldStyleLanguageTagMapping oldStyleLanguageTagMappings[] = {
@@ -1294,13 +1342,13 @@ static constexpr OldStyleLanguageTagMapping oldStyleLanguageTagMappings[] = {
     {"zh-SG", "zh-Hans-SG"}, {"zh-TW", "zh-Hant-TW"},
 };
 
-static std::string_view AddImplicitScriptToLocale(std::string_view locale) {
+static auto AddImplicitScriptToLocale(LanguageId locale) {
   for (const auto& [oldStyle, modernStyle] : oldStyleLanguageTagMappings) {
     if (locale == oldStyle) {
       return modernStyle;
     }
   }
-  return {};
+  return locale;
 }
 
 bool js::intl::ComputeDefaultLocale(JSContext* cx, LanguageId* result) {
@@ -1317,36 +1365,15 @@ bool js::intl::ComputeDefaultLocale(JSContext* cx, LanguageId* result) {
       mozilla::intl::LocaleParser::TryParse(span, tag).isOk() &&
       tag.Canonicalize().isOk();
 
-  Rooted<JSLinearString*> candidate(cx);
-  if (!canParseLocale) {
-    candidate = NewStringCopy<CanGC>(cx, LastDitchLocale());
-    if (!candidate) {
-      return false;
-    }
-  } else {
-    // The default locale must be in [[AvailableLocales]], and that list must
-    // not contain any locales with Unicode extension sequences, so remove any
-    // present in the candidate.
-    tag.ClearUnicodeExtension();
+  static constexpr LanguageId lastDitchLocale = LastDitchLocale();
 
-    FormatBuffer<char, INITIAL_CHAR_BUFFER_SIZE> buffer(cx);
-    if (auto result = tag.ToString(buffer); result.isErr()) {
-      ReportInternalError(cx, result.unwrapErr());
-      return false;
-    }
+  auto candidate = lastDitchLocale;
+  if (canParseLocale) {
+    candidate = FromLocale(tag).valueOr(lastDitchLocale);
 
     // Certain old-style language tags lack a script code, but in current usage
     // they *would* include a script code. Map these over to modern forms.
-    auto modernStyle =
-        AddImplicitScriptToLocale({buffer.data(), buffer.length()});
-    if (modernStyle.empty()) {
-      candidate = buffer.toAsciiString(cx);
-    } else {
-      candidate = NewStringCopy<CanGC>(cx, modernStyle);
-    }
-    if (!candidate) {
-      return false;
-    }
+    candidate = AddImplicitScriptToLocale(candidate);
   }
 
   // 9.1 Internal slots of Service Constructors
@@ -1406,11 +1433,8 @@ bool js::intl::ComputeDefaultLocale(JSContext* cx, LanguageId* result) {
       *result = *supportedCollator;
     }
   } else {
-    static constexpr auto lastDitch =
-        LanguageId::fromValidBcp49(LastDitchLocale());
-
     // Return the last ditch locale if the candidate locale isn't supported.
-    *result = lastDitch;
+    *result = lastDitchLocale;
   }
   return true;
 }

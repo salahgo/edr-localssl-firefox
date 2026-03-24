@@ -433,8 +433,7 @@ bool js::intl::SharedIntlData::getAvailableLocales(
   // directly support it (but does support it through fallback, e.g. supporting
   // "en-GB" indirectly using "en" support).
   {
-    static constexpr auto lastDitch =
-        LanguageId::fromValidBcp49(LastDitchLocale());
+    static constexpr auto lastDitch = LastDitchLocale();
     static_assert(std::string_view{lastDitch.toString()} == "en-GB");
 
 #ifdef DEBUG
