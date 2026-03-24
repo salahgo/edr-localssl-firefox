@@ -282,7 +282,7 @@ void DDMediaLogs::ProcessBuffer() {
   MOZ_ASSERT(!mThread || mThread.get() == NS_GetCurrentThread());
 
   mMessagesQueue.PopAll([this](const DDLogMessage& message) {
-    DDL_DEBUG("Processing: %s", message.Print().Data());
+    DDL_DEBUG("Processing: %s", message.Print().get());
 
     // Either this message will carry a new object for which to create a
     // lifetime, or we'll find an existing one.

@@ -107,7 +107,7 @@ bool WebGLContext::InitWebGL2(FailureReason* const out_failReason) {
     const nsPrintfCString reason(
         "WebGL 2 requires support for the following"
         " features: %s",
-        exts.BeginReading());
+        exts.get());
     *out_failReason = FailureReason("FEATURE_FAILURE_WEBGL2_OCCL", reason);
     return false;
   }

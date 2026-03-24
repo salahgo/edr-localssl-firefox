@@ -183,7 +183,7 @@ bool FakeInputStream::NextTest() {
 }
 
 void FakeInputStream::CheckTest(nsACString& aResult) {
-  ASSERT_STREQ(aResult.BeginReading(), mTest->mResult);
+  ASSERT_STREQ(PromiseFlatCString(aResult).get(), mTest->mResult);
 }
 
 void FakeInputStream::CheckTest(nsAString& aResult) {

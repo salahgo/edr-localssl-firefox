@@ -616,7 +616,7 @@ nsresult mozJSModuleLoader::LoadSingleModuleScriptOnWorker(
   //       main thread, and supporting it requires too much complexity compared
   //       to the benefit.
   options.setNoScriptRval(true);
-  options.setFileAndLine(location.BeginReading(), 1);
+  options.setFileAndLine(location.get(), 1);
   SetModuleOptions(options);
 
   // Worker global doesn't have the source hook.

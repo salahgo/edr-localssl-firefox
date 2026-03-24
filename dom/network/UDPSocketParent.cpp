@@ -54,14 +54,14 @@ bool UDPSocketParent::Init(nsIPrincipal* aPrincipal,
         printf_stderr(
             "Cannot create filter that content specified. "
             "filter name: %s, error code: %u.",
-            aFilter.BeginReading(), static_cast<uint32_t>(rv));
+            PromiseFlatCString(aFilter).get(), static_cast<uint32_t>(rv));
         return false;
       }
     } else {
       printf_stderr(
           "Content doesn't have a valid filter. "
           "filter name: %s.",
-          aFilter.BeginReading());
+          PromiseFlatCString(aFilter).get());
       return false;
     }
   }
@@ -135,7 +135,7 @@ nsresult UDPSocketParent::BindInternal(const nsCString& aHost,
   } else {
     PRNetAddr prAddr;
     PR_InitializeNetAddr(PR_IpAddrAny, aPort, &prAddr);
-    PRStatus status = PR_StringToNetAddr(aHost.BeginReading(), &prAddr);
+    PRStatus status = PR_StringToNetAddr(aHost.get(), &prAddr);
     if (status != PR_SUCCESS) {
       return NS_ERROR_FAILURE;
     }
@@ -283,7 +283,7 @@ nsresult UDPSocketParent::ConnectInternal(const nsCString& aHost,
   PRNetAddr prAddr;
   memset(&prAddr, 0, sizeof(prAddr));
   PR_InitializeNetAddr(PR_IpAddrAny, aPort, &prAddr);
-  PRStatus status = PR_StringToNetAddr(aHost.BeginReading(), &prAddr);
+  PRStatus status = PR_StringToNetAddr(aHost.get(), &prAddr);
   if (status != PR_SUCCESS) {
     return NS_ERROR_FAILURE;
   }

@@ -24,17 +24,17 @@
 
 extern mozilla::LogModule* GetMediaSourceSamplesLog();
 
-#define MSE_DEBUG(arg, ...)                                            \
-  DDMOZ_LOG(GetMediaSourceSamplesLog(), mozilla::LogLevel::Debug,      \
-            "(%s)::%s: " arg, mType.OriginalString().Data(), __func__, \
+#define MSE_DEBUG(arg, ...)                                           \
+  DDMOZ_LOG(GetMediaSourceSamplesLog(), mozilla::LogLevel::Debug,     \
+            "(%s)::%s: " arg, mType.OriginalString().get(), __func__, \
             ##__VA_ARGS__)
-#define MSE_DEBUGV(arg, ...)                                           \
-  DDMOZ_LOG(GetMediaSourceSamplesLog(), mozilla::LogLevel::Verbose,    \
-            "(%s)::%s: " arg, mType.OriginalString().Data(), __func__, \
+#define MSE_DEBUGV(arg, ...)                                          \
+  DDMOZ_LOG(GetMediaSourceSamplesLog(), mozilla::LogLevel::Verbose,   \
+            "(%s)::%s: " arg, mType.OriginalString().get(), __func__, \
             ##__VA_ARGS__)
 #define MSE_DEBUGVEX(_this, arg, ...)                                        \
   DDMOZ_LOGEX(_this, GetMediaSourceSamplesLog(), mozilla::LogLevel::Verbose, \
-              "(%s)::%s: " arg, mType.OriginalString().Data(), __func__,     \
+              "(%s)::%s: " arg, mType.OriginalString().get(), __func__,      \
               ##__VA_ARGS__)
 
 namespace mozilla {

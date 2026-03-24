@@ -1154,8 +1154,8 @@ void AddHighValuePermission(nsIPrincipal* aResultPrincipal,
   }
 
   MOZ_LOG(dom::gProcessIsolationLog, LogLevel::Verbose,
-          ("Adding %s Permission for site '%s'", aPermissionType.BeginReading(),
-           siteOrigin.get()));
+          ("Adding %s Permission for site '%s'",
+           PromiseFlatCString(aPermissionType).get(), siteOrigin.get()));
 
   uint32_t expiration = 0;
   if (aPermissionType.Equals(mozilla::dom::kHighValueCOOPPermission)) {

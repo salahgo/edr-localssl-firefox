@@ -415,8 +415,8 @@ void WorkerErrorReport::LogErrorToConsole(const ErrorData& aReport,
         return;
       }
       NS_WARNING("LogMessage failed!");
-    } else if (NS_SUCCEEDED(consoleService->LogStringMessage(
-                   aReport.message().BeginReading()))) {
+    } else if (NS_SUCCEEDED(
+                   consoleService->LogStringMessage(aReport.message().get()))) {
       return;
     }
     NS_WARNING("LogStringMessage failed!");
@@ -444,7 +444,7 @@ void WorkerErrorReport::LogErrorToConsole(const nsAString& aMessage) {
       do_GetService(NS_CONSOLESERVICE_CONTRACTID);
   NS_WARNING_ASSERTION(consoleService, "Failed to get console service!");
 
-  consoleService->LogStringMessage(aMessage.BeginReading());
+  consoleService->LogStringMessage(PromiseFlatString(aMessage).get());
 }
 
 /* static */

@@ -2390,7 +2390,7 @@ nsresult Http2Session::RecvAltSvc(Http2Session* self) {
       LOG3(
           ("Http2Session::RecvAltSvc %p can't reroute non-authoritative origin "
            "%s",
-           self, origin.BeginReading()));
+           self, origin.get()));
       self->ResetDownstreamState();
       return NS_OK;
     }

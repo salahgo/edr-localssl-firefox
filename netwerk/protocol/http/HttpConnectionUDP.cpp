@@ -555,7 +555,7 @@ already_AddRefed<nsIInputStream> HttpConnectionUDP::CreateProxyConnectStream(
   if (LOG1_ENABLED()) {
     LOG(("HttpConnectionUDP::MakeConnectString for transaction=%p[",
          trans->QueryHttpTransaction()));
-    LogHeaders(result.BeginReading());
+    LogHeaders(result.get());
     LOG(("]"));
   }
   result.AppendLiteral("\r\n");

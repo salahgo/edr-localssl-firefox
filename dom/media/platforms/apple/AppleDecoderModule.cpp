@@ -125,7 +125,7 @@ DecodeSupportSet AppleDecoderModule::SupportsMimeType(
   MOZ_LOG(sPDMLog, LogLevel::Debug,
           ("Apple decoder %s requested type '%s'",
            supportType.isEmpty() ? "rejects" : "supports",
-           aMimeType.BeginReading()));
+           PromiseFlatCString(aMimeType).get()));
   return supportType;
 }
 
@@ -282,9 +282,8 @@ bool AppleDecoderModule::CanCreateHWDecoder(const MediaCodec& aCodec) {
   nsAutoCString failureReason;
   bool hwSupport = decoder->IsHardwareAccelerated(failureReason);
   if (!hwSupport) {
-    MOZ_LOG(
-        sPDMLog, LogLevel::Debug,
-        ("VT decoder failed to use HW : '%s'", failureReason.BeginReading()));
+    MOZ_LOG(sPDMLog, LogLevel::Debug,
+            ("VT decoder failed to use HW : '%s'", failureReason.get()));
   }
   return hwSupport;
 }

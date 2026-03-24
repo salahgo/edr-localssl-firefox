@@ -1345,7 +1345,8 @@ nsUDPSocket::JoinMulticast(const nsACString& aAddr, const nsACString& aIface) {
   }
 
   PRNetAddr prAddr;
-  if (PR_StringToNetAddr(aAddr.BeginReading(), &prAddr) != PR_SUCCESS) {
+  if (PR_StringToNetAddr(PromiseFlatCString(aAddr).get(), &prAddr) !=
+      PR_SUCCESS) {
     return NS_ERROR_FAILURE;
   }
 
@@ -1353,7 +1354,8 @@ nsUDPSocket::JoinMulticast(const nsACString& aAddr, const nsACString& aIface) {
   if (aIface.IsEmpty()) {
     PR_InitializeNetAddr(PR_IpAddrAny, 0, &prIface);
   } else {
-    if (PR_StringToNetAddr(aIface.BeginReading(), &prIface) != PR_SUCCESS) {
+    if (PR_StringToNetAddr(PromiseFlatCString(aIface).get(), &prIface) !=
+        PR_SUCCESS) {
       return NS_ERROR_FAILURE;
     }
   }
@@ -1406,7 +1408,8 @@ nsUDPSocket::LeaveMulticast(const nsACString& aAddr, const nsACString& aIface) {
   }
 
   PRNetAddr prAddr;
-  if (PR_StringToNetAddr(aAddr.BeginReading(), &prAddr) != PR_SUCCESS) {
+  if (PR_StringToNetAddr(PromiseFlatCString(aAddr).get(), &prAddr) !=
+      PR_SUCCESS) {
     return NS_ERROR_FAILURE;
   }
 
@@ -1414,7 +1417,8 @@ nsUDPSocket::LeaveMulticast(const nsACString& aAddr, const nsACString& aIface) {
   if (aIface.IsEmpty()) {
     PR_InitializeNetAddr(PR_IpAddrAny, 0, &prIface);
   } else {
-    if (PR_StringToNetAddr(aIface.BeginReading(), &prIface) != PR_SUCCESS) {
+    if (PR_StringToNetAddr(PromiseFlatCString(aIface).get(), &prIface) !=
+        PR_SUCCESS) {
       return NS_ERROR_FAILURE;
     }
   }
@@ -1574,7 +1578,8 @@ nsUDPSocket::SetMulticastInterface(const nsACString& aIface) {
   if (aIface.IsEmpty()) {
     PR_InitializeNetAddr(PR_IpAddrAny, 0, &prIface);
   } else {
-    if (PR_StringToNetAddr(aIface.BeginReading(), &prIface) != PR_SUCCESS) {
+    if (PR_StringToNetAddr(PromiseFlatCString(aIface).get(), &prIface) !=
+        PR_SUCCESS) {
       return NS_ERROR_FAILURE;
     }
   }

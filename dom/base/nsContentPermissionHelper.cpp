@@ -631,8 +631,7 @@ nsresult TranslateChoices(
 
       JS::Rooted<JS::Value> val(cx);
 
-      if (!JS_GetProperty(cx, obj, type.BeginReading(), &val) ||
-          !val.isString()) {
+      if (!JS_GetProperty(cx, obj, type.get(), &val) || !val.isString()) {
         // no setting for the permission type, clear exception and skip it
         jsapi.ClearException();
       } else {

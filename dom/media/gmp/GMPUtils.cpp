@@ -348,7 +348,8 @@ bool AdjustOpenH264NALUSequence(GMPVideoEncodedFrame* aEncodedFrame) {
 }
 
 MediaResult ToMediaResult(GMPErr aErr, const nsACString& aMessage) {
-  nsPrintfCString msg("%s (GMPErr:%x)", aMessage.Data(), aErr);
+  nsPrintfCString msg("%s (GMPErr:%x)", PromiseFlatCString(aMessage).get(),
+                      aErr);
   switch (aErr) {
     case GMPDecodeErr:
       return MediaResult(NS_ERROR_DOM_MEDIA_DECODE_ERR, msg);

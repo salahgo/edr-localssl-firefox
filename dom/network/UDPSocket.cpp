@@ -394,8 +394,7 @@ nsresult UDPSocket::InitLocal(const nsAString& aLocalAddress,
   } else {
     PRNetAddr prAddr;
     PR_InitializeNetAddr(PR_IpAddrAny, aLocalPort, &prAddr);
-    PR_StringToNetAddr(NS_ConvertUTF16toUTF8(aLocalAddress).BeginReading(),
-                       &prAddr);
+    PR_StringToNetAddr(NS_ConvertUTF16toUTF8(aLocalAddress).get(), &prAddr);
     UDPSOCKET_LOG(("%s: %s:%u", __FUNCTION__,
                    NS_ConvertUTF16toUTF8(aLocalAddress).get(), aLocalPort));
 

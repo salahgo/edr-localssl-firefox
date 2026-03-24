@@ -388,7 +388,8 @@ nsSynthVoiceRegistry::NotifyVoicesError(const nsAString& aError) {
     return NS_ERROR_NOT_AVAILABLE;
   }
 
-  obs->NotifyObservers(nullptr, "synth-voices-error", aError.BeginReading());
+  obs->NotifyObservers(nullptr, "synth-voices-error",
+                       PromiseFlatString(aError).get());
 
   return NS_OK;
 }

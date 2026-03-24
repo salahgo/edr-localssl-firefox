@@ -3782,7 +3782,7 @@ void nsHttpConnectionMgr::ResetIPFamilyPreference(nsHttpConnectionInfo* ci) {
 
 void nsHttpConnectionMgr::ExcludeHttp2(const nsHttpConnectionInfo* ci) {
   LOG(("nsHttpConnectionMgr::ExcludeHttp2 excluding ci %s",
-       ci->HashKey().BeginReading()));
+       ci->HashKey().get()));
   ConnectionEntry* ent = mCT.GetWeak(ci->HashKey());
   if (!ent) {
     LOG(("nsHttpConnectionMgr::ExcludeHttp2 no entry found?!"));
@@ -3793,8 +3793,7 @@ void nsHttpConnectionMgr::ExcludeHttp2(const nsHttpConnectionInfo* ci) {
 }
 
 void nsHttpConnectionMgr::ExcludeHttp3(const nsHttpConnectionInfo* ci) {
-  LOG(("nsHttpConnectionMgr::ExcludeHttp3 exclude ci %s",
-       ci->HashKey().BeginReading()));
+  LOG(("nsHttpConnectionMgr::ExcludeHttp3 exclude ci %s", ci->HashKey().get()));
   ConnectionEntry* ent = mCT.GetWeak(ci->HashKey());
   if (!ent) {
     LOG(("nsHttpConnectionMgr::ExcludeHttp3 no entry found?!"));

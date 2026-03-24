@@ -76,7 +76,7 @@ class GMPDiskStorage : public GMPStorage {
  public:
   explicit GMPDiskStorage(const nsACString& aNodeId, const nsAString& aGMPName)
       : mNodeId(aNodeId), mGMPName(aGMPName) {
-    LOG("Created GMPDiskStorage, nodeId=%s, gmpName=%s", mNodeId.BeginReading(),
+    LOG("Created GMPDiskStorage, nodeId=%s, gmpName=%s", mNodeId.get(),
         NS_ConvertUTF16toUTF8(mGMPName).get());
   }
 

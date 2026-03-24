@@ -615,7 +615,7 @@ LogTaskBase<nsIRunnable>::Run::Run(nsIRunnable* aEvent, bool aWillRunAgain)
 
   nsAutoCString name;
   named->GetName(name);
-  LOG1(("EXEC %p %p [%s]", aEvent, this, name.BeginReading()));
+  LOG1(("EXEC %p %p [%s]", aEvent, this, name.get()));
 }
 
 template <>
@@ -631,7 +631,7 @@ LogTaskBase<Task>::Run::Run(Task* aTask, bool aWillRunAgain)
     return;
   }
 
-  LOG1(("EXEC %p %p [%s]", aTask, this, name.BeginReading()));
+  LOG1(("EXEC %p %p [%s]", aTask, this, name.get()));
 }
 
 template <>

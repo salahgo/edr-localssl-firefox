@@ -526,8 +526,8 @@ bool CookieParser::GetExpiry(CookieStruct& aCookieData,
   if (!aExpires.IsEmpty()) {
     // parse expiry time
     PRTime expiresTimeInUSec;
-    if (PR_ParseTimeString(aExpires.BeginReading(), true, &expiresTimeInUSec) !=
-        PR_SUCCESS) {
+    if (PR_ParseTimeString(PromiseFlatCString(aExpires).get(), true,
+                           &expiresTimeInUSec) != PR_SUCCESS) {
       return true;
     }
 
@@ -541,7 +541,7 @@ bool CookieParser::GetExpiry(CookieStruct& aCookieData,
       MOZ_ASSERT(aFromHttp);
 
       PRTime dateHeaderTimeInUSec;
-      if (PR_ParseTimeString(aDateHeader.BeginReading(), true,
+      if (PR_ParseTimeString(PromiseFlatCString(aDateHeader).get(), true,
                              &dateHeaderTimeInUSec) == PR_SUCCESS &&
           StaticPrefs::network_cookie_useServerTime()) {
         int64_t serverTimeInMSec =

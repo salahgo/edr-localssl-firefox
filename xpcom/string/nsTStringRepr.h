@@ -145,7 +145,10 @@ class nsTStringRepr {
   typedef nsTStringLengthStorage<T> LengthStorage;
 
   // Reading iterators.
-  constexpr const_char_iterator BeginReading() const MOZ_LIFETIME_BOUND {
+  // You must not assume the returned value is null-terminated.
+  // If you need a null terminated string, use nsTString::get().
+  constexpr const_char_iterator BeginReading() const MOZ_LIFETIME_BOUND
+      MOZ_NON_TERMINATED_STRING {
     return mData;
   }
   constexpr const_char_iterator EndReading() const MOZ_LIFETIME_BOUND {
@@ -168,7 +171,7 @@ class nsTStringRepr {
   }
 
   const_char_iterator& BeginReading(const_char_iterator& aIter) const
-      MOZ_LIFETIME_BOUND {
+      MOZ_LIFETIME_BOUND MOZ_NON_TERMINATED_STRING {
     return aIter = mData;
   }
 
@@ -189,8 +192,11 @@ class nsTStringRepr {
   };
 #endif
 
-  // Returns pointer to string data (not necessarily null-terminated)
-  constexpr typename raw_type<T, int>::type Data() const MOZ_LIFETIME_BOUND {
+  // Returns a raw pointer to the start of the string's data.
+  // You must not assume the returned value is null-terminated.
+  // If you need a null terminated string, use nsTString::get().
+  constexpr typename raw_type<T, int>::type Data() const MOZ_LIFETIME_BOUND
+      MOZ_NON_TERMINATED_STRING {
     return mData;
   }
 

@@ -329,7 +329,7 @@ struct nsHttpAtom {
     if (_val.IsEmpty()) {
       return nullptr;
     }
-    return _val.BeginReading();
+    return _val.get();
   }
 
   const nsCString& val() const { return _val; }

@@ -2488,7 +2488,7 @@ Result<uint32_t, nsresult> MediaCacheStream::ReadBlockFromCache(
   if (NS_FAILED(rv)) {
     nsCString name;
     GetErrorName(rv, name);
-    LOGE("Stream %p ReadCacheFile failed, rv=%s", this, name.Data());
+    LOGE("Stream %p ReadCacheFile failed, rv=%s", this, name.get());
     return mozilla::Err(rv);
   }
 

@@ -798,7 +798,8 @@ PendingDBLookup::~PendingDBLookup() {
 
 nsresult PendingDBLookup::LookupSpec(const nsACString& aSpec,
                                      const LookupType& aLookupType) {
-  LOG(("Checking principal %s [this=%p]", aSpec.Data(), this));
+  LOG(("Checking principal %s [this=%p]", PromiseFlatCString(aSpec).get(),
+       this));
   mSpec = aSpec;
   mLookupType = aLookupType;
   nsresult rv = LookupSpecInternal(aSpec);

@@ -276,7 +276,7 @@ CommonSocketControl::IsAcceptableForHost(const nsACString& hostname,
   }
   bool chainHasValidPins;
   nsresult nsrv = mozilla::psm::PublicKeyPinningService::ChainHasValidPins(
-      derCertSpanList, PromiseFlatCString(hostname).BeginReading(), pkix::Now(),
+      derCertSpanList, PromiseFlatCString(hostname).get(), pkix::Now(),
       mIsBuiltCertChainRootBuiltInRoot, chainHasValidPins, nullptr);
   if (NS_FAILED(nsrv)) {
     return NS_OK;

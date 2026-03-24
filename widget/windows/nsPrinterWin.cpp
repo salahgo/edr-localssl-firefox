@@ -276,7 +276,7 @@ mozilla::gfx::MarginDouble nsPrinterWin::GetMarginsForPaper(
   auto* devmode = reinterpret_cast<DEVMODEW*>(devmodeWStorage.Elements());
 
   devmode->dmFields = DM_PAPERSIZE;
-  devmode->dmPaperSize = _wtoi((const wchar_t*)aPaperId.BeginReading());
+  devmode->dmPaperSize = _wtoi((const wchar_t*)aPaperId.get());
   HDC dc;
   {
     MutexAutoLock autoLock(mDriverMutex);
@@ -439,8 +439,8 @@ PrintSettingsInitializer nsPrinterWin::GetValidatedSettings(
   // Copy the settings from aSettingsToValidate into our DEVMODE.
   DEVMODEW* devmode = reinterpret_cast<DEVMODEW*>(devmodeWStorage.Elements());
   if (!aSettingsToValidate.mPaperInfo.mId.IsEmpty()) {
-    devmode->dmPaperSize = _wtoi(
-        (const wchar_t*)aSettingsToValidate.mPaperInfo.mId.BeginReading());
+    devmode->dmPaperSize =
+        _wtoi((const wchar_t*)aSettingsToValidate.mPaperInfo.mId.get());
     devmode->dmFields |= DM_PAPERSIZE;
   } else {
     devmode->dmPaperSize = 0;

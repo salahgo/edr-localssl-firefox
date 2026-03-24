@@ -4089,7 +4089,8 @@ void MarkBitfieldByStrings(Span<const nsCString> strList, bool dumpStrings,
     const nsACString& str = *itr;
     const bool wasMarked = MarkBitfieldByString(str, markStrList, out_markList);
     if (dumpStrings)
-      printf_stderr("  %s%s\n", str.BeginReading(), wasMarked ? "(*)" : "");
+      printf_stderr("  %s%s\n", PromiseFlatCString(str).get(),
+                    wasMarked ? "(*)" : "");
   }
 }
 

@@ -162,7 +162,8 @@ void AltSvcMapping::ProcessHeader(
       } else if (currentName.EqualsLiteral("ma")) {
         maxage = atoi(PromiseFlatCString(currentValue).get());
       } else {
-        LOG(("Alt Svc ignoring parameter %s", currentName.BeginReading()));
+        LOG(("Alt Svc ignoring parameter %s",
+             PromiseFlatCString(currentName).get()));
       }
     }
 
@@ -184,7 +185,7 @@ void AltSvcMapping::ProcessHeader(
     // unescape modifies a c string in place, so afterwards
     // update nsCString length
     nsUnescape(npnToken.BeginWriting());
-    npnToken.SetLength(strlen(npnToken.BeginReading()));
+    npnToken.SetLength(strlen(npnToken.get()));
     bool isHttp3 = net::IsHttp3(alpnRank);
     SpdyInformation* spdyInfo = gHttpHandler->SpdyInfo();
     if (!(npnToken.Equals(spdyInfo->VersionString) &&

@@ -995,7 +995,8 @@ bool TRRService::IsTemporarilyBlocked(const nsACString& aHost,
     return false;  // might as well try
   }
 
-  LOG(("Checking if host [%s] is blocklisted", aHost.BeginReading()));
+  LOG(("Checking if host [%s] is blocklisted",
+       nsPromiseFlatCString(aHost).get()));
 
   int32_t dot = aHost.FindChar('.');
   if ((dot == kNotFound) && aParentsToo) {
@@ -1041,19 +1042,22 @@ bool TRRService::IsExcludedFromTRR_unlocked(const nsACString& aHost) {
 
     if (mExcludedDomains.Contains(subdomain)) {
       LOG(("Subdomain [%s] of host [%s] Is Excluded From TRR via pref\n",
-           subdomain.BeginReading(), aHost.BeginReading()));
+           nsPromiseFlatCString(subdomain).get(),
+           nsPromiseFlatCString(aHost).get()));
       return true;
     }
     if (mDNSSuffixDomains.Contains(subdomain)) {
       LOG(
           ("Subdomain [%s] of host [%s] Is Excluded From TRR via DNSSuffix "
            "domains\n",
-           subdomain.BeginReading(), aHost.BeginReading()));
+           nsPromiseFlatCString(subdomain).get(),
+           nsPromiseFlatCString(aHost).get()));
       return true;
     }
     if (mEtcHostsDomains.Contains(subdomain)) {
       LOG(("Subdomain [%s] of host [%s] Is Excluded From TRR by /etc/hosts\n",
-           subdomain.BeginReading(), aHost.BeginReading()));
+           nsPromiseFlatCString(subdomain).get(),
+           nsPromiseFlatCString(aHost).get()));
       return true;
     }
 

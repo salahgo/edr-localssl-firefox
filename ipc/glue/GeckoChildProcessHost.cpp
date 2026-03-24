@@ -659,7 +659,7 @@ bool GeckoChildProcessHost::PrepareLaunch(
       for (const nsAString& readPath : readPaths.Split(',')) {
         nsString trimmedPath(readPath);
         trimmedPath.Trim(" ", true, true);
-        std::wstring resolvedPath(trimmedPath.Data());
+        std::wstring resolvedPath(trimmedPath.getW());
         // Check if path ends with '\' as this indicates we want to give read
         // access to a directory and so it needs a wildcard.
         if (resolvedPath.back() == L'\\') {

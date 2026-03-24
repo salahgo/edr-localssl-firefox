@@ -34,7 +34,7 @@ bool HostnameInPref(const char* aPref, const nsCString& aHostName) {
     }
 
     nsDependentCString hostRoot(aHost, hostOffset);
-    return hostRoot.EqualsIgnoreCase(aPattern.BeginReading() + patternOffset);
+    return hostRoot.EqualsIgnoreCase(aPattern.get() + patternOffset);
   };
 
   nsCString domainList;

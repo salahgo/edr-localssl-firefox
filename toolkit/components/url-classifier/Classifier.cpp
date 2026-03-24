@@ -537,7 +537,7 @@ nsresult Classifier::CheckURIFragments(
         urlIdx = i;
       }
     }
-    LOG(("Checking table %s, URL is %s", aTable.BeginReading(),
+    LOG(("Checking table %s, URL is %s", PromiseFlatCString(aTable).get(),
          aSpecFragments[urlIdx].get()));
   }
 
@@ -1635,7 +1635,7 @@ RefPtr<LookupCache> Classifier::GetLookupCache(const nsACString& aTable,
   if (rv == NS_ERROR_FILE_CORRUPTED) {
     // Remove all the on-disk data when the table's prefix file is corrupted.
     LOG(("Failed to get prefixes from file for table %s, delete on-disk data!",
-         aTable.BeginReading()));
+         PromiseFlatCString(aTable).get()));
 
     DeleteTables(mRootStoreDirectory, nsTArray<nsCString>{nsCString(aTable)});
   }

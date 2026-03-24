@@ -463,7 +463,7 @@ nsZipItem* nsZipArchive::GetItem(const nsACString& aEntryName) {
         // Successful GetItem() is a good indicator that the file is about to be
         // read
         if (mUseZipLog && mURI.Length()) {
-          zipLog.Write(mURI, aEntryName.BeginReading());
+          zipLog.Write(mURI, PromiseFlatCString(aEntryName).get());
         }
         return item;  //-- found it
       }

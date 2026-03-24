@@ -66,16 +66,16 @@ TEST(PrefsBasics, Serialize)
 
   nsCString str;
   Preferences::SerializePreferences(str, true);
-  fprintf(stderr, "%s\n", str.Data());
+  fprintf(stderr, "%s\n", str.get());
   // Assert that some prefs were not sanitized
-  ASSERT_NE(nullptr, strstr(str.Data(), "B--:"));
-  ASSERT_NE(nullptr, strstr(str.Data(), "I--:"));
-  ASSERT_NE(nullptr, strstr(str.Data(), "S--:"));
+  ASSERT_NE(nullptr, strstr(str.get(), "B--:"));
+  ASSERT_NE(nullptr, strstr(str.get(), "I--:"));
+  ASSERT_NE(nullptr, strstr(str.get(), "S--:"));
   // Assert that something was sanitized
   ASSERT_NE(
       nullptr,
       strstr(
-          str.Data(),
+          str.get(),
           "I-S:56/datareporting.policy.dataSubmissionPolicyAcceptedVersion"));
 }
 

@@ -559,20 +559,21 @@ nsresult Http2Decompressor::OutputHeader(const nsACString& name,
     // frames, PUSH_PROMISE allows the other pseudo-header fields
     if (!name.EqualsLiteral(":status") && !mIsPush) {
       LOG(("HTTP Decompressor found illegal response pseudo-header %s",
-           name.BeginReading()));
+           PromiseFlatCString(name).get()));
       return NS_ERROR_ILLEGAL_VALUE;
     }
     if (mSeenNonColonHeader) {
-      LOG(("HTTP Decompressor found illegal : header %s", name.BeginReading()));
+      LOG(("HTTP Decompressor found illegal : header %s",
+           PromiseFlatCString(name).get()));
       return NS_ERROR_ILLEGAL_VALUE;
     }
     LOG(("HTTP Decompressor not gatewaying %s into http/1",
-         name.BeginReading()));
+         PromiseFlatCString(name).get()));
     return NS_OK;
   }
 
-  LOG(("Http2Decompressor::OutputHeader %s %s", name.BeginReading(),
-       value.BeginReading()));
+  LOG(("Http2Decompressor::OutputHeader %s %s", PromiseFlatCString(name).get(),
+       PromiseFlatCString(value).get()));
   mSeenNonColonHeader = true;
   mOutput->Append(name);
   mOutput->AppendLiteral(": ");
@@ -588,7 +589,7 @@ nsresult Http2Decompressor::OutputHeader(const nsACString& name,
       name.EqualsLiteral("proxy-authenticate")) {
     if (HasConnectionBasedAuth(value)) {
       LOG3(("Http2Decompressor %p connection-based auth found in %s", this,
-            name.BeginReading()));
+            PromiseFlatCString(name).get()));
       return NS_ERROR_NET_RESET;
     }
   }
@@ -864,13 +865,13 @@ nsresult Http2Decompressor::DoLiteralInternal(nsACString& name,
       }
     }
     LOG(("Http2Decompressor::DoLiteralInternal literal name %s",
-         name.BeginReading()));
+         PromiseFlatCString(name).get()));
   } else {
     // NWGH - make this index, not index - 1
     // name is from headertable
     rv = CopyHeaderString(index - 1, name);
     LOG(("Http2Decompressor::DoLiteralInternal indexed name %d %s", index,
-         name.BeginReading()));
+         PromiseFlatCString(name).get()));
   }
   if (NS_FAILED(rv)) {
     return rv;
@@ -902,7 +903,7 @@ nsresult Http2Decompressor::DoLiteralInternal(nsACString& name,
   while ((newline = value.FindChar('\n', newline)) != -1) {
     if (value[newline + 1] == ' ' || value[newline + 1] == '\t') {
       LOG(("Http2Decompressor::Disallowing folded header value %s",
-           value.BeginReading()));
+           PromiseFlatCString(value).get()));
       return NS_ERROR_ILLEGAL_VALUE;
     }
     // Increment this to avoid always finding the same newline and looping
@@ -910,7 +911,8 @@ nsresult Http2Decompressor::DoLiteralInternal(nsACString& name,
     ++newline;
   }
 
-  LOG(("Http2Decompressor::DoLiteralInternal value %s", value.BeginReading()));
+  LOG(("Http2Decompressor::DoLiteralInternal value %s",
+       PromiseFlatCString(value).get()));
   return NS_OK;
 }
 

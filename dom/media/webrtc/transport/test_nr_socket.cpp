@@ -1072,7 +1072,7 @@ bool TestNrSocket::maybe_send_fake_response(const void* msg, size_t len,
 
   for (const nsCString& address : *redirect_targets) {
     r_log(LOG_GENERIC, LOG_DEBUG,
-          "TestNrSocket attempting to add alternate server %s", address.Data());
+          "TestNrSocket attempting to add alternate server %s", address.get());
     nr_transport_addr addr;
     if (NS_WARN_IF(nr_str_port_to_transport_addr(address.Data(), port,
                                                  IPPROTO_UDP, &addr))) {

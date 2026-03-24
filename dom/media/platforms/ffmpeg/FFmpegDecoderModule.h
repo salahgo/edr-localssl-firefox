@@ -221,7 +221,7 @@ class FFmpegDecoderModule : public PlatformDecoderModule {
     if (VPXDecoder::IsVPX(mimeType) && trackInfo.GetAsVideoInfo()->HasAlpha()) {
       MOZ_LOG(sPDMLog, LogLevel::Debug,
               ("FFmpeg decoder rejects requested type '%s'",
-               mimeType.BeginReading()));
+               PromiseFlatCString(mimeType).get()));
       return media::DecodeSupportSet{};
     }
 
@@ -231,7 +231,7 @@ class FFmpegDecoderModule : public PlatformDecoderModule {
       // (WebRTC).
       MOZ_LOG(sPDMLog, LogLevel::Debug,
               ("FFmpeg decoder rejects requested type '%s' due to low latency",
-               mimeType.BeginReading()));
+               PromiseFlatCString(mimeType).get()));
       return media::DecodeSupportSet{};
     }
 
@@ -240,7 +240,7 @@ class FFmpegDecoderModule : public PlatformDecoderModule {
           sPDMLog, LogLevel::Debug,
           ("FFmpeg decoder rejects requested type '%s' due to being disabled "
            "by the pref",
-           mimeType.BeginReading()));
+           PromiseFlatCString(mimeType).get()));
       return media::DecodeSupportSet{};
     }
 
@@ -251,7 +251,7 @@ class FFmpegDecoderModule : public PlatformDecoderModule {
     if (audioCodec == AV_CODEC_ID_NONE && videoCodec == AV_CODEC_ID_NONE) {
       MOZ_LOG(sPDMLog, LogLevel::Debug,
               ("FFmpeg decoder rejects requested type '%s'",
-               mimeType.BeginReading()));
+               PromiseFlatCString(mimeType).get()));
       return media::DecodeSupportSet{};
     }
     AVCodecID codecId =
@@ -292,10 +292,10 @@ class FFmpegDecoderModule : public PlatformDecoderModule {
                   !supports.contains(media::DecodeSupport::SoftwareDecode));
 #endif
 
-    MOZ_LOG(
-        sPDMLog, LogLevel::Debug,
-        ("FFmpeg decoder %s requested type '%s'",
-         supports.isEmpty() ? "rejects" : "supports", mimeType.BeginReading()));
+    MOZ_LOG(sPDMLog, LogLevel::Debug,
+            ("FFmpeg decoder %s requested type '%s'",
+             supports.isEmpty() ? "rejects" : "supports",
+             PromiseFlatCString(mimeType).get()));
     return supports;
   }
 

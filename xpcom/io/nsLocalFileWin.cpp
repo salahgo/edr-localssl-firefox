@@ -984,7 +984,7 @@ nsLocalFile::nsLocalFile(const nsLocalFile& aOther)
       mWorkingPath(aOther.mWorkingPath) {}
 
 nsresult nsLocalFile::ResolveSymlink() {
-  std::wstring workingPath(mWorkingPath.Data());
+  std::wstring workingPath(mWorkingPath.get());
   if (!widget::WinUtils::ResolveJunctionPointsAndSymLinks(workingPath)) {
     return NS_ERROR_FAILURE;
   }
@@ -1135,7 +1135,8 @@ nsLocalFile::InitWithPath(const nsAString& aFilePath) {
   if (secondChar == L':') {
     // Make sure we have a valid drive, later code assumes the drive letter
     // is a single char a-z or A-Z.
-    if (MozPathGetDriveNumber<wchar_t>(aFilePath.Data()) == -1) {
+    if (MozPathGetDriveNumber<wchar_t>(PromiseFlatString(aFilePath).getW()) ==
+        -1) {
       return NS_ERROR_FILE_UNRECOGNIZED_PATH;
     }
   }

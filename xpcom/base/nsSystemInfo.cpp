@@ -1277,7 +1277,7 @@ nsresult CollectProcessInfo(ProcessInfo& info) {
     for (int32_t cpu = 0; cpu < info.cpuCount; ++cpu) {
       nsPrintfCString core_cpus(
           "/sys/devices/system/cpu/cpu%d/topology/core_cpus", cpu);
-      std::ifstream input(core_cpus.Data());
+      std::ifstream input(core_cpus.get());
       // Kernel versions before 5.3 didn't have core_cpus, they had
       // thread_siblings instead, with the same content. As of writing, kernel
       // version 6.9 still has both, but thread_siblings has been deprecated
@@ -1285,7 +1285,7 @@ nsresult CollectProcessInfo(ProcessInfo& info) {
       if (input.fail()) {
         core_cpus.Truncate(core_cpus.Length() - sizeof("core_cpus") + 1);
         core_cpus.AppendLiteral("thread_siblings");
-        input.open(core_cpus.Data());
+        input.open(core_cpus.get());
       }
       std::string line;
       if (!getline(input, line)) {

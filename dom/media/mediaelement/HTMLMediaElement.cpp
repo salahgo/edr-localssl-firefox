@@ -5559,7 +5559,7 @@ template <typename DecoderType, typename... LoadArgs>
 nsresult HTMLMediaElement::SetupDecoder(DecoderType* aDecoder,
                                         LoadArgs&&... aArgs) {
   LOG(LogLevel::Debug, ("%p Created decoder %p for type %s", this, aDecoder,
-                        aDecoder->ContainerType().OriginalString().Data()));
+                        aDecoder->ContainerType().OriginalString().get()));
 
   nsresult rv = aDecoder->Load(std::forward<LoadArgs>(aArgs)...);
   if (NS_FAILED(rv)) {

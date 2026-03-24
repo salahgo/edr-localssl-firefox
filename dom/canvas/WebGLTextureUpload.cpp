@@ -918,8 +918,7 @@ void WebGLTexture::TexStorage(TexTarget target, uint32_t levels,
     const nsPrintfCString call(
         "DoTexStorage(0x%04x, %i, 0x%04x, %i,%i,%i) -> 0x%04x", target.get(),
         levels, sizedFormat, size.x, size.y, size.z, error);
-    gfxCriticalError() << "Unexpected error from driver: "
-                       << call.BeginReading();
+    gfxCriticalError() << "Unexpected error from driver: " << call.get();
     return;
   }
 
@@ -1121,8 +1120,8 @@ void WebGLTexture::TexImage(uint32_t level, GLenum respecFormat,
         "Unexpected error %s during upload. (dui: %x/%x/%x)", enumStr.c_str(),
         driverUnpackInfo->internalFormat, driverUnpackInfo->unpackFormat,
         driverUnpackInfo->unpackType);
-    mContext->ErrorInvalidOperation("%s", dui.BeginReading());
-    gfxCriticalError() << mContext->FuncName() << ": " << dui.BeginReading();
+    mContext->ErrorInvalidOperation("%s", dui.get());
+    gfxCriticalError() << mContext->FuncName() << ": " << dui.get();
     return;
   }
 
@@ -1338,7 +1337,7 @@ void WebGLTexture::CompressedTexImage(bool sub, GLenum imageTarget,
           size.z, formatEnum, imageSize, ptr);
     }
     gfxCriticalError() << "Unexpected error " << gfx::hexa(error)
-                       << " from driver: " << call.BeginReading();
+                       << " from driver: " << call.get();
     return;
   }
 
@@ -1810,8 +1809,7 @@ static bool DoCopyTexOrSubImage(WebGLContext* webgl, bool isSubImage,
   }
 
   webgl->GenerateError(error, "Unexpected error from driver.");
-  gfxCriticalError() << "Unexpected error from driver: "
-                     << errorText.BeginReading();
+  gfxCriticalError() << "Unexpected error from driver: " << errorText.get();
   return false;
 }
 

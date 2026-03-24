@@ -9582,7 +9582,7 @@ nsresult nsHttpChannel::ContinueOnStartRequest1(nsresult result) {
   if (mAPIRedirectTo && !mCanceled) {
     nsAutoCString redirectToSpec;
     mAPIRedirectTo->first()->GetAsciiSpec(redirectToSpec);
-    LOG(("  redirectTo called with uri=%s", redirectToSpec.BeginReading()));
+    LOG(("  redirectTo called with uri=%s", redirectToSpec.get()));
 
     MOZ_ASSERT(!LoadOnStartRequestCalled());
     PushRedirectAsyncFunc(&nsHttpChannel::ContinueOnStartRequest2);

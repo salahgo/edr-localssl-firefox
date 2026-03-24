@@ -899,7 +899,7 @@ RefPtr<GenericPromise> ProfilerParent::ProfilerStarted(
   // We need filters as a Span<const char*> to test pids in the lambda below.
   auto filtersCStrings = nsTArray<const char*>{aParams->GetFilters().Length()};
   for (const auto& filter : aParams->GetFilters()) {
-    filtersCStrings.AppendElement(filter.Data());
+    filtersCStrings.AppendElement(filter.get());
   }
   aParams->GetActiveTabID(&ipcParams.activeTabID());
 

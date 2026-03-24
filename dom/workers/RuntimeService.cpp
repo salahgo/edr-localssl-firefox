@@ -1710,7 +1710,7 @@ void RuntimeService::CrashIfHanging() {
   msg.Append(activeStats.mMessage);
 
   // This string will be leaked.
-  MOZ_CRASH_UNSAFE(strdup(msg.BeginReading()));
+  MOZ_CRASH_UNSAFE(strdup(msg.get()));
 }
 
 // This spins the event loop until all workers are finished and their threads

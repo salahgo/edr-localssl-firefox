@@ -398,7 +398,7 @@ class WebGLContext : public VRefCounted, public SupportsWeakPtr {
   };
 
   void GenerateErrorImpl(const GLenum err, const nsACString& text) const {
-    GenerateErrorImpl(err, std::string(text.BeginReading()));
+    GenerateErrorImpl(err, std::string(text.View()));
   }
   void GenerateErrorImpl(const GLenum err, const std::string& text) const;
 
@@ -461,7 +461,7 @@ class WebGLContext : public VRefCounted, public SupportsWeakPtr {
         "https://bugzilla.mozilla.org/"
         "enter_bug.cgi?product=Core&component=Canvas%3A+WebGL",
         fmt);
-    GenerateError(LOCAL_GL_OUT_OF_MEMORY, newFmt.BeginReading(), args...);
+    GenerateError(LOCAL_GL_OUT_OF_MEMORY, newFmt.get(), args...);
     MOZ_ASSERT(false, "WebGLContext::ErrorImplementationBug");
     NS_ERROR("WebGLContext::ErrorImplementationBug");
   }

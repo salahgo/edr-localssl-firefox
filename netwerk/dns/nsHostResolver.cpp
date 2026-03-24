@@ -1198,7 +1198,8 @@ nsresult nsHostResolver::ConditionallyRefreshRecord(nsHostRecord* rec,
        rec->negative) &&
       !rec->mResolving && rec->RefreshForNegativeResponse()) {
     LOG(("  Using %s cache entry for host [%s] but starting async renewal.",
-         rec->negative ? "negative" : "positive", host.BeginReading()));
+         rec->negative ? "negative" : "positive",
+         PromiseFlatCString(host).get()));
     NameLookup(rec);
 
     if (rec->IsAddrRecord()) {

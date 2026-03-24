@@ -1689,7 +1689,8 @@ void GeckoMediaPluginServiceParent::ClearNodeIdAndPlugin(
 void GeckoMediaPluginServiceParent::ForgetThisSiteOnGMPThread(
     const nsACString& aSite, const mozilla::OriginAttributesPattern& aPattern) {
   AssertOnGMPThread();
-  GMP_LOG_DEBUG("%s::%s: origin=%s", __CLASS__, __FUNCTION__, aSite.Data());
+  GMP_LOG_DEBUG("%s::%s: origin=%s", __CLASS__, __FUNCTION__,
+                PromiseFlatCString(aSite).get());
 
   struct OriginFilter : public DirectoryFilter {
     explicit OriginFilter(const nsACString& aSite,
@@ -1711,7 +1712,7 @@ void GeckoMediaPluginServiceParent::ForgetThisBaseDomainOnGMPThread(
     const nsACString& aBaseDomain) {
   AssertOnGMPThread();
   GMP_LOG_DEBUG("%s::%s: baseDomain=%s", __CLASS__, __FUNCTION__,
-                aBaseDomain.Data());
+                PromiseFlatCString(aBaseDomain).get());
 
   struct BaseDomainFilter : public DirectoryFilter {
     explicit BaseDomainFilter(const nsACString& aBaseDomain)

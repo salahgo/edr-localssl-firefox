@@ -273,7 +273,7 @@ void WebGLContext::GenErrorIllegalUse(const GLenum useTarget,
   GenerateError(LOCAL_GL_INVALID_OPERATION,
                 "Illegal use of buffer at %s"
                 " while also bound to %s.",
-                useName.BeginReading(), boundName.BeginReading());
+                useName.get(), boundName.get());
 }
 
 bool WebGLContext::ValidateBufferForNonTf(const WebGLBuffer& nonTfBuffer,

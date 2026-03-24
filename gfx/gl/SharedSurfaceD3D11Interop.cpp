@@ -221,7 +221,7 @@ class DXInterop2Device : public RefCounted<DXInterop2Device> {
           "wglDXCloseDevice(0x%p) failed:"
           " GetLastError(): %u\n",
           mInteropDevice, error);
-      gfxCriticalError() << errorMessage.BeginReading();
+      gfxCriticalError() << errorMessage.get();
     }
   }
 
@@ -239,7 +239,7 @@ class DXInterop2Device : public RefCounted<DXInterop2Device> {
         "wglDXRegisterObject(0x%p, 0x%p, %u, 0x%04x,"
         " 0x%04x) failed: GetLastError(): %u\n",
         mInteropDevice, d3dObject, name, type, access, error);
-    gfxCriticalNote << errorMessage.BeginReading();
+    gfxCriticalNote << errorMessage.get();
     return nullptr;
   }
 
@@ -257,7 +257,7 @@ class DXInterop2Device : public RefCounted<DXInterop2Device> {
           "wglDXUnregisterObject(0x%p, 0x%p) failed:"
           " GetLastError(): %u\n",
           mInteropDevice, lockHandle, error);
-      gfxCriticalError() << errorMessage.BeginReading();
+      gfxCriticalError() << errorMessage.get();
     }
     return false;
   }
@@ -281,7 +281,7 @@ class DXInterop2Device : public RefCounted<DXInterop2Device> {
         "wglDXLockObjects(0x%p, 1, {0x%p}) failed:"
         " GetLastError(): %u\n",
         mInteropDevice, lockHandle, error);
-    gfxCriticalError() << errorMessage.BeginReading();
+    gfxCriticalError() << errorMessage.get();
     return false;
   }
 
@@ -304,7 +304,7 @@ class DXInterop2Device : public RefCounted<DXInterop2Device> {
         "wglDXUnlockObjects(0x%p, 1, {0x%p}) failed:"
         " GetLastError(): %u\n",
         mInteropDevice, lockHandle, error);
-    gfxCriticalError() << errorMessage.BeginReading();
+    gfxCriticalError() << errorMessage.get();
     return false;
   }
 };

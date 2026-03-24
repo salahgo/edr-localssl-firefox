@@ -147,7 +147,7 @@ bool WebGLFBAttachPoint::IsComplete(WebGLContext* webgl,
         "Attachment has an effective format of %s,"
         " which is not renderable.",
         formatUsage->format->name);
-    fnWriteErrorInfo(info.BeginReading());
+    fnWriteErrorInfo(info.get());
     return false;
   }
   if (!formatUsage->IsExplicitlyRenderable()) {
@@ -293,10 +293,9 @@ Maybe<double> WebGLFBAttachPoint::GetParameter(WebGLContext* webgl,
     WebGLContext::EnumName(attachment, &attachmentName);
     if (webgl->IsWebGL2()) {
       webgl->ErrorInvalidOperation("No attachment at %s.",
-                                   attachmentName.BeginReading());
+                                   attachmentName.get());
     } else {
-      webgl->ErrorInvalidEnum("No attachment at %s.",
-                              attachmentName.BeginReading());
+      webgl->ErrorInvalidEnum("No attachment at %s.", attachmentName.get());
     }
     return Nothing();
   }
@@ -1067,7 +1066,7 @@ FBStatus WebGLFramebuffer::CheckFramebufferStatus() const {
 
   MOZ_ASSERT(ret != LOCAL_GL_FRAMEBUFFER_COMPLETE);
   mContext->GenerateWarning("Framebuffer not complete. (status: 0x%04x) %s",
-                            ret.get(), statusInfo.BeginReading());
+                            ret.get(), statusInfo.get());
   return ret;
 }
 

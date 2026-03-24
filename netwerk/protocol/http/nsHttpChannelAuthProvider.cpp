@@ -338,7 +338,7 @@ nsresult nsHttpChannelAuthProvider::GenCredsAndSetEntry(
 
   // don't log this in release build since it could contain sensitive info.
 #ifdef DEBUG
-  LOG(("generated creds: %s\n", result.BeginReading()));
+  LOG(("generated creds: %s\n", PromiseFlatCString(result).get()));
 #endif
 
   return UpdateCache(auth, scheme, host, port, directory, realm, challenge,

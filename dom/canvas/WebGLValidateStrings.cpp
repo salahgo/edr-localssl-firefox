@@ -167,15 +167,14 @@ Maybe<webgl::ErrorInfo> CheckGLSLVariableName(const bool webgl2,
         "Identifier is %zu characters long, exceeds the"
         " maximum allowed length of %u characters.",
         name.size(), maxSize);
-    return Some(webgl::ErrorInfo{LOCAL_GL_INVALID_VALUE, info.BeginReading()});
+    return Some(webgl::ErrorInfo{LOCAL_GL_INVALID_VALUE, info.get()});
   }
 
   for (const auto cur : name) {
     if (!IsValidGLSLChar(cur)) {
       const auto info =
           nsPrintfCString("String contains the illegal character 0x%x'.", cur);
-      return Some(
-          webgl::ErrorInfo{LOCAL_GL_INVALID_VALUE, info.BeginReading()});
+      return Some(webgl::ErrorInfo{LOCAL_GL_INVALID_VALUE, info.get()});
     }
   }
 

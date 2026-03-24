@@ -878,7 +878,7 @@ void Performance::ClearMeasures(const Optional<nsAString>& aName) {
 void Performance::LogEntry(PerformanceEntry* aEntry,
                            const nsACString& aOwner) const {
   PERFLOG("Performance Entry: %s|%s|%s|%f|%f|%" PRIu64 "\n",
-          aOwner.BeginReading(),
+          PromiseFlatCString(aOwner).get(),
           NS_ConvertUTF16toUTF8(aEntry->GetEntryType()->GetUTF16String()).get(),
           NS_ConvertUTF16toUTF8(aEntry->GetName()->GetUTF16String()).get(),
           aEntry->StartTime(), aEntry->Duration(),

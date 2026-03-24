@@ -872,7 +872,7 @@ bool nsProfiler::SendProgressRequest(PendingProfile& aPendingProfile) {
                 aResult.progressProportionValueUnderlyingType())
                     .ToDouble() *
                 100.0,
-            aResult.progressLocation().Data(),
+            aResult.progressLocation().get(),
             unsigned(self->mPendingProfiles.length()),
             pendingProfile ? "including" : "excluding", unsigned(childPid));
         self->LogEvent([&](Json::Value& aEvent) {
@@ -1232,7 +1232,7 @@ RefPtr<nsProfiler::GatheringPromise> nsProfiler::StartGathering(
           LogEvent([&](Json::Value& aEvent) {
             aEvent.append(
                 Json::StaticString{"Exit non-profile with error message:"});
-            aEvent.append(exitProfile.Data() + 1);
+            aEvent.append(Json::String(Substring(exitProfile, 1).View()));
           });
         } else if (mWriter->ChunkedWriteFunc().Length() + exitProfile.Length() <
                    scLengthAccumulationThreshold) {
@@ -1326,7 +1326,8 @@ RefPtr<nsProfiler::GatheringPromise> nsProfiler::StartGathering(
                   aEvent.append(Json::StaticString{
                       "Child non-profile from pid, with error message:"});
                   aEvent.append(Json::Value::UInt64(childPid));
-                  aEvent.append(profileString.Data() + 1);
+                  aEvent.append(
+                      Json::String(Substring(profileString, 1).View()));
                 });
                 self->GatheredOOPProfile(childPid, ""_ns, Nothing());
               }

@@ -475,10 +475,10 @@ media::DecodeSupportSet WMFDecoderModule::SupportsMimeType(
     return media::DecodeSupportSet{};
   }
   auto supports = Supports(SupportDecoderParams(*trackInfo), aDiagnostics);
-  MOZ_LOG(
-      sPDMLog, LogLevel::Debug,
-      ("WMF decoder %s requested type '%s'",
-       !supports.isEmpty() ? "supports" : "rejects", aMimeType.BeginReading()));
+  MOZ_LOG(sPDMLog, LogLevel::Debug,
+          ("WMF decoder %s requested type '%s'",
+           !supports.isEmpty() ? "supports" : "rejects",
+           PromiseFlatCString(aMimeType).get()));
   return supports;
 }
 

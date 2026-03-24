@@ -2754,7 +2754,7 @@ static void DumpBeforePaintDisplayList(UniquePtr<std::stringstream>& aStream,
       string.AppendInt(paintCount);
     }
     string.AppendLiteral(".html");
-    gfxUtils::sDumpPaintFile = fopen(string.BeginReading(), "w");
+    gfxUtils::sDumpPaintFile = fopen(string.get(), "w");
   } else {
     gfxUtils::sDumpPaintFile = stderr;
   }

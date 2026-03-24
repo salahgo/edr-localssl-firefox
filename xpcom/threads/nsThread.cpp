@@ -333,7 +333,7 @@ void nsThread::ThreadFunc(void* aArg) {
   SetupCurrentThreadForChaosMode();
 
   if (!initData->name.IsEmpty()) {
-    NS_SetCurrentThreadName(initData->name.BeginReading());
+    NS_SetCurrentThreadName(initData->name.get());
   }
 
   self->InitCommon();
@@ -356,7 +356,7 @@ void nsThread::ThreadFunc(void* aArg) {
   // which profiler_register_thread() requires. See bug 1347007.
   const bool registerWithProfiler = !initData->name.IsEmpty();
   if (registerWithProfiler) {
-    PROFILER_REGISTER_THREAD(initData->name.BeginReading());
+    PROFILER_REGISTER_THREAD(initData->name.get());
   }
 
   {

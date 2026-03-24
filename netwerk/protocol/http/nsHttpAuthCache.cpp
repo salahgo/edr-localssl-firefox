@@ -96,7 +96,7 @@ nsresult nsHttpAuthCache::GetAuthEntryForPath(const nsACString& scheme,
                                               nsACString const& originSuffix,
                                               RefPtr<nsHttpAuthEntry>& entry) {
   LOG(("nsHttpAuthCache::GetAuthEntryForPath %p [path=%s]\n", this,
-       path.BeginReading()));
+       PromiseFlatCString(path).get()));
 
   nsAutoCString key;
   nsHttpAuthNode* node = LookupAuthNode(scheme, host, port, originSuffix, key);
@@ -116,7 +116,7 @@ nsresult nsHttpAuthCache::GetAuthEntryForDomain(const nsACString& scheme,
 
 {
   LOG(("nsHttpAuthCache::GetAuthEntryForDomain %p [realm=%s]\n", this,
-       realm.BeginReading()));
+       PromiseFlatCString(realm).get()));
 
   nsAutoCString key;
   nsHttpAuthNode* node = LookupAuthNode(scheme, host, port, originSuffix, key);
@@ -135,7 +135,8 @@ nsresult nsHttpAuthCache::SetAuthEntry(
   nsresult rv;
 
   LOG(("nsHttpAuthCache::SetAuthEntry %p [realm=%s path=%s metadata=%p]\n",
-       this, realm.BeginReading(), path.BeginReading(), metadata));
+       this, PromiseFlatCString(realm).get(), PromiseFlatCString(path).get(),
+       metadata));
 
   nsAutoCString key;
   nsHttpAuthNode* node = LookupAuthNode(scheme, host, port, originSuffix, key);

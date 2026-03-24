@@ -449,8 +449,8 @@ HRESULT MFMediaEngineParent::SetMediaInfo(const MediaInfoIPDL& aInfo,
   nsPrintfCString message(
       "Created the media source, audio=%s, video=%s, encrypted-audio=%s, "
       "encrypted-video=%s, aIsEncryptedCustomInit=%d, isEncrypted=%d",
-      aInfo.audioInfo() ? aInfo.audioInfo()->mMimeType.BeginReading() : "none",
-      aInfo.videoInfo() ? aInfo.videoInfo()->mMimeType.BeginReading() : "none",
+      aInfo.audioInfo() ? aInfo.audioInfo()->mMimeType.get() : "none",
+      aInfo.videoInfo() ? aInfo.videoInfo()->mMimeType.get() : "none",
       aInfo.audioInfo() && aInfo.audioInfo()->mCrypto.IsEncrypted() ? "yes"
                                                                     : "no",
       aInfo.videoInfo() && aInfo.videoInfo()->mCrypto.IsEncrypted() ? "yes"

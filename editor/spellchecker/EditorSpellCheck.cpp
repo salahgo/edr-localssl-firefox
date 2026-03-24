@@ -599,7 +599,7 @@ EditorSpellCheck::SetCurrentDictionaries(
         StoreCurrentDictionaries(mEditor, aDictionaries);
 #ifdef DEBUG_DICT
         printf("***** Writing content preferences for |%s|\n",
-               DictionariesToString(aDictionaries).Data());
+               DictionariesToString(aDictionaries).get());
 #endif
       } else {
         // If user sets a dictionary matching the language defined by
@@ -608,7 +608,7 @@ EditorSpellCheck::SetCurrentDictionaries(
         ClearCurrentDictionaries(mEditor);
 #ifdef DEBUG_DICT
         printf("***** Clearing content preferences for |%s|\n",
-               DictionariesToString(aDictionaries).Data());
+               DictionariesToString(aDictionaries).get());
 #endif
       }
 
@@ -624,7 +624,7 @@ EditorSpellCheck::SetCurrentDictionaries(
         Preferences::SetCString("spellchecker.dictionary", asString);
 #ifdef DEBUG_DICT
         printf("***** Possibly storing spellchecker.dictionary |%s|\n",
-               asString.Data());
+               asString.get());
 #endif
       }
     } else {
@@ -895,7 +895,7 @@ nsresult EditorSpellCheck::DictionaryFetched(DictionaryFetcher* aFetcher) {
               [self, fetcher]() {
 #ifdef DEBUG_DICT
                 printf("***** Assigned from content preferences |%s|\n",
-                       DictionariesToString(fetcher->mDictionaries).Data());
+                       DictionariesToString(fetcher->mDictionaries).get());
 #endif
                 // We take an early exit here, so let's not forget to clear
                 // the word list.
@@ -991,7 +991,7 @@ void EditorSpellCheck::SetFallbackDictionary(DictionaryFetcher* aFetcher) {
           printf(
               "***** Trying preference value |%s| since it matches language "
               "code\n",
-              dictionary.Data());
+              dictionary.get());
 #endif
           if (BuildDictionaryList(dictionary, dictList,
                                   DICT_COMPARE_CASE_INSENSITIVE, tryDictList)) {
@@ -1090,7 +1090,7 @@ void EditorSpellCheck::SetFallbackDictionary(DictionaryFetcher* aFetcher) {
         if (!currentDictionaries.IsEmpty() && tryDictList.IsEmpty()) {
 #ifdef DEBUG_DICT
           printf("***** Retrieved current dict |%s|\n",
-                 DictionariesToString(currentDictionaries).Data());
+                 DictionariesToString(currentDictionaries).get());
 #endif
           self->EndUpdateDictionary();
           if (fetcher->mCallback) {

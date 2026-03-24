@@ -205,7 +205,8 @@ nsresult IntegrityPolicy::ParseHeaders(const nsACString& aHeader,
   RefPtr<IntegrityPolicy> policy = new IntegrityPolicy();
 
   LOG("[{}] Parsing headers: enforcement='{}' report-only='{}'",
-      static_cast<void*>(policy), aHeader.Data(), aHeaderRO.Data());
+      static_cast<void*>(policy), PromiseFlatCString(aHeader).get(),
+      PromiseFlatCString(aHeaderRO).get());
 
   nsCOMPtr<nsISFVService> sfv = net::GetSFVService();
   NS_ENSURE_TRUE(sfv, NS_ERROR_FAILURE);

@@ -782,7 +782,7 @@ void MediaDecoder::EnsureTelemetryReported() {
   }
   if (codecs.IsEmpty()) {
     codecs.AppendElement(nsPrintfCString(
-        "resource; %s", ContainerType().OriginalString().Data()));
+        "resource; %s", ContainerType().OriginalString().get()));
   }
   for (const nsCString& codec : codecs) {
     LOG("Telemetry MEDIA_CODEC_USED= '%s'", codec.get());

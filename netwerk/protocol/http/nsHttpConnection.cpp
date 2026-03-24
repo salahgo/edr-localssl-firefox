@@ -2059,7 +2059,7 @@ nsresult nsHttpConnection::MakeConnectString(nsAHttpTransaction* trans,
   if (LOG1_ENABLED()) {
     LOG(("nsHttpConnection::MakeConnectString for transaction=%p h2ws=%d[",
          trans->QueryHttpTransaction(), h2ws));
-    LogHeaders(result.BeginReading());
+    LogHeaders(PromiseFlatCString(result).get());
     LOG(("]"));
   }
 

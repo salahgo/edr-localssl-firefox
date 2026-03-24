@@ -43,7 +43,7 @@ class nsAtom {
   }
 
   bool Equals(const nsAString& aString) const {
-    return Equals(aString.BeginReading(), aString.Length());
+    return Equals(aString.Data(), aString.Length());
   }
 
   bool IsStatic() const { return mIsStatic; }

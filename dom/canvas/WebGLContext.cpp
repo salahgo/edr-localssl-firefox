@@ -266,7 +266,7 @@ bool WebGLContext::CreateAndInitGL(
       reason.info =
           "AllowWebgl2:false restricts context creation on this system.";
       out_failReasons->push_back(reason);
-      GenerateWarning("%s", reason.info.BeginReading());
+      GenerateWarning("%s", reason.info.get());
       return false;
     }
   }
@@ -301,7 +301,7 @@ bool WebGLContext::CreateAndInitGL(
     FailureReason reason;
     reason.info = "Both hardware and software were forbidden by config.";
     out_failReasons->push_back(reason);
-    GenerateWarning("%s", reason.info.BeginReading());
+    GenerateWarning("%s", reason.info.get());
     return false;
   }
 
@@ -379,7 +379,7 @@ bool WebGLContext::CreateAndInitGL(
 
       out_failReasons->push_back(reason);
 
-      GenerateWarning("%s", reason.info.BeginReading());
+      GenerateWarning("%s", reason.info.get());
       tryNativeGL = false;
     }
   }
@@ -568,12 +568,12 @@ RefPtr<WebGLContext> WebGLContext::Create(HostWebGLContext* host,
           glean::canvas::webgl_failure_id.Get(cur.key).Add(1);
         }
 
-        const auto str = nsPrintfCString("\n* %s (%s)", cur.info.BeginReading(),
-                                         cur.key.BeginReading());
+        const auto str =
+            nsPrintfCString("\n* %s (%s)", cur.info.get(), cur.key.get());
         text.Append(str);
       }
       failureId = "FEATURE_FAILURE_REASON"_ns;
-      return Err(text.BeginReading());
+      return Err(std::string{text.View()});
     }
     MOZ_ASSERT(webgl->gl);
 
@@ -2372,7 +2372,7 @@ Maybe<std::string> WebGLContext::GetString(const GLenum pname) const {
     case dom::MOZ_debug_Binding::WSI_INFO: {
       nsCString info;
       gl->GetWSIInfo(&info);
-      return Some(std::string(info.BeginReading()));
+      return Some(std::string(info.View()));
     }
 
     case dom::MOZ_debug_Binding::CONTEXT_TYPE: {

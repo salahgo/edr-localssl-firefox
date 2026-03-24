@@ -16,7 +16,8 @@ class GMPMemoryStorage : public GMPStorage {
  public:
   GMPMemoryStorage(const nsACString& aNodeId, const nsAString& aGMPName) {
     LOG("Created GMPMemoryStorage, nodeId=%s, gmpName=%s",
-        aNodeId.BeginReading(), NS_ConvertUTF16toUTF8(aGMPName).get());
+        PromiseFlatCString(aNodeId).get(),
+        NS_ConvertUTF16toUTF8(aGMPName).get());
   }
   ~GMPMemoryStorage() { LOG("Destroyed GMPMemoryStorage"); }
 

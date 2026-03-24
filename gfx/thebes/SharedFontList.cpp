@@ -1335,8 +1335,8 @@ void FontList::SearchForLocalFace(const nsACString& aName, Family** aFamily,
   Header& header = GetHeader();
   MOZ_ASSERT(header.mLocalFaceCount == 0,
              "do not use when local face names are already set up!");
-  LOG_FONTLIST(
-      ("(shared-fontlist) local face search for (%s)", aName.BeginReading()));
+  LOG_FONTLIST(("(shared-fontlist) local face search for (%s)",
+                PromiseFlatCString(aName).get()));
   char initial = aName[0];
   Family* families = Families();
   if (!families) {
@@ -1348,7 +1348,7 @@ void FontList::SearchForLocalFace(const nsACString& aName, Family** aFamily,
       continue;
     }
     LOG_FONTLIST(("(shared-fontlist) checking family (%s)",
-                  family->Key().AsString(this).BeginReading()));
+                  family->Key().AsString(this).get()));
     if (!family->IsInitialized()) {
       if (!gfxPlatformFontList::PlatformFontList()->InitializeFamily(family)) {
         continue;

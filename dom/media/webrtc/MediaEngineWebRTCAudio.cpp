@@ -185,7 +185,7 @@ nsresult MediaEngineWebRTCMicrophoneSource::Reconfigure(
     nsAutoCString name;
     GetErrorName(rv, name);
     LOG("Mic source %p Reconfigure() failed unexpectedly. rv=%s", this,
-        name.Data());
+        name.get());
     Stop();
     return NS_ERROR_UNEXPECTED;
   }

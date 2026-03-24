@@ -49,13 +49,13 @@ class OpenVRControllerManifestManager {
 
  private:
   ~OpenVRControllerManifestManager() {
-    if (!mAction.IsEmpty() && remove(mAction.BeginReading()) != 0) {
+    if (!mAction.IsEmpty() && remove(mAction.get()) != 0) {
       MOZ_ASSERT(false, "Delete controller action file failed.");
     }
     mAction = "";
 
     for (const auto& path : mManifest.Values()) {
-      if (!path.IsEmpty() && remove(path.BeginReading()) != 0) {
+      if (!path.IsEmpty() && remove(path.get()) != 0) {
         MOZ_ASSERT(false, "Delete controller manifest file failed.");
       }
     }

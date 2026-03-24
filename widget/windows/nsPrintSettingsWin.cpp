@@ -372,7 +372,7 @@ void nsPrintSettingsWin::CopyToNative(DEVMODEW* aDevMode) {
   MOZ_ASSERT(aDevMode);
 
   if (!mPaperId.IsEmpty()) {
-    aDevMode->dmPaperSize = _wtoi((const wchar_t*)mPaperId.BeginReading());
+    aDevMode->dmPaperSize = _wtoi((const wchar_t*)mPaperId.get());
     aDevMode->dmFields |= DM_PAPERSIZE;
   } else {
     aDevMode->dmPaperSize = 0;

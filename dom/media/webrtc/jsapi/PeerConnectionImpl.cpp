@@ -4094,13 +4094,13 @@ void PeerConnectionImpl::StunAddrsHandler::OnMDNSQueryComplete(
   if (!pcw.impl()) {
     return;
   }
-  auto itor = pcw.impl()->mQueriedMDNSHostnames.find(hostname.BeginReading());
+  auto itor = pcw.impl()->mQueriedMDNSHostnames.find(hostname.get());
   if (itor != pcw.impl()->mQueriedMDNSHostnames.end()) {
     if (address) {
       for (auto& cand : itor->second) {
         // Replace obfuscated address with actual address
         std::string obfuscatedAddr = cand.mTokenizedCandidate[4];
-        cand.mTokenizedCandidate[4] = address->BeginReading();
+        cand.mTokenizedCandidate[4] = address->get();
         std::ostringstream o;
         for (size_t i = 0; i < cand.mTokenizedCandidate.size(); ++i) {
           o << cand.mTokenizedCandidate[i];

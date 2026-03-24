@@ -223,7 +223,7 @@ static bool IsPathDefaultForClass(
   nsAutoString pathFromReg(cmdFromReg);
   nsLocalFile::CleanupCmdHandlerPath(pathFromReg);
 
-  return _wcsicmp(exePath, pathFromReg.Data()) == 0;
+  return _wcsicmp(exePath, pathFromReg.get()) == 0;
 }
 
 static bool IsMsixProgIdDefaultForClass(
@@ -1361,7 +1361,8 @@ static nsresult GetMatchingShortcut(int aCSIDL, const nsAString& aAUMID,
     // This is a case sensitive comparison, but that's probably fine for
     // the vast majority of cases -- and certainly for all the ones where
     // a shortcut was created by the installer.
-    if (StrStrIW(findData.cFileName, aShortcutSubstring.Data()) == NULL) {
+    if (StrStrIW(findData.cFileName,
+                 PromiseFlatString(aShortcutSubstring).get()) == NULL) {
       continue;
     }
 

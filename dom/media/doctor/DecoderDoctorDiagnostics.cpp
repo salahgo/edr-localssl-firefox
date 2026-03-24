@@ -683,7 +683,7 @@ void DecoderDoctorDocumentWatcher::SynthesizeAnalysis() {
         "DecoderDoctorDocumentWatcher[%p, doc=%p]::SynthesizeAnalysis() - "
         "supported key systems '%s', playable formats '%s'; See if they show "
         "issues have been solved...",
-        this, mDocument, NS_ConvertUTF16toUTF8(supportedKeySystems).Data(),
+        this, mDocument, NS_ConvertUTF16toUTF8(supportedKeySystems).get(),
         NS_ConvertUTF16toUTF8(playableFormats).get());
     const nsAString* workingFormatsArray[] = {&supportedKeySystems,
                                               &playableFormats};
@@ -711,7 +711,7 @@ void DecoderDoctorDocumentWatcher::SynthesizeAnalysis() {
                 "doc=%p]::SynthesizeAnalysis() - %s solved ('%s' now works, it "
                 "was in pref(%s)='%s')",
                 this, mDocument, id->mReportStringId,
-                NS_ConvertUTF16toUTF8(workingFormat).get(), formatsPref.Data(),
+                NS_ConvertUTF16toUTF8(workingFormat).get(), formatsPref.get(),
                 NS_ConvertUTF16toUTF8(formatsWithIssues).get());
             ReportAnalysis(mDocument, *id, true, workingFormat);
             // This particular Notification&ReportId has been solved, no need
@@ -728,7 +728,7 @@ void DecoderDoctorDocumentWatcher::SynthesizeAnalysis() {
         DD_DEBUG(
             "DecoderDoctorDocumentWatcher[%p, doc=%p]::SynthesizeAnalysis() - "
             "%s not solved (pref(%s)='%s')",
-            this, mDocument, id->mReportStringId, formatsPref.Data(),
+            this, mDocument, id->mReportStringId, formatsPref.get(),
             NS_ConvertUTF16toUTF8(formatsWithIssues).get());
       }
     }
@@ -873,7 +873,7 @@ void DecoderDoctorDocumentWatcher::AddDiagnostics(
   DD_DEBUG(
       "DecoderDoctorDocumentWatcher[%p, "
       "doc=%p]::AddDiagnostics(DecoderDoctorDiagnostics{%s}, call site '%s')",
-      this, mDocument, aDiagnostics.GetDescription().Data(), aCallSite);
+      this, mDocument, aDiagnostics.GetDescription().get(), aCallSite);
   mDiagnosticsSequence.AppendElement(
       Diagnostics(std::move(aDiagnostics), aCallSite, now));
   EnsureTimerIsStarted();

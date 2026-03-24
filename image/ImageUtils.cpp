@@ -586,7 +586,7 @@ class AnonymousDecoderImpl final : public AnonymousDecoder {
 
 /* static */ DecoderType ImageUtils::GetDecoderType(
     const nsACString& aMimeType) {
-  return DecoderFactory::GetDecoderType(aMimeType.Data());
+  return DecoderFactory::GetDecoderType(PromiseFlatCString(aMimeType).get());
 }
 
 }  // namespace mozilla::image

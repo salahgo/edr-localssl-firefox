@@ -1091,9 +1091,7 @@ gfxFontEntry* gfxDWriteFontList::CreateFontEntry(
       UINT32 index;
       BOOL exists;
       NS_ConvertUTF8toUTF16 name16(familyName);
-      HRESULT hr = collection->FindFamilyName(
-          reinterpret_cast<const WCHAR*>(name16.BeginReading()), &index,
-          &exists);
+      HRESULT hr = collection->FindFamilyName(name16.getW(), &index, &exists);
       if (FAILED(hr) || !exists || index == UINT_MAX ||
           FAILED(collection->GetFontFamily(index, getter_AddRefs(family))) ||
           !family) {

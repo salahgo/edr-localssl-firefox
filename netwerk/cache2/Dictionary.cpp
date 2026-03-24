@@ -432,25 +432,22 @@ static const uint32_t METADATA_VERSION = 1;
 static void EscapeMetadataString(const nsACString& aInput, nsCString& aOutput) {
   // First calculate how much we'll need to append.  Means we'll walk the source
   // twice, but avoids any potential multiple reallocations
-  const char* src = aInput.BeginReading();
   size_t len = 1;  // for initial |
-  while (*src) {
-    if (*src == '|' || *src == '\\') {
+  for (size_t i = 0; i < aInput.Length(); ++i) {
+    if (aInput[i] == '|' || aInput[i] == '\\') {
       len += 2;
     } else {
       len++;
     }
-    src++;
   }
   aOutput.SetCapacity(aOutput.Length() + len);
-  src = aInput.BeginReading();
 
   aOutput.AppendLiteral("|");
-  while (*src) {
-    if (*src == '|' || *src == '\\') {
-      aOutput.AppendLiteral("\\");
+  for (size_t i = 0; i < aInput.Length(); ++i) {
+    if (aInput[i] == '|' || aInput[i] == '\\') {
+      aOutput.Append('\\');
     }
-    aOutput.Append(*src++);
+    aOutput.Append(aInput[i]);
   }
 }
 
@@ -488,7 +485,7 @@ nsresult DictionaryCacheEntry::Write(nsICacheEntry* aCacheEntry) {
 
 nsresult DictionaryCacheEntry::RemoveEntry(nsICacheEntry* aCacheEntry) {
   DICTIONARY_LOG(("RemoveEntry from metadata for %s", mURI.get()));
-  nsresult rv = aCacheEntry->SetMetaDataElement(mURI.BeginReading(), nullptr);
+  nsresult rv = aCacheEntry->SetMetaDataElement(mURI.get(), nullptr);
   if (NS_FAILED(rv)) {
     return rv;
   }

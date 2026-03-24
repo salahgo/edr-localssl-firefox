@@ -343,7 +343,8 @@ already_AddRefed<BasePrincipal> BasePrincipal::FromJSON(
           reinterpret_cast<const JS::Latin1Char*>(aJSON.BeginReading()),
           aJSON.Length(), &handler)) {
     NS_WARNING(
-        nsPrintfCString("Unable to parse: %s", aJSON.BeginReading()).get());
+        nsPrintfCString("Unable to parse: %s", PromiseFlatCString(aJSON).get())
+            .get());
     MOZ_ASSERT(false,
                "Unable to parse string as JSON to deserialize as a principal");
     return nullptr;

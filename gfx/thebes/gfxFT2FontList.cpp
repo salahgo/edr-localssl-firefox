@@ -228,11 +228,10 @@ gfxFont* FT2FontEntry::CreateFontInstance(const gfxFontStyle* aStyle) {
   RefPtr<UnscaledFontFreeType> unscaledFont(mUnscaledFont);
   if (!unscaledFont) {
     RefPtr<SharedFTFace> origFace(mFTFace);
-    unscaledFont =
-        !mFilename.IsEmpty() && mFilename[0] == '/'
-            ? new UnscaledFontFreeType(mFilename.BeginReading(), mFTFontIndex,
-                                       std::move(origFace))
-            : new UnscaledFontFreeType(std::move(origFace));
+    unscaledFont = !mFilename.IsEmpty() && mFilename[0] == '/'
+                       ? new UnscaledFontFreeType(mFilename.get(), mFTFontIndex,
+                                                  std::move(origFace))
+                       : new UnscaledFontFreeType(std::move(origFace));
     mUnscaledFont = unscaledFont;
   }
 

@@ -258,8 +258,7 @@ nsresult NS_GetURIWithNewRef(nsIURI* aInput, const nsACString& aRef,
   // Note that aRef contains the hash, but ref doesn't, so need to account for
   // that in the equality check.
   if (NS_FAILED(rv) || (!hasRef && aRef.IsEmpty()) ||
-      (!aRef.IsEmpty() && hasRef &&
-       Substring(aRef.Data() + 1, aRef.Length() - 1) == ref)) {
+      (!aRef.IsEmpty() && hasRef && Substring(aRef, 1) == ref)) {
     nsCOMPtr<nsIURI> uri = aInput;
     uri.forget(aOutput);
     return NS_OK;

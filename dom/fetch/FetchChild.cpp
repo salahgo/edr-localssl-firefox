@@ -280,7 +280,7 @@ RefPtr<FetchChild> FetchChild::CreateForMainThread(
 mozilla::ipc::IPCResult FetchChild::RecvOnCSPViolationEvent(
     const nsAString& aJSON, const nsAString& aReportGroupName) {
   FETCH_LOG(("FetchChild::RecvOnCSPViolationEvent [%p] aJSON: %s\n", this,
-             NS_ConvertUTF16toUTF8(aJSON).BeginReading()));
+             NS_ConvertUTF16toUTF8(aJSON).get()));
 
   nsString JSON(aJSON);
 

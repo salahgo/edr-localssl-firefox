@@ -161,7 +161,7 @@ static void NonASCII16_helper(const size_t aStrSize) {
     // And finish with the trailing ASCII chars.
     expected.Append(asciiCString.BeginReading() + i + 1, kTestSize - i - 1);
 
-    EXPECT_STREQ(dest.BeginReading(), expected.BeginReading());
+    EXPECT_STREQ(dest.get(), expected.get());
   }
 }
 

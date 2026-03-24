@@ -203,7 +203,7 @@ TableData::TableData(URIData* aURIData, const nsACString& aTable)
   UC_LOG_LEAK(
       ("AsyncChannelClassifier::TableData CTOR - new TableData created %s "
        "[this=%p]",
-       aTable.BeginReading(), this));
+       PromiseFlatCString(aTable).get(), this));
 }
 
 TableData::~TableData() = default;

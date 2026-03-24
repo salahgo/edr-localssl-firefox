@@ -3187,11 +3187,11 @@ static void LogNSPRError(const char* aPrefix, const void* aObjPtr) {
     errStr.SetLength(errLen);
     PR_GetErrorText(errStr.BeginWriting());
   }
-  NS_WARNING(
-      nsPrintfCString("%s [%p] NSPR error[0x%x] %s.",
-                      aPrefix ? aPrefix : "nsSocketTransport", aObjPtr, errCode,
-                      errLen > 0 ? errStr.BeginReading() : "<no error text>")
-          .get());
+  NS_WARNING(nsPrintfCString("%s [%p] NSPR error[0x%x] %s.",
+                             aPrefix ? aPrefix : "nsSocketTransport", aObjPtr,
+                             errCode,
+                             errLen > 0 ? errStr.get() : "<no error text>")
+                 .get());
 #endif
 }
 

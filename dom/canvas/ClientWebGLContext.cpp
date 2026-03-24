@@ -403,7 +403,7 @@ void ClientWebGLContext::ThrowEvent_WebGLContextCreationError(
     const std::string& text) const {
   nsCString msg;
   msg.AppendPrintf("Failed to create WebGL context: %s", text.c_str());
-  JsWarning(msg.BeginReading());
+  JsWarning(std::string(msg.View()));
 
   RefPtr<dom::EventTarget> target = mCanvasElement;
   if (!target && mOffscreenCanvas) {
@@ -3401,7 +3401,7 @@ Maybe<const webgl::ErrorInfo> ValidateBindBuffer(
         "Buffer previously bound to %s cannot be now bound to %s.",
         fnKindStr(curKind), fnKindStr(requiredKind));
     return Some(
-        webgl::ErrorInfo{LOCAL_GL_INVALID_OPERATION, info.BeginReading()});
+        webgl::ErrorInfo{LOCAL_GL_INVALID_OPERATION, std::string(info.View())});
   }
 
   return {};
@@ -3411,7 +3411,7 @@ Maybe<webgl::ErrorInfo> CheckBindBufferRange(
     const GLenum target, const GLuint index, const bool isBuffer,
     const uint64_t offset, const uint64_t size, const webgl::Limits& limits) {
   const auto fnSome = [&](const GLenum type, const nsACString& info) {
-    return Some(webgl::ErrorInfo{type, info.BeginReading()});
+    return Some(webgl::ErrorInfo{type, std::string(info.View())});
   };
 
   switch (target) {
@@ -5365,7 +5365,7 @@ void ClientWebGLContext::ReadPixels(GLint x, GLint y, GLsizei width,
     nsCString name;
     WebGLContext::EnumName(type, &name);
     EnqueueError(LOCAL_GL_INVALID_ENUM, "type: invalid enum value %s",
-                 name.BeginReading());
+                 name.get());
     return;
   }
 

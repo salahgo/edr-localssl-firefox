@@ -1408,7 +1408,7 @@ void WriteSnapshotToDumpFile_internal(T* aObj, DataSourceSurface* aSurf) {
   } else {
     nsCString uri = gfxUtils::GetAsDataURI(aSurf);
     nsPrintfCString string(R"(array["%s-%)" PRIu64 R"("]="%s";\n)",
-                           aObj->Name(), uint64_t(aObj), uri.BeginReading());
+                           aObj->Name(), uint64_t(aObj), uri.get());
     fprintf_stderr(gfxUtils::sDumpPaintFile, "%s", string.get());
   }
 }

@@ -831,7 +831,7 @@ std::unique_ptr<const DrawBlitProg> GLBlitHelper::CreateDrawBlitProg(
     if (key.fragHeader) {
       parts.push_back(key.fragHeader);
     }
-    parts.push_back(precisionLine.BeginReading());
+    parts.push_back(precisionLine.get());
     parts.push_back(kFragDeclHeader);
     for (const auto& part : key.fragParts) {
       if (part) {

@@ -378,7 +378,7 @@ static void PopulateEncoderInfo(const GUID& aSubtype,
   for (const auto& factory : factories) {
     MFTEncoder::Info info = {.mSubtype = aSubtype, .mName = factory.mName};
     aInfos.AppendElement(info);
-    MFT_ENC_SLOGD("<ENC> [%s] %s\n", CodecStr(aSubtype), info.mName.Data());
+    MFT_ENC_SLOGD("<ENC> [%s] %s\n", CodecStr(aSubtype), info.mName.get());
   }
 }
 

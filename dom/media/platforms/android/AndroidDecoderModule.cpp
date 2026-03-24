@@ -116,7 +116,7 @@ DecodeSupportSet AndroidDecoderModule::SupportsMimeType(
     case MediaCodec::Wave:
       [[fallthrough]];
     case MediaCodec::FLAC:
-      SLOG("Rejecting audio of type %s", aMimeType.Data());
+      SLOG("Rejecting audio of type %s", PromiseFlatCString(aMimeType).get());
       return media::DecodeSupportSet{};
 
     // H264 always reports software decode
@@ -137,7 +137,8 @@ DecodeSupportSet AndroidDecoderModule::SupportsMimeType(
     case MediaCodec::SENTINEL:
       [[fallthrough]];
     default:
-      SLOG("Support check using default logic for %s", aMimeType.Data());
+      SLOG("Support check using default logic for %s",
+           PromiseFlatCString(aMimeType).get());
       break;
   }
 
@@ -233,12 +234,12 @@ void AndroidDecoderModule::SetSupportedMimeTypes(
   for (const auto& s : aSupportedTypes) {
     // Verify MIME type string present
     if (s.Length() < 4) {
-      SLOG("No SW/HW support prefix found in codec string %s", s.Data());
+      SLOG("No SW/HW support prefix found in codec string %s", s.get());
       continue;
     }
     const auto mimeType = Substring(s, 3);
     if (mimeType.Length() == 0) {
-      SLOG("No MIME type information found in codec string %s", s.Data());
+      SLOG("No MIME type information found in codec string %s", s.get());
       continue;
     }
 
@@ -252,13 +253,12 @@ void AndroidDecoderModule::SetSupportedMimeTypes(
       sSupportedHwMimeTypes->AppendElement(mimeType);
       support = DecodeSupport::HardwareDecode;
     } else {
-      SLOG("Error parsing acceleration info from JNI codec string %s",
-           s.Data());
+      SLOG("Error parsing acceleration info from JNI codec string %s", s.get());
       continue;
     }
     const MediaCodec codec = MCSInfo::GetMediaCodecFromMimeType(mimeType);
     if (codec == MediaCodec::SENTINEL) {
-      SLOG("Did not parse string %s to specific codec", s.Data());
+      SLOG("Did not parse string %s to specific codec", s.get());
       continue;
     }
     *sSupportedCodecs += MCSInfo::GetMediaCodecsSupportEnum(codec, support);
@@ -356,7 +356,7 @@ already_AddRefed<MediaDataDecoder> AndroidDecoderModule::CreateAudioDecoder(
     const CreateDecoderParams& aParams) {
   const AudioInfo& config = aParams.AudioConfig();
   LOG("CreateAudioFormat with mimeType=%s, mRate=%d, channels=%d",
-      config.mMimeType.Data(), config.mRate, config.mChannels);
+      config.mMimeType.get(), config.mRate, config.mChannels);
 
   nsString drmStubId;
   if (mProxy) {

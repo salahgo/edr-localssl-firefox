@@ -394,7 +394,7 @@ void ProfilerChild::GatherProfileThreadFunction(
                           len);
                       if (parameters->profilerChild->AllocShmem(
                               message.Length() + 1, &shmem)) {
-                        strcpy(shmem.get<char>(), message.Data());
+                        strcpy(shmem.get<char>(), message.get());
                       }
                     }
                   } else {
@@ -405,7 +405,7 @@ void ProfilerChild::GatherProfileThreadFunction(
                         size_t(UINT32_MAX));
                     if (parameters->profilerChild->AllocShmem(
                             message.Length() + 1, &shmem)) {
-                      strcpy(shmem.get<char>(), message.Data());
+                      strcpy(shmem.get<char>(), message.get());
                     }
                   }
                   writer = nullptr;
@@ -419,7 +419,7 @@ void ProfilerChild::GatherProfileThreadFunction(
                       failure ? ", failure: " : "", failure ? failure : "");
                   if (parameters->profilerChild->AllocShmem(
                           message.Length() + 1, &shmem)) {
-                    strcpy(shmem.get<char>(), message.Data());
+                    strcpy(shmem.get<char>(), message.get());
                   }
                 }
 

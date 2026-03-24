@@ -3171,7 +3171,7 @@ void nsHttpTransaction::Refused0RTT() {
 
 void nsHttpTransaction::SetHttpTrailers(nsCString& aTrailers) {
   LOG(("nsHttpTransaction::SetHttpTrailers %p", this));
-  LOG(("[\n    %s\n]", aTrailers.BeginReading()));
+  LOG(("[\n    %s\n]", aTrailers.get()));
 
   // Introduce a local variable to minimize the critical section.
   UniquePtr<nsHttpHeaderArray> httpTrailers(new nsHttpHeaderArray());
