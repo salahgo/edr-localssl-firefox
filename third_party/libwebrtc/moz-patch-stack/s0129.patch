@@ -11,7 +11,7 @@ Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/a076ddec60822b1d2
  1 file changed, 1 insertion(+), 11 deletions(-)
 
 diff --git a/BUILD.gn b/BUILD.gn
-index 30f105d2ec..860fdaed55 100644
+index 6a94d61f50..bb666409e5 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -317,16 +317,6 @@ config("common_config") {
