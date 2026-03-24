@@ -281,7 +281,7 @@ void ExtensionAPIBase::GetWebExtPropertyAsString(const nsString& aPropertyName,
     NS_WARNING("GetWebExtPropertyAsString got a non string result");
     return;
   }
-  aRetval.SetKnownLiveString(strRetval);
+  aRetval.AsAString() = strRetval;
 }
 
 void ExtensionAPIBase::GetWebExtPropertyAsJSValue(
