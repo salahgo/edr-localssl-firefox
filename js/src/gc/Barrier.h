@@ -1078,26 +1078,24 @@ class MOZ_HEAP_CLASS ImmutableTenuredPtr {
 };
 
 // Template to remove any barrier wrapper and get the underlying type.
+// For non-barriered types this is just original type.
 template <typename T>
 struct RemoveBarrier {
   using Type = T;
 };
-template <typename T>
-struct RemoveBarrier<HeapPtr<T>> {
-  using Type = T;
-};
-template <typename T>
-struct RemoveBarrier<GCPtr<T>> {
-  using Type = T;
-};
-template <typename T>
-struct RemoveBarrier<PreBarriered<T>> {
-  using Type = T;
-};
-template <typename T>
-struct RemoveBarrier<WeakHeapPtr<T>> {
-  using Type = T;
-};
+
+#define DEFINE_REMOVE_BARRIER(BarrieredPtr) \
+  template <typename T>                     \
+  struct RemoveBarrier<BarrieredPtr<T>> {   \
+    using Type = T;                         \
+  }
+
+DEFINE_REMOVE_BARRIER(PreBarriered);
+DEFINE_REMOVE_BARRIER(HeapPtr);
+DEFINE_REMOVE_BARRIER(GCPtr);
+DEFINE_REMOVE_BARRIER(WeakHeapPtr);
+
+#undef DEFINE_REMOVE_BARRIER
 
 template <typename T>
 using IsBarriered =
