@@ -8,49 +8,47 @@
 
 import os
 import re
+from typing import Optional
 
 import attr
 import taskgraph
 from mozpack import path as mozpath
 from mozshellutil import quote as shell_quote
 from taskgraph.transforms.base import TransformSequence
-from taskgraph.util.schema import LegacySchema, validate_schema
+from taskgraph.util.schema import LegacySchema, Schema, validate_schema
 from taskgraph.util.treeherder import join_symbol
-from voluptuous import Any, Extra, Optional, Required
+from voluptuous import Any, Required
+from voluptuous import Optional as VOptional
 
 import gecko_taskgraph
-from gecko_taskgraph.transforms.task import task_description_schema
+from gecko_taskgraph.transforms.task import TaskDescriptionSchema
 
 from ..util.cached_tasks import add_optimization
 
 CACHE_TYPE = "content.v1"
 
-FETCH_SCHEMA = LegacySchema({
+
+class FetchTypeSchema(Schema, forbid_unknown_fields=False, kw_only=True):
+    type: str
+
+
+class FetchSchema(Schema, kw_only=True):
     # Name of the task.
-    Required("name"): str,
-    # Relative path (from config.path) to the file the task was defined
-    # in.
-    Optional("task-from"): str,
+    name: str
+    # Relative path (from config.path) to the file the task was defined in.
+    task_from: Optional[str] = None
     # Description of the task.
-    Required("description"): str,
-    Optional(
-        "fetch-alias",
-        description="An alias that can be used instead of the real fetch job name in "
-        "fetch stanzas for jobs.",
-    ): str,
-    Optional(
-        "artifact-prefix",
-        description="The prefix of the taskcluster artifact being uploaded. "
-        "Defaults to `public/`; if it starts with something other than "
-        "`public/` the artifact will require scopes to access.",
-    ): str,
-    Optional("attributes"): {str: object},
-    Optional("run-on-repo-type"): task_description_schema["run-on-repo-type"],
-    Required("fetch"): {
-        Required("type"): str,
-        Extra: object,
-    },
-})
+    description: str
+    # An alias that can be used instead of the real fetch job name in
+    # fetch stanzas for jobs.
+    fetch_alias: Optional[str] = None
+    # The prefix of the taskcluster artifact being uploaded.
+    # Defaults to `public/`; if it starts with something other than
+    # `public/` the artifact will require scopes to access.
+    artifact_prefix: Optional[str] = None
+    attributes: Optional[dict[str, object]] = None
+    run_on_repo_type: TaskDescriptionSchema.__annotations__["run_on_repo_type"] = None
+    fetch: FetchTypeSchema  # noqa: F821
 
 
 # define a collection of payload builders, depending on the worker implementation
@@ -59,7 +57,7 @@ fetch_builders = {}
 
 @attr.s(frozen=True)
 class FetchBuilder:
-    schema = attr.ib(type=LegacySchema)
+    schema = attr.ib()
     builder = attr.ib()
 
 
@@ -74,7 +72,7 @@ def fetch_builder(name, schema):
 
 
 transforms = TransformSequence()
-transforms.add_validate(FETCH_SCHEMA)
+transforms.add_validate(FetchSchema)
 
 
 @transforms.add
@@ -199,7 +197,7 @@ def make_task(config, jobs):
         # Size of the downloaded entity, in bytes.
         Required("size"): int,
         # GPG signature verification.
-        Optional("gpg-signature"): {
+        VOptional("gpg-signature"): {
             # URL where GPG signature document can be obtained. Can contain the
             # value ``{url}``, which will be substituted with the value from
             # ``url``.
@@ -208,19 +206,19 @@ def make_task(config, jobs):
             # download.
             Required("key-path"): str,
         },
-        Optional("headers"): [str],
+        VOptional("headers"): [str],
         # The name to give to the generated artifact. Defaults to the file
         # portion of the URL. Using a different extension converts the
         # archive to the given type. Only conversion to .tar.zst is
         # supported.
-        Optional("artifact-name"): str,
+        VOptional("artifact-name"): str,
         # Strip the given number of path components at the beginning of
         # each file entry in the archive.
         # Requires an artifact-name ending with .tar.zst.
-        Optional("strip-components"): int,
+        VOptional("strip-components"): int,
         # Add the given prefix to each file entry in the archive.
         # Requires an artifact-name ending with .tar.zst.
-        Optional("add-prefix"): str,
+        VOptional("add-prefix"): str,
         # IMPORTANT: when adding anything that changes the behavior of the task,
         # it is important to update the digest data used to compute cache hits.
     },
@@ -294,14 +292,14 @@ def create_fetch_url_task(config, name, fetch):
     schema={
         Required("repo"): str,
         Required(Any("revision", "branch")): str,
-        Optional("include-dot-git"): bool,
-        Optional("artifact-name"): str,
-        Optional("path-prefix"): str,
+        VOptional("include-dot-git"): bool,
+        VOptional("artifact-name"): str,
+        VOptional("path-prefix"): str,
         # ssh-key is a taskcluster secret path (e.g. project/civet/github-deploy-key)
         # In the secret dictionary, the key should be specified as
         #  "ssh_privkey": "-----BEGIN OPENSSH PRIVATE KEY-----\nkfksnb3jc..."
         # n.b. The OpenSSH private key file format requires a newline at the end of the file.
-        Optional("ssh-key"): str,
+        VOptional("ssh-key"): str,
     },
 )
 def create_git_fetch_task(config, name, fetch):
@@ -390,7 +388,7 @@ def create_onnxruntime_deps_fetch_task(config, name, fetch):
         # Platform type for chromium build
         Required("platform"): str,
         # Chromium revision to obtain
-        Optional("revision"): str,
+        VOptional("revision"): str,
         # The name to give to the generated artifact.
         Required("artifact-name"): str,
     },
@@ -434,11 +432,11 @@ def create_chromium_fetch_task(config, name, fetch):
         # The name to give to the generated artifact.
         Required("artifact-name"): str,
         # The chrome channel to download from.
-        Optional("channel"): str,
+        VOptional("channel"): str,
         # Determine if we are fetching a backup (stable version - 1) driver.
-        Optional("backup"): bool,
+        VOptional("backup"): bool,
         # Pin a stable version of chrome to download from. To be used together with `backup`.
-        Optional("version"): str,
+        VOptional("version"): str,
     },
 )
 def create_cft_canary_fetch_task(config, name, fetch):
