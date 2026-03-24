@@ -2321,7 +2321,6 @@ nsresult PermissionManager::AddInternal(
   // correct interaction timestamps. Only do this when actually writing to the
   // DB, not during startup load.
   if (!IsChildProcess() && aDBOperation == eWriteToDB &&
-      StaticPrefs::permissions_expireUnused_enabled() &&
       !aPrincipal->GetIsInPrivateBrowsing() &&
       (op == eOperationAdding || op == eOperationChanging ||
        op == eOperationReplacingDefault)) {
@@ -4444,10 +4443,6 @@ NS_IMETHODIMP
 PermissionManager::UpdateLastInteractionForPrincipal(nsIPrincipal* aPrincipal) {
   ENSURE_NOT_CHILD_PROCESS;
   NS_ENSURE_ARG_POINTER(aPrincipal);
-
-  if (!StaticPrefs::permissions_expireUnused_enabled()) {
-    return NS_OK;
-  }
 
   if (aPrincipal->IsSystemPrincipal()) {
     return NS_OK;
