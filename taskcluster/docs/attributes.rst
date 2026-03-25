@@ -605,8 +605,3 @@ dxc-crash-symbols
 =================
 
 Indicates that the job produces crash symbols for `dxcompiler.dll`.
-
-flatpak_name
-============
-
-name of the built flatpak app (e.g. `org.mozilla.firefox`)

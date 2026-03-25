@@ -58,17 +58,10 @@ def make_task_description(config, jobs):
             **{"release-level": release_level(config.params)},
         )
         if release_level(config.params) == "production":
-            dep_job = config.kind_dependencies_tasks[
-                next(iter(job["dependencies"].values()))
-            ]
             job.setdefault("scopes", []).append(
                 add_scope_prefix(
                     config,
-                    "{}:{}:{}".format(
-                        job["flathub-scope"],
-                        job["worker"]["channel"],
-                        dep_job.attributes["flatpak_name"],
-                    ),
+                    "{}:{}".format(job["flathub-scope"], job["worker"]["channel"]),
                 )
             )
         del job["flathub-scope"]
