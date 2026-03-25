@@ -42,7 +42,8 @@ extern void TraceManuallyBarrieredGenericPointerEdge(JSTracer* trc,
                                                      const char* name);
 
 #ifdef MOZ_TSAN
-extern void FullMemoryFence(JSRuntime* runtime);
+extern void TSANMemoryAcquireFence(JSRuntime* runtime);
+extern void TSANMemoryReleaseFence(JSRuntime* runtime);
 #endif
 
 namespace gc {
@@ -593,10 +594,10 @@ MOZ_ALWAYS_INLINE void MemoryReleaseFence(JS::Zone* zone) {
 
   if (JS::shadow::Zone::from(zone)->needsMarkingBarrier(
           JS::shadow::Zone::Concurrent)) {
-#  ifdef MOZ_TSAN
-    FullMemoryFence(JS::shadow::Zone::from(zone)->runtimeFromMainThread());
-#  else
     std::atomic_thread_fence(std::memory_order_release);
+#  ifdef MOZ_TSAN
+    JSRuntime* runtime = JS::shadow::Zone::from(zone)->runtimeFromMainThread();
+    TSANMemoryReleaseFence(runtime);
 #  endif
   }
 #endif

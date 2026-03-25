@@ -1122,7 +1122,7 @@ class GCRuntime {
 #ifdef MOZ_TSAN
   // TSAN doesn't understand use of atomic_thread_fence to synchronize relaxed
   // atomics so use reads/writes to this atomic instead.
-  mozilla::Atomic<int, mozilla::SequentiallyConsistent> tsanMemoryBarrier;
+  mozilla::Atomic<int, mozilla::ReleaseAcquire> tsanFenceAtomic;
 #endif
 
  private:

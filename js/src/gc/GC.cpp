@@ -5899,11 +5899,16 @@ void GCRuntime::setPerformanceHint(PerformanceHint hint) {
 }
 
 #ifdef MOZ_TSAN
-void js::FullMemoryFence(JSRuntime* runtime) {
-  // TSAN doesn't understand use of atomic_thread_fence to synchronize relaxed
-  // atomics. Do a full memory barrier to tell TSAN it's OK. Note
-  // std::atomic_thread_fence is stronger than an atomic store-release
-  // operation.
-  runtime->gc.tsanMemoryBarrier++;
+// TSAN doesn't understand use of std::atomic_thread_fence to synchronize
+// relaxed atomics. Do an actual release or acquire atomic operation
+// instead.
+//
+// Bug 2003767: We should be able to use __tsan_acquire/release for this but
+// these don't link.
+void js::TSANMemoryReleaseFence(JSRuntime* runtime) {
+  runtime->gc.tsanFenceAtomic = 0;
+}
+void js::TSANMemoryAcquireFence(JSRuntime* runtime) {
+  (void)(int)runtime->gc.tsanFenceAtomic;
 }
 #endif
