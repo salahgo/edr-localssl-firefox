@@ -146,7 +146,7 @@ class DefaultMetricsStorageTest {
     }
 
     @Test
-    fun `GIVEN that app has been used for 3 days but not consecutively WHEN checked for first week activity THEN event will be not sent`() = runTest(dispatcher) {
+    fun `GIVEN that app has been used for 3 non-consecutive days WHEN checked for first week activity THEN event will be sent`() = runTest(dispatcher) {
         val tomorrow = calendarStart.createNextDay()
         val fourDaysFromNow = tomorrow.createNextDay().createNextDay()
         every { settings.firstWeekDaysOfUseGrowthData = any() } just Runs
@@ -155,7 +155,7 @@ class DefaultMetricsStorageTest {
 
         val result = storage.shouldTrack(Event.GrowthData.ConversionEvent4)
 
-        assertFalse(result)
+        assertTrue(result)
     }
 
     @Test

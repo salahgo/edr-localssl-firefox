@@ -96,7 +96,7 @@ internal class DefaultMetricsStorage(
                 }
 
                 Event.GrowthData.ConversionEvent4 -> {
-                    currentTime.duringFirstMonth() && shouldTrackFirstWeekActivity()
+                    shouldTrackFirstWeekActivity()
                 }
 
                 Event.GrowthData.ConversionEvent5 -> {
@@ -222,28 +222,21 @@ internal class DefaultMetricsStorage(
             return false
         }
 
-        val daysOfUse = settings.firstWeekDaysOfUseGrowthData.map {
-            dateFormatter.parse(it)
-        }.sorted()
-
-        // This loop will check whether the existing list of days of use, combined with the
-        // current date, contains any periods of 3 days of use in a row.
-        for (idx in daysOfUse.indices) {
-            if (idx + 1 > daysOfUse.lastIndex || idx + 2 > daysOfUse.lastIndex) {
-                continue
+        val distinctDaysCount = settings.firstWeekDaysOfUseGrowthData
+            .asSequence()
+            .mapNotNull { dateFormatter.parse(it) }
+            .map { it.time.toCalendar() }
+            .map { cal ->
+                Triple(
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH),
+                )
             }
+            .distinct()
+            .count()
 
-            val referenceDate = daysOfUse[idx]!!.time.toCalendar()
-            val secondDateEntry = daysOfUse[idx + 1]!!.time.toCalendar()
-            val thirdDateEntry = daysOfUse[idx + 2]!!.time.toCalendar()
-            val oneDayAfterReference = referenceDate.createNextDay()
-            val twoDaysAfterReference = oneDayAfterReference.createNextDay()
-
-            if (oneDayAfterReference == secondDateEntry && thirdDateEntry == twoDaysAfterReference) {
-                return true
-            }
-        }
-        return false
+        distinctDaysCount >= MINIMUM_DAYS_IN_FIRST_WEEK_SERIES
     }.getOrDefault(false)
 
     @VisibleForTesting
@@ -353,10 +346,6 @@ internal class DefaultMetricsStorage(
 
     private fun Long.duringFirstMonth() = this < getInstalledTime() + SHORTEST_MONTH_MILLIS
 
-    private fun Calendar.createNextDay() = (this.clone() as Calendar).also { calendar ->
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
-    }
-
     private fun getInstalledTimeToMidnight() = getInstalledTime().toMidnight()
 
     private fun Long.toMidnight(): Long = this.toCalendar().apply {
@@ -412,6 +401,8 @@ internal class DefaultMetricsStorage(
         private const val THREE_DAY_MILLIS: Long = 3 * DAY_MILLIS
         private const val FOUR_DAY_MILLIS: Long = 4 * DAY_MILLIS
         private const val SHORTEST_MONTH_MILLIS: Long = DAY_MILLIS * 28
+
+        private const val MINIMUM_DAYS_IN_FIRST_WEEK_SERIES = 3
 
         // Note this is 8 so that recording of FirstWeekSeriesActivity happens throughout the length
         // of the 7th day after install
