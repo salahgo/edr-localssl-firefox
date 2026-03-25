@@ -30,6 +30,7 @@
 #include "nsIChannel.h"
 #include "nsIDocShell.h"
 #include "nsIHttpChannel.h"
+#include "nsRefreshDriver.h"
 
 namespace mozilla::dom {
 
@@ -255,22 +256,31 @@ void PerformanceMainThread::InsertEventTimingEntry(
     return;
   }
 
-  // Using PostRefreshObserver is fine because we don't
-  // run any JS between the `mark paint timing` step and the
-  // `pending Event Timing entries` step. So mixing the order
-  // here is fine.
-  mHasQueuedRefreshdriverObserver = true;
-  presContext->RegisterManagedPostRefreshObserver(
-      new ManagedPostRefreshObserver(
-          presContext, [performance = RefPtr<PerformanceMainThread>(this)](
-                           bool aWasCanceled) {
-            if (!aWasCanceled) {
-              // XXX Should we do this even if canceled?
-              performance->DispatchPendingEventTimingEntries();
-            }
-            performance->mHasQueuedRefreshdriverObserver = false;
-            return ManagedPostRefreshObserver::Unregister::Yes;
-          }));
+  // If the refresh driver already has work to do (pending paint, animations,
+  // etc.), register a post-refresh observer so entries are dispatched after
+  // the paint with an accurate rendering time. Otherwise, avoid waking up
+  // vsync by posting a direct task — entries will be dispatched on the next
+  // event-loop iteration with the current time as rendering time.
+  if (presContext->RefreshDriver()->HasReasonsToTick()) {
+    // Using PostRefreshObserver is fine because we don't
+    // run any JS between the `mark paint timing` step and the
+    // `pending Event Timing entries` step. So mixing the order
+    // here is fine.
+    mHasQueuedRefreshdriverObserver = true;
+
+    presContext->RegisterManagedPostRefreshObserver(
+        new ManagedPostRefreshObserver(
+            presContext, [performance = RefPtr<PerformanceMainThread>(this)](
+                             bool aWasCanceled) {
+              if (!aWasCanceled) {
+                performance->DispatchPendingEventTimingEntries();
+              }
+              performance->mHasQueuedRefreshdriverObserver = false;
+              return ManagedPostRefreshObserver::Unregister::Yes;
+            }));
+  } else {
+    DispatchPendingEventTimingEntries();
+  }
 }
 
 void PerformanceMainThread::BufferEventTimingEntryIfNeeded(
