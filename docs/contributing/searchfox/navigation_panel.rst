@@ -124,6 +124,13 @@ Show file without diff
   This item is shown on the annotated diff view.
   (See :ref:`Blame <searchfox-blame>` for the link for the annotated diff view.)
 
+Generated file
+--------------
+
+Raw
+  Open the raw file of the current generated file.
+  In contrast to source files, this file is hosted on searchfox itself, and there's no historical data.
+
 Symbol
 ------
 
