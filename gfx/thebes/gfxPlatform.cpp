@@ -3264,6 +3264,9 @@ void gfxPlatform::InitWebGPUConfig() {
     return;
   }
 
+  nsCString message;
+  nsCString failureId;
+
   FeatureState& featureWebGPU = gfxConfig::GetFeature(Feature::WEBGPU);
   featureWebGPU.EnableByDefault();
 
@@ -3272,17 +3275,16 @@ void gfxPlatform::InitWebGPUConfig() {
     featureWebGPU.Disable(FeatureStatus::UnavailableNoGpuProcess,
                           "Disabled without GPU process",
                           "FEATURE_WEBGPU_NO_GPU_PROCESS"_ns);
-  }
-
-  nsCString message;
-  nsCString failureId;
-  if (!IsGfxInfoStatusOkay(nsIGfxInfo::FEATURE_WEBGPU, &message, failureId)) {
+  } else if (!IsGfxInfoStatusOkay(nsIGfxInfo::FEATURE_WEBGPU, &message,
+                                  failureId)) {
     if (StaticPrefs::gfx_webgpu_ignore_blocklist_AtStartup()) {
       featureWebGPU.UserForceEnable(
           "Ignoring blocklist entry because gfx.webgpu.ignore-blocklist is "
           "true.");
+    } else {
+      featureWebGPU.Disable(FeatureStatus::Blocklisted, message.get(),
+                            failureId);
     }
-    featureWebGPU.Disable(FeatureStatus::Blocklisted, message.get(), failureId);
   }
 
   gfxVars::SetAllowWebGPU(featureWebGPU.IsEnabled());
