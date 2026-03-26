@@ -938,28 +938,6 @@ exports.AnimationsActor = class AnimationsActor extends Actor {
   }
 
   /**
-   * Set the playback rate of several animations at the same time.
-   *
-   * @param {Array} actors A list of AnimationPlayerActor.
-   * @param {number} rate The new rate.
-   */
-  setPlaybackRates(actors, rate) {
-    const readyPromises = [];
-    for (const actor of actors) {
-      // The client could call this with actors that we no longer handle, as it might
-      // not have received the mutations event yet for removed animations.
-      // In such case, ignore the actor, as setting the playback rate might trigger a
-      // new mutation, which would cause problems here and on the client.
-      if (!this.actors.includes(actor)) {
-        continue;
-      }
-      actor.player.updatePlaybackRate(rate);
-      readyPromises.push(actor.player.ready);
-    }
-    return Promise.all(readyPromises);
-  }
-
-  /**
    * Pause given player synchronously.
    *
    * @param {object} player
