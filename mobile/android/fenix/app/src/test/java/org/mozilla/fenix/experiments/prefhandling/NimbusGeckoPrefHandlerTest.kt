@@ -162,7 +162,9 @@ class NimbusGeckoPrefHandlerTest {
         handler.setGeckoPrefsState(listOf(prefState))
         shadowOf(Looper.getMainLooper()).idle()
 
+        verify { mockEngine.unregisterPrefsForObservation(eq(listOf(TEST_PREF)), any(), any()) }
         verify { mockNimbusApi.unenrollForGeckoPref(any(), any()) }
+
         assertEquals(TEST_PREF, capturedPrefState.captured.prefString())
         assertEquals(PrefUnenrollReason.FAILED_TO_SET, capturedReason.captured)
     }
@@ -193,7 +195,9 @@ class NimbusGeckoPrefHandlerTest {
         handler.setGeckoPrefsState(listOf(prefState))
         shadowOf(Looper.getMainLooper()).idle()
 
+        verify { mockEngine.unregisterPrefsForObservation(eq(listOf(TEST_PREF)), any(), any()) }
         verify { mockNimbusApi.unenrollForGeckoPref(any(), any()) }
+
         assertEquals(TEST_PREF, capturedPrefState.captured.prefString())
         assertEquals(PrefUnenrollReason.FAILED_TO_SET, capturedReason.captured)
     }
@@ -278,10 +282,11 @@ class NimbusGeckoPrefHandlerTest {
             BrowserPreference<String>(pref = TEST_PREF, hasUserChangedValue = false, prefType = BrowserPrefType.STRING),
         )
 
+        verify { mockEngine.unregisterPrefsForObservation(eq(listOf(TEST_PREF)), any(), any()) }
         verify { mockNimbusApi.unenrollForGeckoPref(any(), eq(PrefUnenrollReason.CHANGED)) }
     }
 
-    @Test
+        @Test
     fun `WHEN setGeckoPrefsState is called with prefs not in preferenceTypes THEN getBrowserPrefs is called and preferenceTypes is populated`() {
         val handler = makeHandler(engine = mockEngine)
 
@@ -311,5 +316,69 @@ class NimbusGeckoPrefHandlerTest {
 
         verify { mockEngine.getBrowserPrefs(any(), any(), any()) }
         assertEquals(BrowserPrefType.STRING, handler.preferenceTypes[TEST_PREF])
+    }
+
+    @Test
+    fun `WHEN handleErrors is called with errors from the same multi-pref experiment THEN unenrollForGeckoPref is only called once`() {
+        val secondPref = "gecko.nimbus.test.2"
+        every { FxNimbus.geckoPrefsMap() } returns mapOf(
+            "gecko-nimbus-multi" to mapOf(
+                "test-preference" to GeckoPref(pref = TEST_PREF, branch = PrefBranch.DEFAULT),
+                "test-preference-2" to GeckoPref(pref = secondPref, branch = PrefBranch.DEFAULT),
+            ),
+        )
+        val handler = makeHandler()
+        handler.enrollmentErrors.add(
+            Pair(
+                GeckoPrefState(geckoPref = GeckoPref(pref = TEST_PREF, branch = PrefBranch.DEFAULT), geckoValue = null, enrollmentValue = null, isUserSet = false),
+                null,
+            ),
+        )
+        handler.enrollmentErrors.add(
+            Pair(
+                GeckoPrefState(geckoPref = GeckoPref(pref = secondPref, branch = PrefBranch.DEFAULT), geckoValue = null, enrollmentValue = null, isUserSet = false),
+                null,
+            ),
+        )
+
+        handler.handleErrors()
+
+        verify(exactly = 1) { mockNimbusApi.unenrollForGeckoPref(any(), eq(PrefUnenrollReason.FAILED_TO_SET)) }
+    }
+
+    @Test
+    fun `WHEN allExperimentPrefs is called with a pref in a single-pref feature THEN only that pref is returned`() {
+        val handler = makeHandler()
+        val prefState = GeckoPrefState(
+            geckoPref = GeckoPref(pref = TEST_PREF, branch = PrefBranch.DEFAULT),
+            geckoValue = null,
+            enrollmentValue = null,
+            isUserSet = false,
+        )
+
+        assertEquals(listOf(TEST_PREF), handler.allExperimentPrefs(prefState))
+    }
+
+    @Test
+    fun `WHEN allExperimentPrefs is called with a pref in a multi-pref feature THEN all prefs in the feature are returned`() {
+        val secondPref = "gecko.nimbus.test.2"
+        every { FxNimbus.geckoPrefsMap() } returns mapOf(
+            "gecko-nimbus-multiple-prefs-test" to mapOf(
+                "test-preference" to GeckoPref(pref = TEST_PREF, branch = PrefBranch.DEFAULT),
+                "test-preference-2" to GeckoPref(pref = secondPref, branch = PrefBranch.DEFAULT),
+            ),
+        )
+        val handler = makeHandler()
+        val prefState = GeckoPrefState(
+            geckoPref = GeckoPref(pref = TEST_PREF, branch = PrefBranch.DEFAULT),
+            geckoValue = null,
+            enrollmentValue = null,
+            isUserSet = false,
+        )
+
+        val result = handler.allExperimentPrefs(prefState)
+
+        assertEquals(2, result.size)
+        assertTrue(result.containsAll(listOf(TEST_PREF, secondPref)))
     }
 }
