@@ -10535,16 +10535,6 @@
   mirror: always
   rust: true
 
-# Pref to control whether the ::marker property restrictions defined in [1]
-# apply.
-#
-# [1]: https://drafts.csswg.org/css-pseudo-4/#selectordef-marker
-- name: layout.css.marker.restricted
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
-  rust: true
-
 # Is -moz-osx-font-smoothing enabled? (Only supported in OSX builds)
 - name: layout.css.osx-font-smoothing.enabled
   type: bool
