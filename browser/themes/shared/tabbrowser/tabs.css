@@ -1379,11 +1379,14 @@ tab-group > tab-split-view-wrapper {
           outline-color: transparent;
         }
       }
-
-      &:last-child {
-        border-inline-start: 1px solid var(--toolbarbutton-icon-fill);
-      }
     }
+  }
+  .tabbrowser-tab:last-child {
+    border-inline-start: 1px solid transparent;
+  }
+
+  &:not([hasactivetab]) .tabbrowser-tab:last-child {
+    border-inline-start-color: var(--toolbarbutton-icon-fill);
   }
 }
 
