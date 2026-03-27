@@ -10,11 +10,12 @@ import android.content.Context
 import android.media.MediaPlayer
 import androidx.annotation.RawRes
 
-class SoundEffectsPlayer(private val context: Context) {
+class SoundEffectsPlayer(private val context: Context, private val soundOn: Boolean) {
 
     private val activePlayers = mutableSetOf<MediaPlayer>()
 
     fun playSound(@RawRes soundResId: Int) {
+        if (!soundOn) return
         MediaPlayer.create(context, soundResId)?.apply {
             activePlayers.add(this)
             start()

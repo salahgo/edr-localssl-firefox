@@ -15,9 +15,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -30,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.mozilla.fenix.longfox.GameState.Companion.CELL_SIZE_DP
 import org.mozilla.fenix.longfox.GameState.Companion.GAME_INTERVAL_TIME_MS
 
@@ -63,7 +66,11 @@ fun LongFoxGameScreen() {
             )
         }
         val context = LocalContext.current
-        val soundEffectsPlayer = remember { SoundEffectsPlayer(context) }
+        val coroutineScope = rememberCoroutineScope()
+        val longFoxDataStore = remember(context) { LongFoxDataStore(context) }
+        val soundOn by longFoxDataStore.soundOnFlow()
+            .collectAsState(initial = false, coroutineScope.coroutineContext)
+        val soundEffectsPlayer = remember(soundOn) { SoundEffectsPlayer(context, soundOn) }
         DisposableEffect(soundEffectsPlayer) {
             onDispose { soundEffectsPlayer.release() }
         }
@@ -90,6 +97,7 @@ fun LongFoxGameScreen() {
                 }
                 gameState = gameState.toggleBeepNext()
             }
+            coroutineScope.launch { longFoxDataStore.saveIfHiscore(gameState.score) }
         }
         Box(
             modifier = Modifier
@@ -100,9 +108,14 @@ fun LongFoxGameScreen() {
             contentAlignment = Alignment.Center,
         ) {
             if (gameState.isGameOver) {
-                restartGame()
+                NewGameScreen(
+                    longFoxDataStore = longFoxDataStore,
+                    initialGameState = gameState,
+                    startGame = restartGame,
+                )
+            } else {
+                GameCanvas(gameState)
             }
-            GameCanvas(gameState)
         }
         if (!gameState.isGameOver) {
             ScoreContainer(gameState.score)
