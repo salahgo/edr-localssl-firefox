@@ -552,17 +552,6 @@ struct JSRuntime {
  public:
   js::GeckoProfilerRuntime& geckoProfiler() { return geckoProfiler_.ref(); }
 
-  // Heap GC roots for PersistentRooted pointers.
-  js::MainThreadData<mozilla::EnumeratedArray<
-      JS::RootKind, mozilla::LinkedList<js::PersistentRootedBase>,
-      size_t(JS::RootKind::Limit)>>
-      heapRoots;
-
-  void tracePersistentRoots(JSTracer* trc);
-  void finishPersistentRoots();
-
-  void finishRoots();
-
  private:
   js::UnprotectedData<const JSPrincipals*> trustedPrincipals_;
 

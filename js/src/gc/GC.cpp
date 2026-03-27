@@ -503,14 +503,6 @@ GCRuntime::GCRuntime(JSRuntime* rt)
       concurrentMarkingEnabled(TuningDefaults::ConcurrentMarkingEnabled),
 #endif
       rootsRemoved(false),
-#ifdef JS_GC_ZEAL
-      zealModeBits(0),
-      zealFrequency(0),
-      nextScheduled(0),
-      deterministicOnly(false),
-      zealSliceBudget(0),
-      selectedForMarking(rt),
-#endif
       fullCompartmentChecks(false),
       gcCallbackDepth(0),
       alwaysPreserveCode(false),
@@ -528,6 +520,15 @@ GCRuntime::GCRuntime(JSRuntime* rt)
       nursery_(this),
       storeBuffer_(rt),
       lastAllocRateUpdateTime(TimeStamp::Now())
+#ifdef JS_GC_ZEAL
+      ,
+      zealModeBits(0),
+      zealFrequency(0),
+      nextScheduled(0),
+      deterministicOnly(false),
+      zealSliceBudget(0),
+      selectedForMarking(rt)
+#endif
 #ifdef DEBUG
       ,
       testMarkQueue(rt)

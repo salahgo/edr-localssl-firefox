@@ -26,6 +26,7 @@
 #include "gc/StoreBuffer.h"
 #include "js/friend/PerformanceHint.h"
 #include "js/GCAnnotations.h"
+#include "js/RootingAPI.h"
 #include "js/UniquePtr.h"
 #include "vm/AtomsTable.h"
 
@@ -302,6 +303,14 @@ class GCRuntime {
   void clearZealMode(ZealMode mode);
   bool needZealousGC();
   bool zealModeControlsYieldPoint() const;
+
+  using PersistentRoots =
+      mozilla::EnumeratedArray<JS::RootKind,
+                               mozilla::LinkedList<js::PersistentRootedBase>,
+                               size_t(JS::RootKind::Limit)>;
+  PersistentRoots& persistentRoots() { return persistentRoots_.ref(); }
+  void tracePersistentRoots(JSTracer* trc);
+  void finishPersistentRoots();
 
   [[nodiscard]] bool addRoot(Value* vp, const char* name);
   void removeRoot(Value* vp);
@@ -1180,6 +1189,7 @@ class GCRuntime {
    */
   GCLockData<uint32_t> minEmptyChunkCount_;
 
+  MainThreadData<PersistentRoots> persistentRoots_;
   MainThreadData<RootedValueMap> rootsHash;
 
   // An incrementing id used to assign unique ids to cells that require one.
@@ -1407,45 +1417,6 @@ class GCRuntime {
 
   MainThreadData<bool> rootsRemoved;
 
-  /*
-   * These options control the zealousness of the GC. At every allocation,
-   * nextScheduled is decremented. When it reaches zero we do a full GC.
-   *
-   * At this point, if zeal_ is one of the types that trigger periodic
-   * collection, then nextScheduled is reset to the value of zealFrequency.
-   * Otherwise, no additional GCs take place.
-   *
-   * You can control these values in several ways:
-   *   - Set the JS_GC_ZEAL environment variable
-   *   - Call gczeal() or schedulegc() from inside shell-executed JS code
-   *     (see the help for details)
-   *
-   * If gcZeal_ == 1 then we perform GCs in select places (during MaybeGC and
-   * whenever we are notified that GC roots have been removed). This option is
-   * mainly useful to embedders.
-   *
-   * We use zeal_ == 4 to enable write barrier verification. See the comment
-   * in gc/Verifier.cpp for more information about this.
-   *
-   * zeal_ values from 8 to 10 periodically run different types of
-   * incremental GC.
-   *
-   * zeal_ value 14 performs periodic shrinking collections.
-   */
-#ifdef JS_GC_ZEAL
-  static_assert(size_t(ZealMode::Count) <= 32,
-                "Too many zeal modes to store in a uint32_t");
-  MainThreadData<uint32_t> zealModeBits;
-  MainThreadData<int> zealFrequency;
-  MainThreadData<int> nextScheduled;
-  MainThreadData<bool> deterministicOnly;
-  MainThreadData<int> zealSliceBudget;
-  MainThreadData<size_t> maybeMarkStackLimit;
-
-  MainThreadData<PersistentRooted<GCVector<JSObject*, 0, SystemAllocPolicy>>>
-      selectedForMarking;
-#endif
-
   MainThreadData<bool> fullCompartmentChecks;
 
   MainThreadData<uint32_t> gcCallbackDepth;
@@ -1534,6 +1505,34 @@ class GCRuntime {
 
   // Total collector time since per-zone allocation rates were last updated.
   MainThreadData<mozilla::TimeDuration> collectorTimeSinceAllocRateUpdate;
+
+#ifdef JS_GC_ZEAL
+  /*
+   * These options control the zealousness of the GC. At every allocation,
+   * nextScheduled is decremented. When it reaches zero we do a full GC.
+   *
+   * At this point, if zeal_ is one of the types that trigger periodic
+   * collection, then nextScheduled is reset to the value of zealFrequency.
+   * Otherwise, no additional GCs take place.
+   *
+   * You can control these values in several ways:
+   *   - Set the JS_GC_ZEAL environment variable
+   *   - Call gczeal() or schedulegc() from inside shell-executed JS code
+   *     (see the help for details)
+   *
+   * See gc::ZealModeHelpText in GC.cpp for details of what the modes do.
+   */
+  static_assert(size_t(ZealMode::Count) <= 32,
+                "Too many zeal modes to store in a uint32_t");
+  MainThreadData<uint32_t> zealModeBits;
+  MainThreadData<int> zealFrequency;
+  MainThreadData<int> nextScheduled;
+  MainThreadData<bool> deterministicOnly;
+  MainThreadData<int> zealSliceBudget;
+  MainThreadData<size_t> maybeMarkStackLimit;
+  MainThreadData<PersistentRooted<GCVector<JSObject*, 0, SystemAllocPolicy>>>
+      selectedForMarking;
+#endif
 
 #ifdef DEBUG
   /*
