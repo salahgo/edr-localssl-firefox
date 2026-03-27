@@ -58,7 +58,7 @@ void QueryCallback(DNSServiceRef aSDRef, DNSServiceFlags aFlags,
     return;
   }
 
-  nsDependentCString fullname(aFullname);
+  auto fullname = Substring(nsDependentCString(aFullname), 0, -1);
   if (fullname.Length() && fullname.Last() == '.') {
     // The fullname argument is always FQDN
     fullname.Rebind(aFullname, fullname.Length() - 1);
