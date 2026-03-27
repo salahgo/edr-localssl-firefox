@@ -49,7 +49,7 @@ static ScrollbarParams ComputeScrollbarParams(nsIFrame* aFrame,
                                               const ThemeColors& aColors,
                                               ScrollbarKind aScrollbarKind) {
   ScrollbarParams params;
-  params.isOverlay = aFrame->PresContext()->UseOverlayScrollbars();
+  params.isOverlay = nsLayoutUtils::UseOverlayScrollbars(aFrame);
   params.isRolledOver = ScrollbarDrawing::IsParentScrollbarRolledOver(aFrame);
   params.isSmall =
       aStyle.StyleUIReset()->ScrollbarWidth() == StyleScrollbarWidth::Thin;
@@ -84,7 +84,8 @@ LayoutDeviceIntSize ScrollbarDrawingCocoa::GetMinimumWidgetSize(
         ComputedStyle* style = nsLayoutUtils::StyleForScrollbar(aFrame);
         auto scrollbarWidth = style->StyleUIReset()->ScrollbarWidth();
         auto size = GetCSSScrollbarSize(
-            scrollbarWidth, Overlay(aPresContext->UseOverlayScrollbars()));
+            scrollbarWidth,
+            Overlay(nsLayoutUtils::UseOverlayScrollbars(aFrame)));
         return {size, size};
       }
       case StyleAppearance::ScrollbarbuttonUp:

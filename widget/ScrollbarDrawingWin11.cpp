@@ -29,8 +29,8 @@ enum class Style {
   ThickThumb,
 };
 
-static Style ScrollbarStyle(nsPresContext* aPresContext) {
-  if (aPresContext->UseOverlayScrollbars()) {
+static Style ScrollbarStyle(nsIFrame* aFrame) {
+  if (nsLayoutUtils::UseOverlayScrollbars(aFrame)) {
     return Style::Overlay;
   }
   if (StaticPrefs::
@@ -48,7 +48,7 @@ LayoutDeviceIntSize ScrollbarDrawingWin11::GetMinimumWidgetSize(
     nsPresContext* aPresContext, StyleAppearance aAppearance,
     nsIFrame* aFrame) {
   MOZ_ASSERT(nsNativeTheme::IsWidgetScrollbarPart(aAppearance));
-  if (ScrollbarStyle(aPresContext) != Style::ThinThumb) {
+  if (ScrollbarStyle(aFrame) != Style::ThinThumb) {
     return ScrollbarDrawingWin::GetMinimumWidgetSize(aPresContext, aAppearance,
                                                      aFrame);
   }
@@ -139,7 +139,7 @@ bool ScrollbarDrawingWin11::PaintScrollbarButton(
     return true;
   }
 
-  const auto style = ScrollbarStyle(aFrame->PresContext());
+  const auto style = ScrollbarStyle(aFrame);
   auto [buttonColor, arrowColor] = ComputeScrollbarButtonColors(
       aFrame, aAppearance, aStyle, aElementState, aColors);
   if (style != Style::Overlay) {
@@ -241,7 +241,7 @@ bool ScrollbarDrawingWin11::DoPaintScrollbarThumb(
 
   LayoutDeviceRect thumbRect(aRect);
 
-  const auto style = ScrollbarStyle(aFrame->PresContext());
+  const auto style = ScrollbarStyle(aFrame);
   const bool hovered =
       ScrollbarDrawing::IsParentScrollbarHoveredOrActive(aFrame) ||
       (style != Style::Overlay && IsScrollbarWidthThin(aStyle));

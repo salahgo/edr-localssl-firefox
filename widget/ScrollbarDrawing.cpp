@@ -46,7 +46,7 @@ nsScrollbarFrame* ScrollbarDrawing::GetParentScrollbarFrame(nsIFrame* aFrame) {
 /*static*/
 bool ScrollbarDrawing::IsParentScrollbarRolledOver(nsIFrame* aFrame) {
   if (nsScrollbarFrame* f = GetParentScrollbarFrame(aFrame)) {
-    if (f->PresContext()->UseOverlayScrollbars()) {
+    if (nsLayoutUtils::UseOverlayScrollbars(f)) {
       return f->HasBeenHovered();
     }
     return f->GetContent()->AsElement()->State().HasState(ElementState::HOVER);
@@ -103,7 +103,7 @@ LayoutDeviceIntCoord ScrollbarDrawing::GetScrollbarSize(
   auto* style = nsLayoutUtils::StyleForScrollbar(aFrame);
   auto width = style->StyleUIReset()->ScrollbarWidth();
   auto overlay =
-      aPresContext->UseOverlayScrollbars() ? Overlay::Yes : Overlay::No;
+      nsLayoutUtils::UseOverlayScrollbars(aFrame) ? Overlay::Yes : Overlay::No;
   return GetScrollbarSize(aPresContext, width, overlay);
 }
 
@@ -181,7 +181,7 @@ bool ScrollbarDrawing::DoPaintDefaultScrollbar(
     ScrollbarKind aScrollbarKind, nsIFrame* aFrame, const ComputedStyle& aStyle,
     const ElementState& aElementState, const Colors& aColors,
     const DPIRatio& aDpiRatio) {
-  const bool overlay = aFrame->PresContext()->UseOverlayScrollbars();
+  const bool overlay = nsLayoutUtils::UseOverlayScrollbars(aFrame);
   if (overlay && !aElementState.HasAtLeastOneOfStates(ElementState::HOVER |
                                                       ElementState::ACTIVE)) {
     return true;

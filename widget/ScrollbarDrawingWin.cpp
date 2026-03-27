@@ -94,7 +94,7 @@ Maybe<nsITheme::Transparency> ScrollbarDrawingWin::GetScrollbarPartTransparency(
           break;
       }
     }
-    if (aFrame->PresContext()->UseOverlayScrollbars()) {
+    if (nsLayoutUtils::UseOverlayScrollbars(aFrame)) {
       return Some(nsITheme::eTransparent);
     }
   }
