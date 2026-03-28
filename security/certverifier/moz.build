@@ -31,7 +31,7 @@ DIRS += [
     "signature_cache",
 ]
 
-COMPILE_FLAGS["WARNINGS_CXXFLAGS"] += [
+CXXFLAGS += [
     "-Wextra",
     "-Wunreachable-code",
 ]

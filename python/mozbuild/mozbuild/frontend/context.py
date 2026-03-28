@@ -24,11 +24,7 @@ from types import FunctionType
 import mozpack.path as mozpath
 
 from mozbuild.util import (
-    CCompilerFlag,
-    CxxCompilerFlag,
     HierarchicalStringList,
-    HostCCompilerFlag,
-    HostCxxCompilerFlag,
     ImmutableStrictOrderingOnAppendList,
     KeyedDefaultDict,
     List,
@@ -2472,7 +2468,7 @@ VARIABLES = {
         """,
     ),
     "CFLAGS": (
-        TypedList(CCompilerFlag),
+        List,
         list,
         """Flags passed to the C compiler for all of the C source files
            declared in this directory.
@@ -2483,7 +2479,7 @@ VARIABLES = {
         """,
     ),
     "CXXFLAGS": (
-        TypedList(CxxCompilerFlag),
+        List,
         list,
         """Flags passed to the C++ compiler for all of the C++ source files
            declared in this directory.
@@ -2585,7 +2581,7 @@ VARIABLES = {
         """,
     ),
     "HOST_CFLAGS": (
-        TypedList(HostCCompilerFlag),
+        List,
         list,
         """Flags passed to the host C compiler for all of the C source files
            declared in this directory.
@@ -2596,7 +2592,7 @@ VARIABLES = {
         """,
     ),
     "HOST_CXXFLAGS": (
-        TypedList(HostCxxCompilerFlag),
+        List,
         list,
         """Flags passed to the host C++ compiler for all of the C++ source files
            declared in this directory.

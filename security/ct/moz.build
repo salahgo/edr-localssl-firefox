@@ -35,7 +35,7 @@ TEST_DIRS += [
 if not CONFIG["MOZ_DEBUG"]:
     DEFINES["NDEBUG"] = True
 
-COMPILE_FLAGS["WARNINGS_CXXFLAGS"] += [
+CXXFLAGS += [
     "-Wextra",
     "-Wunreachable-code",
 ]
