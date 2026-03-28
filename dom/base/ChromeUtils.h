@@ -189,6 +189,8 @@ class ChromeUtils {
 
   static void ClearRecentJSDevError(GlobalObject& aGlobal);
 
+  static void EnsureScriptPreloaderCacheIsSent(GlobalObject& aGlobal);
+
   static void ClearMessagingLayerSecurityStateByPrincipal(
       GlobalObject&, nsIPrincipal* aPrincipal, ErrorResult& aRv);
 

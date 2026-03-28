@@ -20,6 +20,7 @@
 #include "mozilla/IOBuffers.h"
 #include "mozilla/Logging.h"
 #include "mozilla/ScopeExit.h"
+#include "mozilla/ScriptPreloaderNotification.h"
 #include "mozilla/Services.h"
 #include "mozilla/StaticPrefs_javascript.h"
 #include "mozilla/TaskController.h"
@@ -1502,5 +1503,43 @@ NS_IMPL_ISUPPORTS(ScriptPreloader, nsIObserver, nsIRunnable, nsIMemoryReporter,
                   nsINamed, nsIAsyncShutdownBlocker)
 
 #undef LOG
+
+void EnsureScriptPreloaderCacheIsSent() {
+  if (!XRE_IsContentProcess()) {
+    return;
+  }
+
+  auto& cache = ScriptPreloader::GetChildSingleton();
+  cache.EnsureCacheIsSent();
+}
+
+void ScriptPreloader::EnsureCacheIsSent() {
+  MOZ_ASSERT(XRE_IsContentProcess());
+
+  if (mStartupFinished) {
+    return;
+  }
+
+  FinishContentStartup();
+}
+
+#ifdef DEBUG
+void AssertScriptPreloaderCacheHasBeenSent() {
+  if (!XRE_IsContentProcess()) {
+    return;
+  }
+
+  auto& cache = ScriptPreloader::GetChildSingleton();
+  cache.AssertCacheHasBeenSent();
+}
+
+void ScriptPreloader::AssertCacheHasBeenSent() {
+  MOZ_ASSERT(XRE_IsContentProcess());
+
+  // If the following assertion fails, see the comment in
+  // js/xpconnect/loader/ScriptPreloaderNotification.h
+  MOZ_ASSERT(mStartupFinished);
+}
+#endif
 
 }  // namespace mozilla
