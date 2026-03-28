@@ -11474,6 +11474,12 @@
 # Prefs starting with "mathml."
 #---------------------------------------------------------------------------
 
+# Enable scale transform for stretchy MathML operators. See bug 414277.
+- name: mathml.scale_stretchy_operators.enabled
+  type: bool
+  value: true
+  mirror: always
+
 # Whether to disable legacy names "thickmathspace", "mediummathspace",
 # "thickmathspace" etc for length attributes.
 - name: mathml.mathspace_names.disabled

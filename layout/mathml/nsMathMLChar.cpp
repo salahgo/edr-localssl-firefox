@@ -15,7 +15,6 @@
 #include "mozilla/ComputedStyle.h"
 #include "mozilla/LookAndFeel.h"
 #include "mozilla/MathAlgorithms.h"
-#include "mozilla/Preferences.h"
 #include "mozilla/Sprintf.h"
 #include "mozilla/StaticPrefs_mathml.h"
 #include "mozilla/UniquePtr.h"
@@ -1377,7 +1376,7 @@ nsresult nsMathMLChar::StretchInternal(
   }
 
   // If the scale_stretchy_operators option is disabled, we are done.
-  if (!Preferences::GetBool("mathml.scale_stretchy_operators.enabled", true)) {
+  if (!StaticPrefs::mathml_scale_stretchy_operators_enabled()) {
     return NS_OK;
   }
 
