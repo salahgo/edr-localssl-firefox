@@ -166,6 +166,9 @@ async function getConversationId(browser) {
  *   stubs, pops the endpoint pref, and stops the mock server.
  * @property {number|null} port - The mock server's port number, or null when
  *   no server was started.
+ * @property {Array<object>} capturedRequests - Array that collects every
+ *   parsed request body sent to the mock server. Empty when no server was
+ *   started. Mutate .length = 0 to clear between phases of a test.
  */
 
 /**
@@ -220,10 +223,18 @@ async function stubEngineNetworkBoundaries({
     .stub(openAIEngine, "getFxAccountToken")
     .resolves(fxAccountToken);
 
+  const capturedRequests = [];
   let server = null;
   let port = null;
   if (serverOptions) {
-    ({ server, port } = startMockOpenAI(serverOptions));
+    const callerOnRequest = serverOptions.onRequest;
+    ({ server, port } = startMockOpenAI({
+      ...serverOptions,
+      onRequest(body) {
+        capturedRequests.push(body);
+        callerOnRequest?.(body);
+      },
+    }));
     await SpecialPowers.pushPrefEnv({
       set: [["browser.smartwindow.endpoint", `http://localhost:${port}/v1`]],
     });
@@ -238,7 +249,7 @@ async function stubEngineNetworkBoundaries({
     }
   }
 
-  return { restore, port };
+  return { restore, port, capturedRequests };
 }
 
 /**
@@ -252,6 +263,56 @@ function skipSignIn() {
     .stub(AIWindowAccountAuth, "ensureAIWindowAccess")
     .resolves(true);
   return () => stub.restore();
+}
+
+/**
+ * Opens the Smartbar's context menu via the "+" button and clicks the
+ * panel item whose visible text matches the given label. Waits for the
+ * panel to populate before selecting.
+ *
+ * @param {MozBrowser} sidebarBrowser - The sidebar browser element
+ *   (e.g. win.document.getElementById("ai-window-browser"))
+ * @param {string} label - The visible text label of the tab to select
+ *   (e.g. the tab's title)
+ */
+async function openTabContextMenuAndClickTabByLabel(sidebarBrowser, label) {
+  await SpecialPowers.spawn(sidebarBrowser, [label], async tabLabel => {
+    const aiWindowElement = await ContentTaskUtils.waitForCondition(
+      () => content.document.querySelector("ai-window"),
+      "Wait for ai-window"
+    );
+    const smartbar = await ContentTaskUtils.waitForCondition(
+      () => aiWindowElement.shadowRoot?.querySelector("#ai-window-smartbar"),
+      "Wait for Smartbar"
+    );
+    const contextButton = smartbar.querySelector("context-icon-button");
+    const button = contextButton.shadowRoot.querySelector("moz-button");
+    button.click();
+
+    const panelList = smartbar.querySelector("smartwindow-panel-list");
+    const panel = panelList.shadowRoot.querySelector("panel-list");
+    await ContentTaskUtils.waitForMutationCondition(
+      panel,
+      { childList: true, subtree: true },
+      () => panel.querySelector("panel-item:not(.panel-section-header)")
+    );
+
+    const items = panel.querySelectorAll(
+      "panel-item:not(.panel-section-header)"
+    );
+    let targetItem;
+    for (const item of items) {
+      if (item.textContent.trim() === tabLabel) {
+        targetItem = item;
+        break;
+      }
+    }
+    Assert.ok(
+      targetItem,
+      `Should find a tab labeled '${tabLabel}' in the context menu`
+    );
+    targetItem.click();
+  });
 }
 
 async function getSmartbarContextChipLabels(browser, expectedUrl) {
@@ -804,6 +865,57 @@ function startMockOpenAI({
  */
 function stopMockOpenAI(server) {
   return new Promise(resolve => server.stop(resolve));
+}
+
+/**
+ * Retrieves the context chip labels from a user message rendered in the
+ * ai-chat-content area. Waits for the aichat-browser, chat content, and
+ * chips to be available before reading labels.
+ *
+ * @param {MozBrowser} sidebarBrowser - The sidebar browser element
+ *   (e.g. win.document.getElementById("ai-window-browser"))
+ * @param {number} [messageIndex=0] - Zero-based index selecting which user
+ *   message to read chips from (0 = first user message, 1 = second, etc.)
+ * @returns {Promise<string[]>} Array of chip label strings from the
+ *   website-chip-container in the selected user message
+ */
+async function getUserMessageChipLabels(sidebarBrowser, messageIndex = 0) {
+  await BrowserTestUtils.waitForCondition(
+    () => sidebarBrowser.contentDocument?.querySelector("ai-window:defined"),
+    "Sidebar ai-window should be loaded"
+  );
+
+  const aiWindowEl = sidebarBrowser.contentDocument.querySelector("ai-window");
+  const aichatBrowser = await BrowserTestUtils.waitForCondition(
+    () => aiWindowEl.shadowRoot?.querySelector("#aichat-browser"),
+    "Wait for aichat-browser"
+  );
+
+  return SpecialPowers.spawn(aichatBrowser, [messageIndex], async msgIndex => {
+    const chatContent = await ContentTaskUtils.waitForCondition(
+      () => content.document.querySelector("ai-chat-content"),
+      "Wait for ai-chat-content"
+    );
+
+    const containers = await ContentTaskUtils.waitForCondition(() => {
+      const found = chatContent.shadowRoot.querySelectorAll(
+        ".chat-bubble-user website-chip-container"
+      );
+      return found.length > msgIndex ? found : null;
+    }, `Wait for user message at index ${msgIndex}`);
+
+    const chipContainer = containers[msgIndex];
+
+    const chips = await ContentTaskUtils.waitForCondition(() => {
+      const found =
+        chipContainer.shadowRoot.querySelectorAll("ai-website-chip");
+      return found.length ? found : null;
+    }, "Wait for context chips to render");
+
+    return Array.from(chips).map(
+      chip => chip.shadowRoot?.querySelector(".chip-label")?.textContent ?? ""
+    );
+  });
 }
 
 /**

@@ -131,7 +131,6 @@ export class AIWindow extends MozLitElement {
   #smartbarResizeObserver = null;
   #windowModeObserver = null;
   #swapDocShellsChromeWindow = null;
-  #addedContextWebsites = []; // TODO: replace once Bug 2016760 lands
   #hasMemories = false;
 
   get #memoriesIconShown() {
@@ -683,11 +682,10 @@ export class AIWindow extends MozLitElement {
       );
 
       if (this.mode === MODE.SIDEBAR && gBrowser) {
-        // Get tab context for LLM-generated prompts
-        // @todo bug 2015919 to use same context as visualized in smartbar
-        const contextTabs = [gBrowser.selectedTab].map(tab => ({
-          title: tab.label,
-          url: tab.linkedBrowser.currentURI.spec,
+        const { contextWebsites } = this.#smartbar.getCurrentContextData();
+        const contextTabs = contextWebsites.map(contextWebsite => ({
+          title: contextWebsite.label,
+          url: contextWebsite.url,
         }));
 
         // Get memories setting from user preferences
@@ -772,7 +770,6 @@ export class AIWindow extends MozLitElement {
         "suggestions-position",
         this.mode === MODE.SIDEBAR ? "top" : "bottom"
       );
-      smartbar.setAndUpdateContextWebsites(this.#addedContextWebsites);
       smartbar.isSidebarMode = this.mode == MODE.SIDEBAR;
 
       smartbar.addEventListener("input", this.#handleSmartbarInput);

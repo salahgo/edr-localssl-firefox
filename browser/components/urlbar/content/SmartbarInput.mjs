@@ -6496,17 +6496,6 @@ export class SmartbarInput extends HTMLElement {
   }
 
   /**
-   * Sets the explicit website context and updates the rendered chips.
-   *
-   * @param {ContextWebsite[]} websites
-   */
-  setAndUpdateContextWebsites(websites) {
-    this.#contextWebsites = websites;
-    this.#removedImplicitTabUrl = null;
-    this.#updateContextChips();
-  }
-
-  /**
    * Add a website to the context chips.
    *
    * @param {object} mention - The mention to add
