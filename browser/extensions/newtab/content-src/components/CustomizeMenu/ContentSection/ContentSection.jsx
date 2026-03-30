@@ -140,7 +140,10 @@ export class ContentSection extends React.PureComponent {
         parseFloat(window.getComputedStyle(drawerRef)?.height) || 100;
 
       if (isOpen) {
-        drawerRef.style.marginTop = "var(--space-small)";
+        // @nova-cleanup(remove-conditional): Remove novaEnabled check, keep the marginTop assignment
+        drawerRef.style.marginTop = this.props.novaEnabled
+          ? ""
+          : "var(--space-small)";
       } else {
         drawerRef.style.marginTop = `-${drawerHeight + 3}px`;
       }
@@ -296,7 +299,7 @@ export class ContentSection extends React.PureComponent {
               data-event-source="TOP_SITES"
               data-l10n-id={
                 novaEnabled
-                  ? "newtab-custom-shortcuts-toggle-rows"
+                  ? "newtab-custom-shortcuts-nova"
                   : "newtab-custom-shortcuts-toggle"
               }
             >
@@ -314,6 +317,11 @@ export class ContentSection extends React.PureComponent {
                       value={topSitesRowsCount}
                       aria-labelledby="custom-shortcuts-title"
                       onChange={this.onPreferenceSelect}
+                      // @nova-cleanup(remove-conditional): Remove novaEnabled conditional and spread operator, keep the attributes
+                      {...(novaEnabled && {
+                        "data-l10n-id": "newtab-custom-row-description",
+                        inputLayout: "inline-end",
+                      })}
                     >
                       {[1, 2, 3, 4].map(num =>
                         // @nova-cleanup(remove-conditional): Remove the conditional and "else" block after Nova lands
