@@ -2449,11 +2449,15 @@ tab-group {
   color-scheme: var(--tab-selected-color-scheme);
 }
 
-:root:not([privatebrowsingmode]) :is(toolbarbutton, toolbarpaletteitem) ~ #tabbrowser-tabs,
-:root[privatebrowsingmode] :is(toolbarbutton:not(#firefox-view-button), toolbarpaletteitem:not(#wrapper-firefox-view-button)) ~ #tabbrowser-tabs {
-  border-inline-start: var(--tabstrip-inner-border);
-  padding-inline-start: 2px;
-  margin-inline-start: 2px;
+:root:not([privatebrowsingmode]) :is(toolbarbutton, toolbarpaletteitem),
+:root[privatebrowsingmode] :is(toolbarbutton:not(#firefox-view-button), toolbarpaletteitem:not(#wrapper-firefox-view-button)) {
+  ~ #tabbrowser-tabs[orient="horizontal"]::before {
+    display: flex;
+    content: "";
+    border-inline-start: var(--tabstrip-inner-border);
+    padding-inline-start: 2px;
+    margin-inline-start: 2px;
+  }
 }
 
 :root[privatebrowsingmode] :is(#firefox-view-button, #menu_openFirefoxView) {
