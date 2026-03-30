@@ -1241,9 +1241,14 @@ export class AIWindow extends MozLitElement {
 
     const requestStart = Date.now();
     let firstTokenTime = null;
-    this.#conversation.once("chat-conversation:message-update", () => {
+    const onUpdate = (_e, message) => {
+      if (message.role !== lazy.MESSAGE_ROLE.ASSISTANT) {
+        return;
+      }
       firstTokenTime = Date.now();
-    });
+      this.#conversation.off("chat-conversation:message-update", onUpdate);
+    };
+    this.#conversation.on("chat-conversation:message-update", onUpdate);
 
     try {
       const engineInstance = await lazy.openAIEngine.build(

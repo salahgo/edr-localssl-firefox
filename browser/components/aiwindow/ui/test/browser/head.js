@@ -689,6 +689,7 @@ function readRequestBody(request) {
  */
 function startMockOpenAI({
   streamChunks = ["Hello from mock."],
+  streamChunkDelayMs = 0,
   toolCall = null,
   followupChunks = ["Tool complete."],
   onRequest,
@@ -812,24 +813,32 @@ function startMockOpenAI({
     if (wantsStream) {
       startSSE();
 
-      streamChunks.forEach((chunk, index) => {
-        sendSSE({
-          id: `chatcmpl-aiwindow-stream-${index}`,
-          object: "chat.completion.chunk",
-          created: timestamp,
-          model: "aiwindow-mock",
-          choices: [
-            {
-              index: 0,
-              delta: { content: chunk },
-              finish_reason: index === streamChunks.length - 1 ? "stop" : null,
-            },
-          ],
-        });
-      });
+      (async () => {
+        for (const [index, chunk] of streamChunks.entries()) {
+          if (streamChunkDelayMs) {
+            await new Promise(resolve =>
+              setTimeout(resolve, streamChunkDelayMs)
+            );
+          }
+          sendSSE({
+            id: `chatcmpl-aiwindow-stream-${index}`,
+            object: "chat.completion.chunk",
+            created: timestamp,
+            model: "aiwindow-mock",
+            choices: [
+              {
+                index: 0,
+                delta: { content: chunk },
+                finish_reason:
+                  index === streamChunks.length - 1 ? "stop" : null,
+              },
+            ],
+          });
+        }
 
-      response.write("data: [DONE]\n\n");
-      response.finish();
+        response.write("data: [DONE]\n\n");
+        response.finish();
+      })();
       return;
     }
 
