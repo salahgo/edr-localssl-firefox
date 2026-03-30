@@ -18,7 +18,7 @@ registerCleanupFunction(() => {
 /**
  * Helper function that opens a sidebar switcher panel popup menu
  *
- * @returns Promise that resolves when the switcher panel popup is shown
+ * @returns {Promise} Promise that resolves when the switcher panel popup is shown
  *          without any action from a user/test
  */
 function showSwitcherPanelPromise() {
@@ -37,7 +37,7 @@ function showSwitcherPanelPromise() {
 /**
  * Helper function that waits for a sidebar switcher panel's "popupshown" event
  *
- * @returns Promise which resolves when the popup menu is opened
+ * @returns {Promise} Promise which resolves when the popup menu is opened
  */
 async function waitForSwitcherPopupShown() {
   return BrowserTestUtils.waitForEvent(
@@ -53,7 +53,7 @@ async function waitForSwitcherPopupShown() {
  *
  * @param {string} [querySelector=null]  An HTML attribute of the menu item
  *                                       to be clicked
- * @returns Promise that resolves when both the menu popup is hidden and
+ * @returns {Promise} Promise that resolves when both the menu popup is hidden and
  *          the sidebar itself is focused
  */
 function pickSwitcherMenuitem(querySelector = null) {
