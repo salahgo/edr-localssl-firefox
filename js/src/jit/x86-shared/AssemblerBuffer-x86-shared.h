@@ -241,18 +241,18 @@ class GenericAssembler {
                                         const char* fmt, va_list va)
       MOZ_FORMAT_PRINTF(3, 0);
 
-  inline void spew(const char* fmt, ...)
-      MOZ_FORMAT_PRINTF(2, 3) {
+  inline void spew(unsigned long currentOffset, const char* fmt, ...)
+      MOZ_FORMAT_PRINTF(3, 4) {
     if (MOZ_UNLIKELY(printer || JitSpewEnabled(JitSpew_Codegen))) {
       va_list va;
       va_start(va, fmt);
-      spewVA(/*currentOffset=*/0, fmt, va);
+      spewVA(currentOffset, fmt, va);
       va_end(va);
     }
   }
 #else
-  MOZ_ALWAYS_INLINE void spew(const char* fmt, ...)
-      MOZ_FORMAT_PRINTF(2, 3) {}
+  MOZ_ALWAYS_INLINE void spew(unsigned long currentOffset, const char* fmt, ...)
+      MOZ_FORMAT_PRINTF(3, 4) {}
 #endif
 };
 
