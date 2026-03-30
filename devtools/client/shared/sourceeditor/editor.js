@@ -786,6 +786,7 @@ class Editor extends EventEmitter {
         bracketMatching,
       },
       lezerHighlight,
+      codemirrorAutocomplete: { closeBrackets },
     } = this.#CodeMirror6;
 
     this.#compartments = {
@@ -899,6 +900,10 @@ class Editor extends EventEmitter {
         return tr;
       }),
     ];
+
+    if (Services.prefs.getBoolPref(AUTO_CLOSE)) {
+      extensions.push(closeBrackets());
+    }
 
     if (!this.config.disableSearchAddon && this.config.useSearchAddonPanel) {
       this.config.keyMap = this.config.keyMap
