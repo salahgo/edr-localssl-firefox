@@ -73,10 +73,22 @@ add_task(async function test_enabled() {
 add_task(async function test_disabled() {
   UrlbarPrefs.set(ENABLED_PREF, false);
   UrlbarPrefs.set(SUGGESTS_PREF, false);
+  info("Check whether prefs disable it in urlbar");
   await addSearches();
   await check_results({
     context: createContext("", { isPrivate: false }),
     matches: [],
+  });
+
+  info("Check whether prefs don't disable it in searchbar");
+  let context = createContext("", { isPrivate: false, sapName: "searchbar" });
+  await check_results({
+    context,
+    matches: [
+      makeRecentSearchResult(context, defaultEngine, "Joy Formidable"),
+      makeRecentSearchResult(context, defaultEngine, "Glasgow Weather"),
+      makeRecentSearchResult(context, defaultEngine, "Bob Vylan"),
+    ],
   });
 });
 
