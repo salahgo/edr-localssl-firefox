@@ -149,13 +149,6 @@ bool CompositorBridgeParentBase::DeallocShmem(ipc::Shmem& aShmem) {
   return PCompositorBridgeParent::DeallocShmem(aShmem);
 }
 
-bool CompositorBridgeParentBase::OwnsExternalImageId(
-    const wr::ExternalImageId& aId) const {
-  return mCompositorManager &&
-         (static_cast<uint32_t>(wr::AsUint64(aId) >> 32) ==
-          mCompositorManager->GetNamespace());
-}
-
 CompositorBridgeParent::LayerTreeState::LayerTreeState()
     : mApzcTreeManagerParent(nullptr),
       mApzInputBridgeParent(nullptr),
