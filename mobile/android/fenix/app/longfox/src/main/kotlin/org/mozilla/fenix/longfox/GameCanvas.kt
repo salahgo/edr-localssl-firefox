@@ -8,14 +8,15 @@ package org.mozilla.fenix.longfox
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,16 +69,16 @@ fun GameCanvas(state: GameState) {
         }
     }
 
-    val shouldersPath = remember { Path() }
-    val bottomPath = remember { Path() }
+    val foxBrush = remember { Brush.linearGradient(listOf(Color.Red, Color.Yellow)) }
 
     Canvas(
         modifier = Modifier
             .background(color = Color.Black)
-            .size((CELL_SIZE_DP * state.numCellsWide).dp),
+            .border(1.dp, Color.Gray)
+            .size((CELL_SIZE_DP * state.numCells).dp),
     ) {
         drawHead(state, kitHead)
-        drawBody(state, shouldersPath, bottomPath)
+        drawBody(state, foxBrush)
         drawTail(state, kitTail)
         drawFood(state, cookie)
     }

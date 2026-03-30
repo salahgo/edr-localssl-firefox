@@ -6,10 +6,8 @@
 
 package org.mozilla.fenix.longfox
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -17,6 +15,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -35,6 +34,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.mozilla.fenix.longfox.GameState.Companion.CELL_SIZE_DP
 import org.mozilla.fenix.longfox.GameState.Companion.GAME_INTERVAL_TIME_MS
+import org.mozilla.fenix.longfox.GameState.Companion.MAX_JUST_EATEN_COUNTDOWN
+import org.mozilla.fenix.longfox.GameState.Companion.MAX_SCORE_CELEBRATION_COUNTDOWN
 
 /**
  * The main composable container for the game.
@@ -42,11 +43,9 @@ import org.mozilla.fenix.longfox.GameState.Companion.GAME_INTERVAL_TIME_MS
  */
 @Composable
 fun LongFoxGameScreen() {
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Blue),
-    ) {
+    var celebrationShown by remember { mutableStateOf(false) }
+    var celebrationSeed by remember { mutableIntStateOf(0) }
+    GameBackground(celebrationShown, celebrationSeed) {
         // Make a square game grid that fits on the screen
         val density = LocalDensity.current.density
         val numCells = (minOf(maxWidth, maxHeight).value / CELL_SIZE_DP).toInt()
@@ -55,6 +54,10 @@ fun LongFoxGameScreen() {
             mutableStateOf(GameState(numCells = numCells, size = Size(canvasSizePx, canvasSizePx), isGameOver = true))
         }
         val restartGame = { gameState = GameState(numCells = numCells, size = Size(canvasSizePx, canvasSizePx)) }
+        SideEffect {
+            if (gameState.shouldCelebrateScore && !celebrationShown) celebrationSeed = gameState.score
+            celebrationShown = gameState.shouldCelebrateScore
+        }
 
         // Tap events need to be passed through to the game.
         // Position should be recalculated if the screen is resized / configuration changed.
@@ -71,6 +74,7 @@ fun LongFoxGameScreen() {
         val soundOn by longFoxDataStore.soundOnFlow()
             .collectAsState(initial = false, coroutineScope.coroutineContext)
         val soundEffectsPlayer = remember(soundOn) { SoundEffectsPlayer(context, soundOn) }
+
         DisposableEffect(soundEffectsPlayer) {
             onDispose { soundEffectsPlayer.release() }
         }
@@ -83,22 +87,23 @@ fun LongFoxGameScreen() {
         LaunchedEffect(gameState) {
             while (!gameState.isGameOver) {
                 delay(GAME_INTERVAL_TIME_MS)
-                val oldScore = gameState.score
-                gameState = gameState.moveFox()
-                val newScore = gameState.score
-                if (newScore > oldScore) {
+                val moved = gameState.moveFox()
+                if (moved.scoreCelebrationCountdown == MAX_SCORE_CELEBRATION_COUNTDOWN) {
+                    soundEffectsPlayer.playSound(R.raw.happyvibes)
+                } else if (moved.justEatenCountdown == MAX_JUST_EATEN_COUNTDOWN) {
                     soundEffectsPlayer.playSound(R.raw.eatfood)
-                } else {
-                    if (gameState.beepNext) {
+                } else if (!moved.shouldCelebrateScore) {
+                    if (moved.beepNext) {
                         soundEffectsPlayer.playSound(R.raw.beep)
                     } else {
                         soundEffectsPlayer.playSound(R.raw.boop)
                     }
                 }
-                gameState = gameState.toggleBeepNext()
+                gameState = moved.toggleBeepNext()
             }
             coroutineScope.launch { longFoxDataStore.saveIfHiscore(gameState.score) }
         }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -116,6 +121,14 @@ fun LongFoxGameScreen() {
             } else {
                 GameCanvas(gameState)
             }
+            Sparkles(
+                headCentre = Offset(
+                    (gameState.fox.first().x + 0.5f) * gameState.cellSize,
+                    (gameState.fox.first().y + 0.5f) * gameState.cellSize,
+                ),
+                numCells = gameState.numCells,
+                active = gameState.justEaten,
+            )
         }
         if (!gameState.isGameOver) {
             ScoreContainer(gameState.score)

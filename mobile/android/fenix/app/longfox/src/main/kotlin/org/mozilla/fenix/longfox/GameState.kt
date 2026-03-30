@@ -34,23 +34,30 @@ import kotlin.random.Random
  */
 data class GameState(
     val size: Size = Size(0f, 0f),
-    val fox: List<GridPoint> = listOf(GridPoint(5, 5), GridPoint(5, 4), GridPoint(5, 3), GridPoint(5, 2)),
+    val fox: List<GridPoint> = listOf(
+        GridPoint(5, 5), GridPoint(5, 4), GridPoint(5, 3), GridPoint(5, 2)
+    ),
     val food: GridPoint? = GridPoint(8, 8),
     val direction: Direction = DOWN,
     val isGameOver: Boolean = false,
     val score: Int = 0,
     val beepNext: Boolean = true,
     val numCells: Int = 12,
+    val justEatenCountdown: Int = 0,
+    val scoreCelebrationCountdown: Int = 0,
 ) {
 
     companion object {
         const val CELL_SIZE_DP = 20f
         const val GAME_INTERVAL_TIME_MS = 100L
+        const val MAX_SCORE_CELEBRATION_COUNTDOWN = 10
+        const val MAX_JUST_EATEN_COUNTDOWN = 5
+        const val HOW_MUCH_FOOD_IS_WORTH_CELEBRATING = 20
     }
 
-    val numCellsWide = numCells
-    val numCellsTall = numCellsWide
-    val cellSize = (size.minDimension / numCellsWide).toInt().toFloat()
+    val cellSize = (size.minDimension / numCells).toInt().toFloat()
+    val justEaten: Boolean = justEatenCountdown > 0
+    val shouldCelebrateScore: Boolean = scoreCelebrationCountdown > 0
 
     /** this is the direction the fox's shoulders are facing */
     val shouldersDirection: Direction = when {
@@ -83,16 +90,23 @@ data class GameState(
         val isGameOver = collidedWithSelf || collidedWithEdge
 
         return if (collidedWithFood && !isGameOver) {
+            val newScore: Int = score + 1
+            val newScoreCelebrationCountdown: Int =
+                if (newScore % HOW_MUCH_FOOD_IS_WORTH_CELEBRATING == 0) MAX_SCORE_CELEBRATION_COUNTDOWN else scoreCelebrationCountdown
             copy(
                 food = randomGridPoint(),
                 fox = listOf(newHead) + fox,
                 isGameOver = false,
-                score = score + 1,
+                score = newScore,
+                justEatenCountdown = MAX_JUST_EATEN_COUNTDOWN,
+                scoreCelebrationCountdown = newScoreCelebrationCountdown,
             )
         } else {
             copy(
                 fox = listOf(newHead) + fox.dropLast(1),
                 isGameOver = isGameOver,
+                justEatenCountdown = if (justEatenCountdown > 0) justEatenCountdown - 1 else 0,
+                scoreCelebrationCountdown = if (scoreCelebrationCountdown > 0) scoreCelebrationCountdown - 1 else 0,
             )
         }
     }
@@ -101,8 +115,8 @@ data class GameState(
         val head = fox.first()
 
         val newDirection = when {
-            head.y >= numCellsTall - 2 -> {
-                if (head.x < numCellsWide - 2) RIGHT else UP
+            head.y >= numCells - 2 -> {
+                if (head.x < numCells - 2) RIGHT else UP
             }
             head.y < 2 -> {
                 if (head.x >= 2) LEFT else DOWN
@@ -144,11 +158,11 @@ data class GameState(
     }
 
     private fun randomGridPoint(): GridPoint = GridPoint(
-        Random.nextInt(numCellsWide),
-        Random.nextInt(numCellsTall),
+        Random.nextInt(from = 1, until = numCells - 1),
+        Random.nextInt(from = 1, until = numCells - 1),
     )
 
     private fun withinBounds(point: GridPoint): Boolean =
-        point.x in 0 until numCellsWide && point.y in 0 until numCellsTall
+        point.x in 0 until numCells && point.y in 0 until numCells
 
 }

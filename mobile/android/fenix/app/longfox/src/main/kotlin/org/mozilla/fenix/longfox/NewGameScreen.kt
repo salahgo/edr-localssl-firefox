@@ -82,8 +82,9 @@ fun NewGameScreen(
 
     Box(
         modifier = Modifier
-            .size((CELL_SIZE_DP * gameState.numCellsWide).dp)
+            .size((CELL_SIZE_DP * gameState.numCells).dp)
             .background(Color.DarkGray)
+            .border(1.dp, Color.Gray)
             .clickable { startGame() },
     ) {
         GameCanvas(
