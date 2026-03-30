@@ -264,32 +264,30 @@ nsresult SVGElement::CopyInnerTo(mozilla::dom::Element* aDest) {
 //----------------------------------------------------------------------
 // SVGElement methods
 
-void SVGElement::DidAnimateClass() {
-  auto* doc = GetComposedDoc();
-  // For Servo, snapshot the element before we change it.
-  if (doc) {
+void SVGElement::WillAnimateClass() {
+  if (auto* doc = GetComposedDoc()) {
     if (auto* pc = doc->GetPresContext()) {
       pc->RestyleManager()->ClassAttributeWillBeChangedBySMIL(this);
     }
   }
+}
 
-  nsAutoString src;
-  mClassAttribute.GetAnimValue(src, this);
-  if (!mClassAnimAttr) {
-    mClassAnimAttr = std::make_unique<nsAttrValue>();
+void SVGElement::DidAnimateClass() {
+  if (mClassAttribute.IsAnimated()) {
+    nsAutoString src;
+    mClassAttribute.GetAnimValue(src, this);
+    if (!mClassAnimAttr) {
+      mClassAnimAttr = std::make_unique<nsAttrValue>();
+    }
+    mClassAnimAttr->ParseAtomArray(src);
+  } else {
+    mClassAnimAttr.reset();
   }
-  mClassAnimAttr->ParseAtomArray(src);
 
   // Update bloom filter after mutating mClassAnimAttr.
-  UpdateSubtreeBloomFilterForClass(mClassAnimAttr.get());
+  UpdateSubtreeBloomFilterForClass(GetClasses());
   UpdateSubtreeBloomFilterForAttribute(nsGkAtoms::_class);
   PropagateBloomFilterToParents();
-
-  if (doc) {
-    if (PresShell* presShell = doc->GetPresShell()) {
-      presShell->RestyleForAnimation(this, RestyleHint::RESTYLE_SELF);
-    }
-  }
 
   DidAnimateAttribute(kNameSpaceID_None, nsGkAtoms::_class);
 }
