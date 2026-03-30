@@ -1446,13 +1446,11 @@ class Toolbox extends EventEmitter {
   _onContextMenu(e) {
     // Handle context menu events in standard input elements: <input> and <textarea>.
     // Also support for custom input elements using .devtools-input class
-    // and CodeMirror editor instances.
+    // (e.g. CodeMirror instances).
     const isInInput =
       e.composedTarget.matches(
         "input:is([type=text], [type=search], :not([type])), textarea"
-      ) ||
-      e.composedTarget.closest(".devtools-input") ||
-      e.composedTarget.closest(".cm-editor");
+      ) || e.composedTarget.closest(".devtools-input");
 
     const doc = e.originalTarget.ownerDocument;
     const isHTMLPanel = doc.documentElement.namespaceURI === HTML_NS;

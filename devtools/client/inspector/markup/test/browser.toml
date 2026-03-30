@@ -1,4 +1,5 @@
 [DEFAULT]
+tags = "devtools"
 subsuite = "devtools"
 support-files = [
   "doc_markup_anonymous.html",
@@ -44,7 +45,6 @@ support-files = [
   "!/devtools/client/shared/test/telemetry-test-helpers.js",
   "!/devtools/client/shared/test/highlighter-test-actor.js",
 ]
-tags = "devtools"
 
 ["browser_markup_accessibility_focus_blur.js"]
 run-if = [
@@ -138,8 +138,6 @@ fail-if = [
 ["browser_markup_html_edit_03.js"]
 
 ["browser_markup_html_edit_04.js"]
-
-["browser_markup_html_edit_context_menu.js"]
 
 ["browser_markup_html_edit_undo-redo.js"]
 
