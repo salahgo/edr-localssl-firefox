@@ -92,7 +92,6 @@ class SVGElement : public SVGElementBase  // nsIContent
 
   NS_IMETHOD QueryInterface(REFNSIID aIID, void** aInstancePtr) override;
 
-  void WillAnimateClass();
   void DidAnimateClass();
 
   void SetNonce(const nsAString& aNonce) {
@@ -311,6 +310,9 @@ class SVGElement : public SVGElementBase  // nsIContent
   virtual nsStaticAtom* GetPathDataAttrName() const { return nullptr; }
   virtual nsStaticAtom* GetTransformListAttrName() const { return nullptr; }
   const nsAttrValue* GetAnimatedClassName() const {
+    if (!mClassAttribute.IsAnimated()) {
+      return nullptr;
+    }
     return mClassAnimAttr.get();
   }
 
