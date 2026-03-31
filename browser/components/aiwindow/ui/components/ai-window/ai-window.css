@@ -47,6 +47,20 @@
   grid-template-rows: 1fr auto auto;
 }
 
+:host([mode="fullpage"].chat-active) {
+  grid-template-areas:
+    "fullpage-header"
+    "browser"
+    "prompts"
+    "smartbar"
+    "disclaimer";
+  grid-template-rows: auto 1fr auto auto auto;
+
+  & .fullpage-header {
+    display: flex;
+  }
+}
+
 :host([mode="sidebar"].chat-active) {
   grid-template-areas:
     "sidebar-header"
@@ -110,7 +124,18 @@ smartwindow-prompts {
 
 .sidebar-header {
   box-sizing: border-box;
+  display: flex;
   grid-area: sidebar-header;
+  justify-content: flex-end;
+  padding: var(--space-small);
+  width: 100%;
+}
+
+.fullpage-header {
+  box-sizing: border-box;
+  display: none;
+  grid-area: fullpage-header;
+  justify-content: flex-end;
   padding: var(--space-small);
   width: 100%;
 }
@@ -118,8 +143,8 @@ smartwindow-prompts {
 moz-button.new-chat-icon-button {
   --button-border-radius: var(--border-radius-large);
   /* Updating background color for light only, persisting default dark background-color */
-  --button-background-color: light-dark(var(--color-white), rgba(0, 0, 0, 0.33));
-  --button-text-color: light-dark(var(--color-violet-80), var(--color-white));
+  --button-background-color: light-dark(var(--color-violet-0), rgba(0, 0, 0, 0.33));
+  --button-text-color: light-dark(var(--color-gray-70), var(--color-white));
   --button-background-color-hover: color-mix(in srgb, currentColor 11%, transparent);
 }
 
