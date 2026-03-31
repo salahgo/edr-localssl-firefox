@@ -11,6 +11,10 @@ ChromeUtils.defineLazyGetter(lazy, "fxAccounts", () =>
     "resource://gre/modules/FxAccounts.sys.mjs"
   ).getFxAccountsSingleton()
 );
+ChromeUtils.defineESModuleGetters(lazy, {
+  IPPEnrollAndEntitleManager:
+    "moz-src:///toolkit/components/ipprotection/IPPEnrollAndEntitleManager.sys.mjs",
+});
 ChromeUtils.defineLazyGetter(
   lazy,
   "hiddenBrowserManager",
@@ -46,13 +50,18 @@ if (Services.appinfo.processType !== Services.appinfo.PROCESS_TYPE_DEFAULT) {
  *
  */
 export class GuardianClient {
-  /**
-   * @param {typeof gConfig} [config]
-   */
-  constructor(config = gConfig) {
-    this.guardianEndpoint = config.guardianEndpoint;
-    this.fxaOrigin = config.fxaOrigin;
-    this.getToken = config.getToken;
+  constructor() {
+    XPCOMUtils.defineLazyPreferenceGetter(
+      this,
+      "guardianEndpoint",
+      "browser.ipProtection.guardian.endpoint",
+      "https://vpn.mozilla.com"
+    );
+    XPCOMUtils.defineLazyPreferenceGetter(
+      this,
+      "fxaOrigin",
+      "identity.fxaccounts.remote.root"
+    );
   }
   /**
    * Checks the current user's FxA account to see if it is linked to the Guardian service.
@@ -193,7 +202,7 @@ export class GuardianClient {
    * - 5xx: Internal guardian error.
    */
   async fetchProxyPass(abortSignal = null) {
-    using tokenHandle = await this.getToken(abortSignal);
+    using tokenHandle = await lazy.IPPEnrollAndEntitleManager.getToken(abortSignal);
     const response = await fetch(this.#tokenURL, {
       method: "GET",
       cache: "no-cache",
@@ -251,7 +260,7 @@ export class GuardianClient {
    * - 401: The FxA token was rejected, probably guardian and fxa mismatch. (i.e guardian-stage and fxa-prod)
    */
   async fetchUserInfo(abortSignal = null) {
-    using tokenHandle = await this.getToken(abortSignal);
+    using tokenHandle = await lazy.IPPEnrollAndEntitleManager.getToken(abortSignal);
     const response = await fetch(this.#statusURL, {
       method: "GET",
       headers: {
@@ -286,7 +295,7 @@ export class GuardianClient {
    * @returns {ProxyUsage | null}
    */
   async fetchProxyUsage(abortSignal) {
-    using tokenHandle = await this.getToken(abortSignal);
+    using tokenHandle = await lazy.IPPEnrollAndEntitleManager.getToken(abortSignal);
     const response = await fetch(this.#tokenURL, {
       method: "HEAD",
       signal: abortSignal,
@@ -707,53 +716,3 @@ async function waitUntilURL(browser, predicate) {
   return url;
 }
 
-let gConfig = {
-  /**
-   * Executes the callback with an FxA token and returns its result.
-   * Destroys the token after use.
-   *
-   * @template T
-   * @param {AbortSignal} abortSignal - An Abort Signal to abort the fetch.
-   * @returns {Promise<{token:string} & Disposable>} - A disposable, that will auto revoke the token after use.
-   */
-  getToken: async (abortSignal = null) => {
-    let tasks = [
-      lazy.fxAccounts.getOAuthToken({
-        scope: ["profile", "https://identity.mozilla.com/apps/vpn"],
-      }),
-    ];
-    if (abortSignal) {
-      abortSignal.throwIfAborted();
-      tasks.push(
-        new Promise((_, rej) => {
-          abortSignal?.addEventListener("abort", rej, { once: true });
-        })
-      );
-    }
-    const token = await Promise.race(tasks);
-    if (!token) {
-      return null;
-    }
-    return {
-      token,
-      [Symbol.dispose]: () => {
-        lazy.fxAccounts.removeCachedOAuthToken({
-          token,
-        });
-      },
-    };
-  },
-  guardianEndpoint: "",
-  fxaOrigin: "",
-};
-XPCOMUtils.defineLazyPreferenceGetter(
-  gConfig,
-  "guardianEndpoint",
-  "browser.ipProtection.guardian.endpoint",
-  "https://vpn.mozilla.com"
-);
-XPCOMUtils.defineLazyPreferenceGetter(
-  gConfig,
-  "fxaOrigin",
-  "identity.fxaccounts.remote.root"
-);

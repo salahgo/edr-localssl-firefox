@@ -9,6 +9,9 @@ const { HttpServer, HTTP_404 } = ChromeUtils.importESModule(
 const { GuardianClient } = ChromeUtils.importESModule(
   "moz-src:///toolkit/components/ipprotection/GuardianClient.sys.mjs"
 );
+const { IPPEnrollAndEntitleManager } = ChromeUtils.importESModule(
+  "moz-src:///toolkit/components/ipprotection/IPPEnrollAndEntitleManager.sys.mjs"
+);
 const { JsonSchemaValidator } = ChromeUtils.importESModule(
   "resource://gre/modules/components-utils/JsonSchemaValidator.sys.mjs"
 );
@@ -61,16 +64,28 @@ function makeStallHandler() {
   };
 }
 
-const testGuardianConfig = serverWrapper => ({
-  getToken: async () => {
-    return {
-      token: "test-token",
-      [Symbol.dispose]: () => {},
-    };
-  },
-  guardianEndpoint: `http://localhost:${serverWrapper.server.identity.primaryPort}`,
-  fxaOrigin: `http://localhost:${serverWrapper.server.identity.primaryPort}`,
-});
+function setupGuardianClient(serverWrapper) {
+  const serverOrigin = `http://localhost:${serverWrapper.server.identity.primaryPort}`;
+  Services.prefs.setCharPref(
+    "browser.ipProtection.guardian.endpoint",
+    serverOrigin
+  );
+  Services.prefs.setCharPref("identity.fxaccounts.remote.root", serverOrigin);
+
+  const sandbox = sinon.createSandbox();
+  sandbox.stub(IPPEnrollAndEntitleManager, "getToken").resolves({
+    token: "test-token",
+    [Symbol.dispose]: () => {},
+  });
+
+  return {
+    [Symbol.dispose]() {
+      sandbox.restore();
+      Services.prefs.clearUserPref("browser.ipProtection.guardian.endpoint");
+      Services.prefs.clearUserPref("identity.fxaccounts.remote.root");
+    },
+  };
+}
 
 add_task(async function test_fetchUserInfo() {
   const ok = data => {
@@ -153,7 +168,8 @@ add_task(async function test_fetchUserInfo() {
     .map(({ name, sends, expects }) => {
       return async () => {
         using serverWrapper = makeGuardianServer({ status: sends });
-        const client = new GuardianClient(testGuardianConfig(serverWrapper));
+        using _setup = setupGuardianClient(serverWrapper);
+        const client = new GuardianClient();
 
         const { status, entitlement, error } = await client.fetchUserInfo();
 
@@ -294,7 +310,8 @@ add_task(async function test_fetchProxyPass() {
     .map(({ name, sends, expects }) => {
       return async () => {
         using serverWrapper = makeGuardianServer({ token: sends });
-        const client = new GuardianClient(testGuardianConfig(serverWrapper));
+        using _setup = setupGuardianClient(serverWrapper);
+        const client = new GuardianClient();
 
         const { status, pass, error, usage } = await client.fetchProxyPass();
 
@@ -536,7 +553,8 @@ add_task(async function test_fetchProxyPass_quotaExceeded() {
     .map(({ name, sends, expects }) => {
       return async () => {
         using serverWrapper = makeGuardianServer({ token: sends });
-        const client = new GuardianClient(testGuardianConfig(serverWrapper));
+        using _setup = setupGuardianClient(serverWrapper);
+        const client = new GuardianClient();
 
         const { status, pass, error, usage, retryAfter } =
           await client.fetchProxyPass();
@@ -640,7 +658,8 @@ add_task(async function test_fetchProxyUsage() {
     .map(({ name, sends, expects }) => {
       return async () => {
         using serverWrapper = makeGuardianServer({ token: sends });
-        const client = new GuardianClient(testGuardianConfig(serverWrapper));
+        using _setup = setupGuardianClient(serverWrapper);
+        const client = new GuardianClient();
 
         const usage = await client.fetchProxyUsage();
 
@@ -831,7 +850,8 @@ add_task(async function test_fetchProxyPass_abort() {
   using tokenHandler = makeStallHandler();
   using serverWrapper = makeGuardianServer({ token: tokenHandler.handler });
 
-  const client = new GuardianClient(testGuardianConfig(serverWrapper));
+  using _setup = setupGuardianClient(serverWrapper);
+  const client = new GuardianClient();
   const controller = new AbortController();
   const promise = client.fetchProxyPass(controller.signal);
 
@@ -848,7 +868,8 @@ add_task(async function test_fetchUserInfo_abort() {
   using statusHandler = makeStallHandler();
   using serverWrapper = makeGuardianServer({ status: statusHandler.handler });
 
-  const client = new GuardianClient(testGuardianConfig(serverWrapper));
+  using _setup = setupGuardianClient(serverWrapper);
+  const client = new GuardianClient();
   const controller = new AbortController();
   const promise = client.fetchUserInfo(controller.signal);
 
@@ -865,7 +886,8 @@ add_task(async function test_fetchProxyUsage_abort() {
   using tokenHandler = makeStallHandler();
   using serverWrapper = makeGuardianServer({ token: tokenHandler.handler });
 
-  const client = new GuardianClient(testGuardianConfig(serverWrapper));
+  using _setup = setupGuardianClient(serverWrapper);
+  const client = new GuardianClient();
   const controller = new AbortController();
   const promise = client.fetchProxyUsage(controller.signal);
 
@@ -888,7 +910,8 @@ add_task(async function test_abort_before_fetch() {
     },
   });
 
-  const client = new GuardianClient(testGuardianConfig(serverWrapper));
+  using _setup = setupGuardianClient(serverWrapper);
+  const client = new GuardianClient();
   const controller = new AbortController();
   controller.abort();
 
@@ -899,7 +922,7 @@ add_task(async function test_abort_before_fetch() {
   );
 });
 
-add_task(async function test_gConfig_getToken_abort() {
+add_task(async function test_getToken_abort() {
   const sandbox = sinon.createSandbox();
 
   try {
@@ -910,9 +933,8 @@ add_task(async function test_gConfig_getToken_abort() {
 
     sandbox.stub(fxAccounts, "getOAuthToken").returns(new Promise(() => {}));
 
-    const client = new GuardianClient();
     const controller = new AbortController();
-    const promise = client.getToken(controller.signal);
+    const promise = IPPEnrollAndEntitleManager.getToken(controller.signal);
 
     do_timeout(10, () => controller.abort());
 
