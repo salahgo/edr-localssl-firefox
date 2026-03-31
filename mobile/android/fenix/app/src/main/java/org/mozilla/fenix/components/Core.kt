@@ -21,6 +21,8 @@ import mozilla.components.browser.engine.gecko.cookiebanners.ReportSiteDomainsRe
 import mozilla.components.browser.engine.gecko.fetch.GeckoViewFetchClient
 import mozilla.components.browser.engine.gecko.permission.GeckoSitePermissionsStorage
 import mozilla.components.browser.engine.gecko.util.EngineDownloadDelegate
+import mozilla.components.browser.favicons.FaviconsMiddleware
+import mozilla.components.browser.favicons.storage.DiskFaviconStorage
 import mozilla.components.browser.icons.BrowserIcons
 import mozilla.components.browser.session.storage.SessionStorage
 import mozilla.components.browser.state.engine.EngineMiddleware
@@ -368,6 +370,7 @@ class Core(
                 ),
                 ReaderViewMiddleware(),
                 TelemetryMiddleware(context, context.settings(), metrics, crashReporter),
+                FaviconsMiddleware(faviconStorage),
                 ThumbnailsMiddleware(thumbnailStorage),
                 UndoMiddleware(context.getUndoDelay()),
                 RegionMiddleware(context, locationService),
@@ -599,6 +602,11 @@ class Core(
      * A storage component for persisting thumbnail images of tabs.
      */
     val thumbnailStorage by lazyMonitored { ThumbnailStorage(context) }
+
+    /**
+     * A storage component for persisting favicon images of tabs.
+     */
+    val faviconStorage by lazyMonitored { DiskFaviconStorage(context) }
 
     val pinnedSiteStorage by lazyMonitored { PinnedSiteStorage(context) }
 
