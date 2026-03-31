@@ -12,6 +12,12 @@
 
 "use strict";
 
+const lazy = {};
+ChromeUtils.defineESModuleGetters(lazy, {
+  AIWindowUI:
+    "moz-src:///browser/components/aiwindow/ui/modules/AIWindowUI.sys.mjs",
+});
+
 function getSidebarPromptButtons(win) {
   const sidebarBrowser = win.document.getElementById("ai-window-browser");
   const aiWindowEl =
@@ -31,6 +37,13 @@ async function navigateTo(url, window) {
   const loaded = BrowserTestUtils.browserLoaded(parentBrowser);
   BrowserTestUtils.startLoadingURIString(parentBrowser, url);
   await loaded;
+}
+
+async function openBackgroundTab(url, window) {
+  let tab = BrowserTestUtils.addTab(window.gBrowser, url);
+  await BrowserTestUtils.browserLoaded(tab.linkedBrowser);
+
+  return tab;
 }
 
 function startMockNonStreamingServer(responseContent) {
@@ -69,7 +82,7 @@ function startMockNonStreamingServer(responseContent) {
 }
 
 describe("sidebar conversation starter prompts", () => {
-  let responseContent, mock, gAiWindow;
+  let responseContent, mock, gAiWindow, backgroundTab;
 
   beforeEach(async () => {
     responseContent = ["prompt 1\nprompt 2"];
@@ -85,6 +98,10 @@ describe("sidebar conversation starter prompts", () => {
   });
 
   afterEach(async () => {
+    if (backgroundTab) {
+      BrowserTestUtils.removeTab(backgroundTab);
+    }
+
     await BrowserTestUtils.closeWindow(gAiWindow);
     await SpecialPowers.popPrefEnv();
     await stopMockOpenAI(mock.server);
@@ -93,6 +110,14 @@ describe("sidebar conversation starter prompts", () => {
   });
 
   describe("when the conversation is empty", () => {
+    beforeEach(async () => {
+      sinon.spy(lazy.AIWindowUI, "updateStarterPrompts");
+    });
+
+    afterEach(async () => {
+      lazy.AIWindowUI.updateStarterPrompts.restore();
+    });
+
     it("should load new prompts when the tab changes URL", async () => {
       await navigateTo("https://example.com", gAiWindow);
 
@@ -122,6 +147,41 @@ describe("sidebar conversation starter prompts", () => {
         getSidebarPromptButtons(gAiWindow),
         ["prompt 3", "prompt 4"],
         "Should display updated prompts after URL change"
+      );
+    });
+
+    it("should not reload prompts when background tabs change URL", async () => {
+      await navigateTo("https://example.com", gAiWindow);
+
+      await TestUtils.waitForCondition(
+        () => AIWindowUI.isSidebarOpen(gAiWindow),
+        "Sidebar should be open"
+      );
+      await TestUtils.waitForCondition(
+        () => getSidebarPromptButtons(gAiWindow).includes("prompt 1"),
+        "First set of prompts should be rendered"
+      );
+
+      Assert.deepEqual(
+        getSidebarPromptButtons(gAiWindow),
+        ["prompt 1", "prompt 2"],
+        "Should display first set of prompts"
+      );
+
+      responseContent[0] = "prompt 3\nprompt 4";
+      lazy.AIWindowUI.updateStarterPrompts.resetHistory();
+
+      backgroundTab = await openBackgroundTab("https://example.org", gAiWindow);
+
+      Assert.deepEqual(
+        getSidebarPromptButtons(gAiWindow),
+        ["prompt 1", "prompt 2"],
+        "Should continue to display initial starter prompts after background URL load"
+      );
+      Assert.equal(
+        0,
+        lazy.AIWindowUI.updateStarterPrompts.callCount,
+        "There should not be any more calls to update starter prompts"
       );
     });
   });
