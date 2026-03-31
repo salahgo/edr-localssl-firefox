@@ -421,7 +421,8 @@ export const NET_ERRORS = [
     category: "blocked",
     bodyTitleL10nId: "deniedPortAccess-title",
     introContent: {
-      dataL10nId: "fp-neterror-denied-port-access",
+      dataL10nId: "fp-neterror-offline-intro",
+      dataL10nArgs: { hostname: null },
     },
     descriptionParts: [],
     buttons: {
@@ -430,6 +431,7 @@ export const NET_ERRORS = [
     },
     customNetError: {
       titleL10nId: "deniedPortAccess-title",
+      whatCanYouDoL10nId: "certerror-bad-cert-domain-what-can-you-do-about-it",
     },
     hasNoUserFix: true,
   },
