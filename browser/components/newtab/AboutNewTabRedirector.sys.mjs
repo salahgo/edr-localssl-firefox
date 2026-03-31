@@ -59,8 +59,7 @@ const IS_PRIVILEGED_PROCESS =
 const PREF_ACTIVITY_STREAM_DEBUG = "browser.newtabpage.activity-stream.debug";
 const PREF_NEWTAB_SELF_LOADING =
   "browser.newtabpage.activity-stream.selfLoading.enabled";
-const PREF_NEWTAB_REMOTE_RENDERER_ENABLED =
-  "browser.newtabpage.activity-stream.remote-renderer.enabled";
+
 /**
  * The AboutHomeStartupCacheChild is responsible for connecting the
  * AboutNewTabRedirectorChild with a cached document and script for about:home
@@ -408,13 +407,6 @@ class BaseAboutNewTabRedirector {
       PREF_NEWTAB_SELF_LOADING,
       false
     );
-
-    XPCOMUtils.defineLazyPreferenceGetter(
-      this,
-      "remoteRendererEnabled",
-      PREF_NEWTAB_REMOTE_RENDERER_ENABLED,
-      false
-    );
   }
 
   /**
@@ -424,10 +416,6 @@ class BaseAboutNewTabRedirector {
    * the newtab page has no effect on the result of this function.
    */
   get defaultURL() {
-    if (this.remoteRendererEnabled) {
-      return "resource://newtab/data/content/remote-renderer-host.html";
-    }
-
     // Generate the desired activity stream resource depending on state, e.g.,
     // "resource://newtab/prerendered/activity-stream.html"
     // "resource://newtab/prerendered/activity-stream-debug.html"
@@ -471,7 +459,7 @@ class BaseAboutNewTabRedirector {
  * before the AboutNewTabRedirectorChild has a chance to handle the request).
  */
 export class AboutNewTabRedirectorParent extends BaseAboutNewTabRedirector {
-  #allowNewTabLoads = false;
+  #addonInitialized = false;
   #suspendedChannels = [];
   #addonInitializedPromise = null;
   #addonInitializedResolver = null;
@@ -516,16 +504,13 @@ export class AboutNewTabRedirectorParent extends BaseAboutNewTabRedirector {
    * resumes them, now that the built-in addon has been set up.
    */
   notifyBuiltInAddonInitialized() {
-    this.#addonInitializedResolver();
-  }
-
-  resumeNewTabLoads() {
-    this.#allowNewTabLoads = true;
+    this.#addonInitialized = true;
 
     for (let suspendedChannel of this.#suspendedChannels) {
       suspendedChannel.resume();
     }
     this.#suspendedChannels = [];
+    this.#addonInitializedResolver();
   }
 
   /**
@@ -554,7 +539,7 @@ export class AboutNewTabRedirectorParent extends BaseAboutNewTabRedirector {
     );
     resultChannel.originalURI = uri;
 
-    if (!this.#allowNewTabLoads) {
+    if (!this.#addonInitialized) {
       return this.#getSuspendedChannel(resultChannel);
     }
 

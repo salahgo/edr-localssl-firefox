@@ -32,13 +32,6 @@ const JSWINDOWACTORS = {
       attributionActorUnregister = unregister;
     },
   },
-  MozNewTabRemoteRendererProtocol: {
-    parent: {
-      esModuleURI:
-        "resource://newtab/lib/actors/MozNewTabRemoteRendererProtocolParent.sys.mjs",
-    },
-    includeParent: true,
-  },
 };
 
 export const NewTabActorRegistry = {
