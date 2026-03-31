@@ -760,17 +760,20 @@ static int64_t LocalTime(DateTimeInfo* dtInfo, double t) {
  * ES2025 draft rev 76814cbd5d7842c2a99d28e6e8c7833f1de5bee0
  */
 template <typename T>
-static double UTC(DateTimeInfo* dtInfo, T t) {
+static int64_t UTC(DateTimeInfo* dtInfo, T t) {
   static_assert(std::is_same_v<T, double> || std::is_same_v<T, int64_t>);
 
   MOZ_ASSERT(!std::isfinite(t) || IsInteger(t),
              "unexpected fractional parts in local time value");
 
+  // InvalidTime can be any value which is rejected by TimeClip.
+  static constexpr int64_t InvalidTime = INT64_MIN;
+
   // Step 1.
   //
   // Return early when |t| is outside the valid local time value limits.
   if (!IsLocalTimeValue(t)) {
-    return GenericNaN();
+    return InvalidTime;
   }
   int64_t time = mozilla::AssertedCast<int64_t>(t);
 
@@ -780,7 +783,7 @@ static double UTC(DateTimeInfo* dtInfo, T t) {
   MOZ_ASSERT(std::abs(offsetMs) < msPerDay);
 
   // Step 6.
-  return static_cast<double>(time - offsetMs);
+  return time - offsetMs;
 }
 
 /**
@@ -1324,14 +1327,13 @@ static bool ParseISOStyleDate(DateTimeInfo* dtInfo, const CharT* s,
   int64_t date = MakeDate(MakeDay(yearSign * year, month, day),
                           MakeTime(hour, min, sec, msec));
 
-  double datetime;
   if (isLocalTime) {
-    datetime = UTC(dtInfo, date);
+    date = UTC(dtInfo, date);
   } else {
-    datetime = date - (tzSign * (tzHour * msPerHour + tzMin * msPerMinute));
+    date -= tzSign * (tzHour * msPerHour + tzMin * msPerMinute);
   }
 
-  *result = TimeClip(datetime);
+  *result = TimeClip(date);
   return true;
 
 #undef JS_ALWAYS_INLINE_LAMBDA
@@ -2184,7 +2186,7 @@ static bool date_parse(JSContext* cx, unsigned argc, Value* vp) {
 
 static ClippedTime NowAsMillis(JSContext* cx) {
   if (js::SupportDifferentialTesting()) {
-    return TimeClip(0);
+    return TimeClip(int64_t(0));
   }
 
   double now = PRMJ_Now();

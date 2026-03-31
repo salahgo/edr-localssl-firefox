@@ -1956,7 +1956,7 @@ void HTMLInputElement::GetValueAsDate(JSContext* aCx,
         return;
       }
 
-      time.emplace(JS::TimeClip(millisecond));
+      time.emplace(JS::TimeClip(int64_t(millisecond)));
       MOZ_ASSERT(time->toDouble() == millisecond,
                  "HTML times are restricted to the day after the epoch and "
                  "never clip");
