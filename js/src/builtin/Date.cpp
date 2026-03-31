@@ -69,13 +69,11 @@
 using namespace js;
 
 using mozilla::Atomic;
-using mozilla::BitwiseCast;
 using mozilla::IsAsciiAlpha;
 using mozilla::IsAsciiDigit;
 using mozilla::IsAsciiLowercaseAlpha;
 using mozilla::Relaxed;
 
-using JS::AutoCheckCannotGC;
 using JS::ClippedTime;
 using JS::GenericNaN;
 using JS::GetBuiltinClass;
@@ -2165,7 +2163,7 @@ static bool ParseDate(JSContext* cx, DateTimeInfo* dtInfo, const CharT* s,
 
 static bool ParseDate(JSContext* cx, DateTimeInfo* dtInfo,
                       const JSLinearString* s, ClippedTime* result) {
-  AutoCheckCannotGC nogc;
+  JS::AutoCheckCannotGC nogc;
   // Collect telemetry on how often Date.parse is being used.
   // This can be removed in the future, see Bug 1944630.
   cx->runtime()->setUseCounter(cx->global(), JSUseCounter::DATEPARSE);
@@ -2232,7 +2230,7 @@ static ClippedTime NowAsMillis(JSContext* cx) {
       // attacker from calculating the midpoint themselves. So we use a very
       // simple, very fast CRC with a hardcoded seed.
 
-      uint64_t midpoint = BitwiseCast<uint64_t>(clamped);
+      uint64_t midpoint = mozilla::BitwiseCast<uint64_t>(clamped);
       midpoint ^= 0x0F00DD1E2BAD2DED;  // XOR in a 'secret'
       // MurmurHash3 internal component from
       //   https://searchfox.org/mozilla-central/rev/61d400da1c692453c2dc2c1cf37b616ce13dea5b/dom/canvas/MurmurHash3.cpp#85
