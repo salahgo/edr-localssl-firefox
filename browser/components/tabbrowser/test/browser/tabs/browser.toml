@@ -7,6 +7,7 @@ support-files = [
   "test_process_flags_chrome.html",
   "helper_origin_attrs_testing.js",
   "file_about_srcdoc.html",
+  "file_reader_mode_article.html",
 ]
 prefs = [
   "browser.sessionstore.closedTabsFromAllWindows=true",
@@ -605,6 +606,9 @@ tags = "vertical-tabs"
 tags = "vertical-tabs"
 
 ["browser_tab_label_picture_in_picture.js"]
+tags = "vertical-tabs"
+
+["browser_tab_label_reader_mode.js"]
 tags = "vertical-tabs"
 
 ["browser_tab_manager_close.js"]
