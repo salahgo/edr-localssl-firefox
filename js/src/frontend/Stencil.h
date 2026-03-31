@@ -863,6 +863,7 @@ class StencilModuleMetadata
 
   size_t sizeOfIncludingThis(mozilla::MallocSizeOf mallocSizeOf) const {
     return mallocSizeOf(this) +
+           moduleRequests.sizeOfExcludingThis(mallocSizeOf) +
            requestedModules.sizeOfExcludingThis(mallocSizeOf) +
            importEntries.sizeOfExcludingThis(mallocSizeOf) +
            localExportEntries.sizeOfExcludingThis(mallocSizeOf) +
