@@ -2385,10 +2385,10 @@ class GFX2D_API Factory {
   static void SetSystemTextQuality(uint8_t aQuality);
 
   static already_AddRefed<DataSourceSurface>
-  CreateBGRA8DataSourceSurfaceForD3D11Texture(
-      ID3D11Texture2D* aSrcTexture, uint32_t aArrayIndex,
-      gfx::ColorSpace2 aColorSpace, gfx::ColorRange aColorRange,
-      gfx::TransferFunction aTransferFunction);
+  CreateBGRA8DataSourceSurfaceForD3D11Texture(ID3D11Texture2D* aSrcTexture,
+                                              uint32_t aArrayIndex,
+                                              gfx::ColorSpace2 aColorSpace,
+                                              gfx::ColorRange aColorRange);
 
   static nsresult CreateSdbForD3D11Texture(
       ID3D11Texture2D* aSrcTexture, const IntSize& aSrcSize,
@@ -2399,8 +2399,7 @@ class GFX2D_API Factory {
                               ID3D11Texture2D* aSrcTexture,
                               uint32_t aArrayIndex,
                               gfx::ColorSpace2 aColorSpace,
-                              gfx::ColorRange aColorRange,
-                              gfx::TransferFunction aTransferFunction);
+                              gfx::ColorRange aColorRange);
 
  private:
   static StaticRefPtr<ID3D11Device> mD3D11Device;
@@ -2412,10 +2411,11 @@ class GFX2D_API Factory {
                               ID3D11Texture2D* aSrcTexture);
 
   // DestTextureT can be TextureData or DataSourceSurface.
-  static bool ConvertSourceAndRetryReadback(
-      DataSourceSurface* aDestCpuTexture, ID3D11Texture2D* aSrcTexture,
-      uint32_t aArrayIndex, gfx::ColorSpace2 aColorSpace,
-      gfx::ColorRange aColorRange, gfx::TransferFunction aTransferFunction);
+  static bool ConvertSourceAndRetryReadback(DataSourceSurface* aDestCpuTexture,
+                                            ID3D11Texture2D* aSrcTexture,
+                                            uint32_t aArrayIndex,
+                                            gfx::ColorSpace2 aColorSpace,
+                                            gfx::ColorRange aColorRange);
 
  protected:
   // This guards access to the singleton devices above, as well as the

@@ -28,10 +28,6 @@ class RenderTextureHostSWGL : public RenderTextureHost {
     return gfx::ColorDepth::COLOR_8;
   }
 
-  virtual gfx::TransferFunction GetTransferFunction() const {
-    return gfx::TransferFunction::BT709;
-  }
-
   struct PlaneInfo {
     explicit PlaneInfo(GLuint aTexture) : mTexture(aTexture) {}
 

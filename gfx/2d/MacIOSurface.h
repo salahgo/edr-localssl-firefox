@@ -71,16 +71,14 @@ class MacIOSurface final
   static already_AddRefed<MacIOSurface> LookupSurface(
       IOSurfaceID aSurfaceID, bool aHasAlpha = true,
       mozilla::gfx::YUVColorSpace aColorSpace =
-          mozilla::gfx::YUVColorSpace::Identity,
-      TransferFunction aTransferFunction = TransferFunction::SRGB);
+          mozilla::gfx::YUVColorSpace::Identity);
   static mozilla::gfx::SurfaceFormat SurfaceFormatForPixelFormat(
       OSType aPixelFormat, bool aHasAlpha);
 
-  explicit MacIOSurface(
-      CFTypeRefPtr<IOSurfaceRef> aIOSurfaceRef, bool aHasAlpha = true,
-      mozilla::gfx::YUVColorSpace aColorSpace =
-          mozilla::gfx::YUVColorSpace::Identity,
-      TransferFunction aTransferFunction = TransferFunction::SRGB);
+  explicit MacIOSurface(CFTypeRefPtr<IOSurfaceRef> aIOSurfaceRef,
+                        bool aHasAlpha = true,
+                        mozilla::gfx::YUVColorSpace aColorSpace =
+                            mozilla::gfx::YUVColorSpace::Identity);
 
   ~MacIOSurface();
   IOSurfaceID GetIOSurfaceID() const;
@@ -117,7 +115,6 @@ class MacIOSurface final
     mColorSpace = aColorSpace;
   }
   YUVColorSpace GetYUVColorSpace() const { return mColorSpace; }
-  TransferFunction GetTransferFunction() const { return mTransferFunction; }
   bool IsFullRange() const {
     OSType format = GetPixelFormat();
     return (format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange ||
@@ -163,7 +160,6 @@ class MacIOSurface final
   CFTypeRefPtr<IOSurfaceRef> GetIOSurfaceRef() { return mIOSurfaceRef; }
 
   void SetColorSpace(mozilla::gfx::ColorSpace2) const;
-  void SetTransferFunction(mozilla::gfx::TransferFunction) const;
 
   ColorSpace2 mColorPrimaries = ColorSpace2::UNKNOWN;
 
@@ -171,7 +167,6 @@ class MacIOSurface final
   CFTypeRefPtr<IOSurfaceRef> mIOSurfaceRef;
   const bool mHasAlpha;
   YUVColorSpace mColorSpace = YUVColorSpace::Identity;
-  TransferFunction mTransferFunction = TransferFunction::SRGB;
   bool mIsLocked = false;
 };
 

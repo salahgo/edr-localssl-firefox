@@ -42,9 +42,7 @@ D3D11ZeroCopyTextureImage::D3D11ZeroCopyTextureImage(
     ID3D11Texture2D* aTexture, const uint32_t aArrayIndex,
     const gfx::IntSize& aSize, const gfx::IntRect& aRect,
     const gfx::SurfaceFormat aFormat, const gfx::ColorSpace2 aColorSpace,
-    const gfx::ColorRange aColorRange,
-    const gfx::TransferFunction aTransferFunction,
-    const gfx::ColorDepth aColorDepth)
+    const gfx::ColorRange aColorRange, const gfx::ColorDepth aColorDepth)
     : Image(nullptr, ImageFormat::D3D11_TEXTURE_ZERO_COPY),
       mTexture(aTexture),
       mArrayIndex(aArrayIndex),
@@ -53,7 +51,6 @@ D3D11ZeroCopyTextureImage::D3D11ZeroCopyTextureImage(
       mFormat(aFormat),
       mColorSpace(aColorSpace),
       mColorRange(aColorRange),
-      mTransferFunction(aTransferFunction),
       mColorDepth(aColorDepth) {
   MOZ_ASSERT(XRE_IsGPUProcess());
   MOZ_ASSERT(mFormat == gfx::SurfaceFormat::NV12 ||
@@ -73,7 +70,7 @@ void D3D11ZeroCopyTextureImage::AllocateTextureClient(
   }
   mTextureClient = D3D11TextureData::CreateTextureClient(
       mTexture, mArrayIndex, mSize, mFormat, mColorSpace, mColorRange,
-      mTransferFunction, aKnowsCompositor, aUsageInfo, aWriteFence);
+      aKnowsCompositor, aUsageInfo, aWriteFence);
   MOZ_ASSERT(mTextureClient);
 }
 
@@ -95,7 +92,7 @@ D3D11ZeroCopyTextureImage::GetAsSourceSurface() {
 
   RefPtr<gfx::SourceSurface> sourceSurface =
       gfx::Factory::CreateBGRA8DataSourceSurfaceForD3D11Texture(
-          src, mArrayIndex, mColorSpace, mColorRange, mTransferFunction);
+          src, mArrayIndex, mColorSpace, mColorRange);
 
   // There is a case that mSize and size of mTexture are different. In this
   // case, size of sourceSurface is different from mSize.
@@ -148,11 +145,9 @@ D3D11TextureIMFSampleImage::D3D11TextureIMFSampleImage(
     const uint32_t aArrayIndex, const gfx::IntSize& aSize,
     const gfx::IntRect& aRect, const gfx::SurfaceFormat aFormat,
     const gfx::ColorSpace2 aColorSpace, const gfx::ColorRange aColorRange,
-    const gfx::TransferFunction aTransferFunction,
     const gfx::ColorDepth aColorDepth)
     : D3D11ZeroCopyTextureImage(aTexture, aArrayIndex, aSize, aRect, aFormat,
-                                aColorSpace, aColorRange, aTransferFunction,
-                                aColorDepth),
+                                aColorSpace, aColorRange, aColorDepth),
       mVideoSample(IMFSampleWrapper::Create(aVideoSample)) {
   MOZ_ASSERT(XRE_IsGPUProcess());
 }
@@ -164,12 +159,10 @@ RefPtr<IMFSampleWrapper> D3D11TextureIMFSampleImage::GetIMFSampleWrapper() {
 D3D11TextureAVFrameImage::D3D11TextureAVFrameImage(
     D3D11TextureWrapper* aWrapper, const gfx::IntSize& aSize,
     const gfx::IntRect& aRect, const gfx::ColorSpace2 aColorSpace,
-    const gfx::ColorRange aColorRange,
-    const gfx::TransferFunction aTransferFunction,
-    const gfx::ColorDepth aColorDepth)
+    const gfx::ColorRange aColorRange, const gfx::ColorDepth aColorDepth)
     : D3D11ZeroCopyTextureImage(aWrapper->GetTexture(), aWrapper->mArrayIdx,
                                 aSize, aRect, aWrapper->mFormat, aColorSpace,
-                                aColorRange, aTransferFunction, aColorDepth),
+                                aColorRange, aColorDepth),
       mWrapper(aWrapper) {
   MOZ_ASSERT(XRE_IsGPUProcess());
 }

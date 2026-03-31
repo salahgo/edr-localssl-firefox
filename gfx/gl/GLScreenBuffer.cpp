@@ -17,8 +17,7 @@ namespace mozilla::gl {
 // SwapChainPresenter
 
 UniquePtr<SwapChainPresenter> SwapChain::Acquire(
-    const gfx::IntSize& size, const gfx::ColorSpace2 colorSpace,
-    const gfx::TransferFunction transferFunction) {
+    const gfx::IntSize& size, const gfx::ColorSpace2 colorSpace) {
   MOZ_ASSERT(mFactory);
 
   std::shared_ptr<SharedSurface> surf;
@@ -28,7 +27,6 @@ UniquePtr<SwapChainPresenter> SwapChain::Acquire(
     auto newDesc = existingDesc;
     newDesc.size = size;
     newDesc.colorSpace = colorSpace;
-    newDesc.transferFunction = transferFunction;
     if (newDesc != existingDesc || !mPool.front()->IsValid()) {
       mPool = {};
     }

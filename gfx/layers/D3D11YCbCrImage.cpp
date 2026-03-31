@@ -83,10 +83,9 @@ already_AddRefed<TextureClient> DXGIYCbCrTextureAllocationHelper::Allocate(
       aAllocator ? aAllocator->GetTextureForwarder() : nullptr;
 
   return TextureClient::CreateWithData(
-      DXGIYCbCrTextureData::Create(textureY, textureCb, textureCr,
-                                   mData.mPictureRect.Size(), ySize, cbcrSize,
-                                   mData.mColorDepth, mData.mYUVColorSpace,
-                                   mData.mColorRange, mData.mTransferFunction),
+      DXGIYCbCrTextureData::Create(
+          textureY, textureCb, textureCr, mData.mPictureRect.Size(), ySize,
+          cbcrSize, mData.mColorDepth, mData.mYUVColorSpace, mData.mColorRange),
       mTextureFlags, forwarder);
 }
 

@@ -94,7 +94,7 @@ SharedSurface_IOSurface::ToSurfaceDescriptor() {
   const bool isOpaque = false;  // RGBA
   return Some(layers::SurfaceDescriptorMacIOSurface(
       mIOSurf->GetIOSurfaceID(), isOpaque, mIOSurf->GetYUVColorSpace(),
-      mIOSurf->GetTransferFunction(), (layers::GpuFence*)nullptr));
+      (layers::GpuFence*)nullptr));
 }
 
 }  // namespace gl

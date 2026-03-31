@@ -80,8 +80,7 @@ class SwapChain final {
   void ClearPool();
   bool StoreRecycledSurface(const std::shared_ptr<SharedSurface>& surf);
   const auto& FrontBuffer() const { return mFrontBuffer; }
-  UniquePtr<SwapChainPresenter> Acquire(const gfx::IntSize&, gfx::ColorSpace2,
-                                        gfx::TransferFunction);
+  UniquePtr<SwapChainPresenter> Acquire(const gfx::IntSize&, gfx::ColorSpace2);
 
   void SetDestroyedCallback(std::function<void()>&& aDestroyedCallback) {
     MOZ_ASSERT(!mDestroyedCallback);

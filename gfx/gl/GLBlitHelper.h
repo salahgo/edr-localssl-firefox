@@ -200,22 +200,11 @@ class GLBlitHelper final {
 
  public:
   static std::optional<color::ColorProfileDesc> ToColorProfileDesc(
-      gfx::ColorSpace2, gfx::TransferFunction tf);
-
-  struct CSTF : DeriveCmpOpMembers<CSTF> {
-    gfx::ColorSpace2 cs;
-    gfx::TransferFunction tf;
-
-    auto Members() const { return std::tie(cs, tf); }
-
-    MOZ_MIXIN_DERIVE_CMP_OPS_BY_MEMBERS(CSTF)
-
-    struct Hasher : mozilla::StdHashMembers<CSTF> {};
-  };
+      gfx::ColorSpace2);
 
   struct ColorLutKey : DeriveCmpOpMembers<ColorLutKey> {
-    std::variant<CSTF, gfx::YUVRangedColorSpace> src;
-    CSTF dst;
+    std::variant<gfx::ColorSpace2, gfx::YUVRangedColorSpace> src;
+    gfx::ColorSpace2 dst;
 
     auto Members() const { return std::tie(src, dst); }
 
@@ -377,9 +366,5 @@ extern const char* const kFragMixin_AlphaOne;
 
 }  // namespace gl
 }  // namespace mozilla
-
-template <>
-struct std::hash<mozilla::gl::GLBlitHelper::CSTF>
-    : mozilla::gl::GLBlitHelper::CSTF::Hasher {};
 
 #endif  // GLBLITHELPER_H_

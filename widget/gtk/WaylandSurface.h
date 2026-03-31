@@ -256,9 +256,7 @@ class WaylandSurface final {
   void SetParentLocked(const WaylandSurfaceLock& aProofOfLock,
                        RefPtr<WaylandSurface> aParent);
 
-  bool EnableColorManagementLocked(const WaylandSurfaceLock& aProofOfLock,
-                                   mozilla::gfx::YUVColorSpace aColorSpace,
-                                   gfx::TransferFunction aTransferFunction);
+  bool EnableColorManagementLocked(const WaylandSurfaceLock& aProofOfLock);
   void SetColorRepresentationLocked(const WaylandSurfaceLock& aProofOfLock,
                                     mozilla::gfx::YUVColorSpace aColorSpace,
                                     bool aFullRange,

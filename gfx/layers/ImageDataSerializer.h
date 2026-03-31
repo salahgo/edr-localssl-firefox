@@ -70,9 +70,6 @@ Maybe<int32_t> YStrideFromBufferDescriptor(const BufferDescriptor& aDescriptor);
 Maybe<int32_t> CbCrStrideFromBufferDescriptor(
     const BufferDescriptor& aDescriptor);
 
-Maybe<gfx::ColorSpace2> ColorSpace2FromBufferDescriptor(
-    const BufferDescriptor& aDescriptor);
-
 Maybe<gfx::YUVColorSpace> YUVColorSpaceFromBufferDescriptor(
     const BufferDescriptor& aDescriptor);
 
@@ -80,9 +77,6 @@ Maybe<gfx::ColorDepth> ColorDepthFromBufferDescriptor(
     const BufferDescriptor& aDescriptor);
 
 Maybe<gfx::ColorRange> ColorRangeFromBufferDescriptor(
-    const BufferDescriptor& aDescriptor);
-
-Maybe<gfx::TransferFunction> TransferFunctionFromBufferDescriptor(
     const BufferDescriptor& aDescriptor);
 
 Maybe<StereoMode> StereoModeFromBufferDescriptor(

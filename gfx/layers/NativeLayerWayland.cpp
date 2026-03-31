@@ -948,18 +948,7 @@ bool NativeLayerWayland::Map(WaylandSurfaceLock* aParentWaylandSurfaceLock) {
       /* aEmulateFrameCallback */ true);
 
   if (mIsHDR) {
-    gfx::YUVColorSpace yuvColorSpace = gfx::YUVColorSpace::BT709;
-    gfx::TransferFunction transferFunction = gfx::TransferFunction::BT709;
-    if (auto* external = AsNativeLayerWaylandExternal()) {
-      if (RefPtr surface = external->GetSurface()) {
-        if (auto* surfaceYUV = surface->GetAsDMABufSurfaceYUV()) {
-          yuvColorSpace = surfaceYUV->GetYUVColorSpace();
-          transferFunction = surfaceYUV->GetTransferFunction();
-        }
-      }
-    }
-    mSurface->EnableColorManagementLocked(surfaceLock, yuvColorSpace,
-                                          transferFunction);
+    mSurface->EnableColorManagementLocked(surfaceLock);
   }
 
   if (auto* external = AsNativeLayerWaylandExternal()) {

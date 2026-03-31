@@ -70,14 +70,6 @@ gfx::ColorRange RemoteTextureHostWrapper::GetColorRange() const {
   return mRemoteTexture->GetColorRange();
 }
 
-gfx::TransferFunction RemoteTextureHostWrapper::GetTransferFunction() const {
-  MOZ_ASSERT(mRemoteTexture, "TextureHost isn't valid yet");
-  if (!mRemoteTexture) {
-    return TextureHost::GetTransferFunction();
-  }
-  return mRemoteTexture->GetTransferFunction();
-}
-
 gfx::IntSize RemoteTextureHostWrapper::GetSize() const {
   MOZ_ASSERT(mRemoteTexture, "TextureHost isn't valid yet");
   if (!mRemoteTexture) {

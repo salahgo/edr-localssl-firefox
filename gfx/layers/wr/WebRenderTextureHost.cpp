@@ -94,10 +94,6 @@ gfx::ColorRange WebRenderTextureHost::GetColorRange() const {
   return mWrappedTextureHost->GetColorRange();
 }
 
-gfx::TransferFunction WebRenderTextureHost::GetTransferFunction() const {
-  return mWrappedTextureHost->GetTransferFunction();
-}
-
 gfx::IntSize WebRenderTextureHost::GetSize() const {
   return mWrappedTextureHost->GetSize();
 }

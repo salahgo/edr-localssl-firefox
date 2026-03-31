@@ -974,9 +974,7 @@ already_AddRefed<Texture> Device::InitSwapChain(
     return nullptr;
   }
 
-  const layers::RGBDescriptor rgbDesc(aCanvasSize, aFormat,
-                                      gfx::ColorSpace2::SRGB,
-                                      gfx::TransferFunction::SRGB);
+  const layers::RGBDescriptor rgbDesc(aCanvasSize, aFormat);
 
   ffi::wgpu_client_create_swap_chain(
       GetClient(), GetId(), mQueue->GetId(), rgbDesc.size().Width(),

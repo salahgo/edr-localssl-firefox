@@ -878,10 +878,18 @@ void NativeLayerCA::AttachExternalImage(wr::RenderTextureHost* aExternalImage) {
   bool changedIsDRM = (mIsDRM != isDRM);
   mIsDRM = isDRM;
 
+  bool isHDR = false;
   MacIOSurface* macIOSurface = texture->GetSurface();
-  bool isHDR =
-      macIOSurface->GetTransferFunction() == gfx::TransferFunction::PQ ||
-      macIOSurface->GetTransferFunction() == gfx::TransferFunction::HLG;
+  if (macIOSurface->GetYUVColorSpace() == gfx::YUVColorSpace::BT2020 &&
+      StaticPrefs::gfx_color_management_hdr_video_assume_rec2020_uses_pq()) {
+    // BT2020 colorSpace is a signifier of HDR.
+    isHDR = true;
+  }
+
+  if (macIOSurface->GetColorDepth() == gfx::ColorDepth::COLOR_10) {
+    // 10-bit color is a signifier of HDR.
+    isHDR = true;
+  }
   mIsHDR = isHDR && StaticPrefs::gfx_color_management_hdr_video();
 
   bool specializeVideo = ShouldSpecializeVideo(lock);

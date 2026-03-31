@@ -47,7 +47,6 @@ namespace layers {
   IntSize size;
   ColorSpace2 colorSpace;
   ColorRange colorRange;
-  TransferFunction transferFunction;
   bool hasKeyedMutex;
   CompositeProcessFencesHolderId? fencesHolderId;
 };
@@ -62,7 +61,6 @@ namespace layers {
   ColorDepth colorDepth;
   YUVColorSpace yUVColorSpace;
   ColorRange colorRange;
-  TransferFunction transferFunction;
   CompositeProcessFencesHolderId fencesHolderId;
 };
 
@@ -70,7 +68,6 @@ namespace layers {
   uint32_t surfaceId;
   bool isOpaque;
   YUVColorSpace yUVColorSpace;
-  TransferFunction transferFunction;
   nullable GpuFence gpuFence;
 };
 
@@ -158,8 +155,6 @@ namespace layers {
 [Comparable] struct RGBDescriptor {
   IntSize size;
   SurfaceFormat format;
-  ColorSpace2 colorSpace;
-  TransferFunction transferFunction;
 };
 
 [Comparable] struct YCbCrDescriptor {
@@ -175,7 +170,6 @@ namespace layers {
   ColorDepth colorDepth;
   YUVColorSpace yUVColorSpace;
   ColorRange colorRange;
-  TransferFunction transferFunction;
   ChromaSubsampling chromaSubsampling;
 };
 

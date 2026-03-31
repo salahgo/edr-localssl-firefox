@@ -450,8 +450,7 @@ SharedSurface_D3D11Interop::ToSurfaceDescriptor() {
   return Some(layers::SurfaceDescriptorD3D10(
       mData.dxgiHandle, /* gpuProcessTextureId */ Nothing(),
       /* arrayIndex */ 0, format, mDesc.size, mDesc.colorSpace,
-      gfx::ColorRange::FULL, mDesc.transferFunction,
-      /* hasKeyedMutex */ true,
+      gfx::ColorRange::FULL, /* hasKeyedMutex */ true,
       /* fencesHolderId */ Nothing()));
 }
 

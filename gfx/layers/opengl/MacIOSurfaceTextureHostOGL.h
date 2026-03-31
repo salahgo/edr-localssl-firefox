@@ -73,7 +73,6 @@ class MacIOSurfaceTextureHostOGL : public TextureHost {
 
   gfx::YUVColorSpace GetYUVColorSpace() const override;
   gfx::ColorRange GetColorRange() const override;
-  gfx::TransferFunction GetTransferFunction() const override;
 
   const RefPtr<MacIOSurface> mSurface;
   const RefPtr<GpuFence> mGpuFence;
