@@ -379,8 +379,17 @@ void AccessibleCaretManager::UpdateCaretsForSelectionMode(
     if (mActiveCaret) {
       ProvideHapticFeedback(mozilla::HapticFeedbackType::TextHandleMove);
     }
+
+    AutoWeakFrame weakStartFrame = startFrameAndOffset.mFrame;
+    AutoWeakFrame weakEndFrame = endFrameAndOffset.mFrame;
+
     // Flush layout to make the carets intersection correct.
     if (MaybeFlushLayout() == Terminated::Yes) {
+      return;
+    }
+
+    if (!weakStartFrame.IsAlive() || !weakEndFrame.IsAlive()) {
+      HideCaretsAndDispatchCaretStateChangedEvent();
       return;
     }
   }
