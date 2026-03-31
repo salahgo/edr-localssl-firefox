@@ -414,7 +414,7 @@ class TabManagementFragment : DialogFragment() {
                                 )
                             }
 
-                            entry<TabManagerNavDestination.CreateTabGroup>(
+                            entry<TabManagerNavDestination.EditTabGroup>(
                                 metadata = BottomSheetSceneStrategy.bottomSheet(
                                     handleContentDescription = stringResource(
                                         id = R.string.edit_tab_group_bottom_sheet_close_content_description,

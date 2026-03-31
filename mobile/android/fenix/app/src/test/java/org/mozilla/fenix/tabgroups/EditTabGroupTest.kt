@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -148,6 +149,33 @@ class EditTabGroupTest {
         }
 
         composeTestRule.onNodeWithTag(GROUP_NAME).assert(hasText("Test Group"))
+    }
+
+    @Test
+    fun `WHEN the store is in create mode THEN the default name is shown and saved in form state`() {
+        val expectedName = "Group 1"
+        val store = TabsTrayStore(
+            initialState = TabsTrayState(
+                tabGroupFormState = TabGroupFormState(
+                    tabGroupId = null,
+                    name = "",
+                    nextTabGroupNumber = 1,
+                    edited = false,
+                ),
+            ),
+        )
+
+        composeTestRule.setContent {
+            ComposableUnderTest(store = store)
+        }
+
+        composeTestRule
+            .onNodeWithText(expectedName)
+            .assertIsDisplayed()
+
+        composeTestRule.runOnIdle {
+            assertEquals(expectedName, store.state.tabGroupFormState?.name)
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

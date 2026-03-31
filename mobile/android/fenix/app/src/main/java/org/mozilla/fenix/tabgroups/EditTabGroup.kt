@@ -113,12 +113,9 @@ private fun EditTabGroupContent(
     onTabGroupThemeChange: (TabGroupTheme) -> Unit,
     onConfirmSave: () -> Unit,
 ) {
-    val title =
-        if (formState.inEditState) {
-            stringResource(R.string.edit_tab_group_title)
-        } else {
-            stringResource(R.string.create_tab_group_title)
-        }
+    val title = stringResource(
+        if (formState.inEditState) R.string.edit_tab_group_title else R.string.create_tab_group_title,
+    )
 
     val defaultName = stringResource(
         R.string.create_tab_group_form_default_name,
@@ -133,6 +130,14 @@ private fun EditTabGroupContent(
                 selection = TextRange(0, initialName.length),
             ),
         )
+    }
+
+    // In create mode, the visible default name is derived from a string resource.
+    // Align the tab group form with the same value.
+    LaunchedEffect(Unit) {
+        if (!formState.inEditState) {
+            onTabGroupNameChange(initialName)
+        }
     }
 
     Column(
