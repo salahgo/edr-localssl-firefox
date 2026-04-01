@@ -81,9 +81,10 @@ void CSSContainerRule::GetConditions(
   }
 }
 
-Element* CSSContainerRule::QueryContainerFor(const Element& aElement) const {
-  return const_cast<Element*>(
-      Servo_ContainerRule_QueryContainerFor(mRawRule, &aElement));
+Element* CSSContainerRule::QueryContainerFor(const Element& aElement,
+                                             size_t aConditionIndex) const {
+  return const_cast<Element*>(Servo_ContainerRule_QueryContainerFor(
+      mRawRule, &aElement, aConditionIndex));
 }
 
 void CSSContainerRule::SetRawAfterClone(RefPtr<StyleContainerRule> aRaw) {

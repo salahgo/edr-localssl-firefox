@@ -42,7 +42,7 @@ class CSSContainerRule final : public css::ConditionRule {
   JSObject* WrapObject(JSContext* aCx,
                        JS::Handle<JSObject*> aGivenProto) override;
 
-  Element* QueryContainerFor(const Element&) const;
+  Element* QueryContainerFor(const Element&, size_t aConditionIndex) const;
 
  private:
   virtual ~CSSContainerRule();

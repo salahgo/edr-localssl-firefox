@@ -3492,8 +3492,9 @@ pub extern "C" fn Servo_ContainerRule_GetContainerQuery(
 pub extern "C" fn Servo_ContainerRule_QueryContainerFor(
     rule: &ContainerRule,
     element: &RawGeckoElement,
+    condition_index: usize,
 ) -> *const RawGeckoElement {
-    for condition in rule.conditions.0.iter() {
+    if let Some(condition) = rule.conditions.0.get(condition_index) {
         if let Some(result) = condition.find_container(GeckoElement(element), None) {
             return result.element.0;
         }

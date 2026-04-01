@@ -1431,7 +1431,8 @@ class StyleRuleActor extends Actor {
     }
 
     const containerEl = ancestorRule.rawRule.queryContainerFor(
-      nodeActor.rawNode
+      nodeActor.rawNode,
+      0
     );
 
     // queryContainerFor returns null when the container name wasn't find in any ancestor.
