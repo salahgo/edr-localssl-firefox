@@ -24,6 +24,7 @@
 #include "irregexp/imported/regexp-macro-assembler-arch.h"
 #include "irregexp/imported/regexp-macro-assembler-tracer.h"
 #include "irregexp/imported/regexp-parser.h"
+#include "irregexp/imported/regexp-printer.h"
 #include "irregexp/imported/regexp-stack.h"
 #include "irregexp/imported/regexp.h"
 #include "irregexp/RegExpNativeMacroAssembler.h"
@@ -143,6 +144,11 @@ static uint32_t ErrorNumber(RegExpError err) {
       return JSMSG_INVALID_CHAR_IN_CLASS;
     case RegExpError::kNegatedCharacterClassWithStrings:
       return JSMSG_NEGATED_CLASS_WITH_STR;
+
+    // V8 used this while implementing assembly from bytecode.
+    // It is now dead, and should be removed soon.
+    case RegExpError::kUnsupportedBytecode:
+      MOZ_CRASH("All bytecodes are now supported.");
 
     case RegExpError::NumErrors:
       MOZ_CRASH("Unreachable");
@@ -515,10 +521,10 @@ enum class AssembleResult {
   Maybe<jit::JitContext> jctx;
   Maybe<js::jit::StackMacroAssembler> stack_masm;
   UniquePtr<RegExpMacroAssembler> masm;
+  NativeRegExpMacroAssembler::Mode mode =
+      isLatin1 ? NativeRegExpMacroAssembler::LATIN1
+               : NativeRegExpMacroAssembler::UC16;
   if (useNativeCode) {
-    NativeRegExpMacroAssembler::Mode mode =
-        isLatin1 ? NativeRegExpMacroAssembler::LATIN1
-                 : NativeRegExpMacroAssembler::UC16;
     // If we are compiling native code, we need a macroassembler,
     // which needs a jit context.
     jctx.emplace(cx);
@@ -533,7 +539,7 @@ enum class AssembleResult {
     masm = MakeUnique<SMRegExpMacroAssembler>(cx, stack_masm.ref(), zone, mode,
                                               num_capture_registers);
   } else {
-    masm = MakeUnique<RegExpBytecodeGenerator>(cx->isolate, zone);
+    masm = MakeUnique<RegExpBytecodeGenerator>(cx->isolate, zone, mode);
   }
   if (!masm) {
     ReportOutOfMemory(cx);
@@ -552,8 +558,9 @@ enum class AssembleResult {
   // strings. This decision is made here because it depends on
   // information in the AST that isn't replicated in the Node
   // structure used inside the compiler.
-  bool is_start_anchored = data->tree->IsAnchoredAtStart();
-  bool is_end_anchored = data->tree->IsAnchoredAtEnd();
+  const uint32_t budget = RegExpNode::kRecursionBudget;
+  bool is_start_anchored = data->tree->IsCertainlyAnchoredAtStart(budget);
+  bool is_end_anchored = data->tree->IsCertainlyAnchoredAtEnd(budget);
   int max_length = data->tree->max_match();
   static const int kMaxBacksearchLimit = 1024;
   if (is_end_anchored && !is_start_anchored && !re->sticky() &&
@@ -580,9 +587,9 @@ enum class AssembleResult {
 #endif
 
   // Compile the regexp.
-  V8HandleString wrappedPattern(v8::internal::String(pattern), cx->isolate);
+  V8HandleRegExp wrappedRegExp(v8::internal::IrRegExpData(re), cx->isolate);
   RegExpCompiler::CompilationResult result = compiler->Assemble(
-      cx->isolate, masm.get(), data->node, data->capture_count, wrappedPattern);
+      cx->isolate, masm.get(), data->node, data->capture_count, wrappedRegExp);
 
   if (useNativeCode) {
 #ifdef DEBUG
