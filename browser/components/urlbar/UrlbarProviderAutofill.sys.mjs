@@ -39,6 +39,12 @@ const QUERYTYPE = {
   AUTOFILL_ADAPTIVE: 3,
 };
 
+const RESULT_MENU_COMMANDS = {
+  DISMISS: "dismiss",
+  // In telemetry, we'll still report this as dismiss
+  DISMISS_AUTOFILL: "dismiss_autofill",
+};
+
 // Constants to support an alternative frecency algorithm.
 const ORIGIN_USE_ALT_FRECENCY = Services.prefs.getBoolPref(
   "places.frecency.origins.alternative.featureGate",
@@ -464,6 +470,78 @@ export class UrlbarProviderAutofill extends UrlbarProvider {
     if (this._autofillData?.instance == this.queryInstance) {
       this._autofillData = null;
     }
+  }
+
+  async onEngagement(queryContext, controller, details) {
+    let { result } = details;
+    let didRemove = false;
+
+    switch (details.selType) {
+      case RESULT_MENU_COMMANDS.DISMISS: {
+        await lazy.PlacesUtils.history
+          .remove(result.payload.url)
+          .catch(console.error);
+        didRemove = true;
+        break;
+      }
+      case RESULT_MENU_COMMANDS.DISMISS_AUTOFILL: {
+        let blockUntilMs =
+          Date.now() +
+          lazy.UrlbarPrefs.get(
+            "autoFillAdaptiveHistoryDismissalBlockDurationMs"
+          );
+        await UrlbarUtils.blockAutofill(result.payload.url, blockUntilMs).catch(
+          console.error
+        );
+        didRemove = true;
+        break;
+      }
+    }
+
+    if (didRemove) {
+      // Upon removing the autofill, we should do another search.
+      controller.input._setValue(queryContext.searchString);
+      controller.input.startQuery({
+        searchString: queryContext.searchString,
+        allowAutofill: false,
+        resetSearchState: false,
+      });
+    }
+  }
+
+  getResultCommands(result) {
+    if (
+      !result.autofill ||
+      !lazy.UrlbarPrefs.get("autoFill.adaptiveHistory.enabled")
+    ) {
+      return undefined;
+    }
+    if (
+      result.autofill.type === "adaptive" ||
+      result.autofill.type === "origin"
+    ) {
+      let isOrigin = UrlbarUtils.isOriginUrl(result.payload.url);
+      let resultArray = [
+        {
+          name: RESULT_MENU_COMMANDS.DISMISS_AUTOFILL,
+          l10n: {
+            id: "urlbar-result-menu-dismiss-suggestion",
+          },
+        },
+      ];
+
+      // For non-origin URLs, include the ability to remove it from history.
+      if (!isOrigin) {
+        resultArray.push({
+          name: RESULT_MENU_COMMANDS.DISMISS,
+          l10n: {
+            id: "urlbar-result-menu-remove-from-history",
+          },
+        });
+      }
+      return resultArray;
+    }
+    return undefined;
   }
 
   /**

@@ -1,0 +1,299 @@
+/* Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/ */
+
+/**
+ * Tests the dismiss functionality for adaptive autofill results
+ */
+
+"use strict";
+
+const ADAPTIVE_URL = "https://example.com/adaptive-page";
+const ORIGIN_URL = "https://example.com/";
+const SEARCH_STRING = "exa";
+const ADAPTIVE_INPUT = "exa";
+
+add_setup(async function () {
+  await PlacesUtils.history.clear();
+  await PlacesUtils.bookmarks.eraseEverything();
+
+  await SpecialPowers.pushPrefEnv({
+    set: [
+      ["browser.urlbar.autoFill", true],
+      ["browser.urlbar.autoFill.adaptiveHistory.enabled", true],
+      ["browser.urlbar.autoFill.adaptiveHistory.minCharsThreshold", 0],
+      ["browser.urlbar.autoFill.adaptiveHistory.useCountThreshold", 0],
+      ["browser.urlbar.suggest.quicksuggest.sponsored", false],
+      ["browser.urlbar.suggest.quicksuggest.nonsponsored", false],
+    ],
+  });
+
+  registerCleanupFunction(async () => {
+    await PlacesUtils.history.clear();
+    await PlacesUtils.bookmarks.eraseEverything();
+  });
+});
+
+async function addAdaptiveHistoryEntry(url, input, useCount = 3) {
+  await PlacesTestUtils.addVisits({
+    uri: url,
+    transition: PlacesUtils.history.TRANSITIONS.TYPED,
+  });
+  for (let i = 0; i < useCount; i++) {
+    await UrlbarUtils.addToInputHistory(url, input);
+  }
+}
+
+function getMenuButton(index) {
+  let rows = gURLBar.view.panel.querySelector(".urlbarView-results");
+  let row = rows?.children[index];
+  return row?.querySelector(".urlbarView-button-menu") ?? null;
+}
+
+async function openResultMenuItems(index) {
+  let menuButton = getMenuButton(index);
+  if (!menuButton) {
+    return [];
+  }
+
+  let resultMenu = gURLBar.view.resultMenu;
+  let shown = BrowserTestUtils.waitForEvent(resultMenu, "popupshown");
+  EventUtils.synthesizeMouseAtCenter(menuButton, {});
+  await shown;
+
+  return Array.from(
+    resultMenu.querySelectorAll("menuitem.urlbarView-result-menuitem"),
+    el => ({ command: el.dataset.command, element: el })
+  );
+}
+
+/**
+ * Closes the result menu if open.
+ */
+async function closeMenu() {
+  let resultMenu = gURLBar.view.resultMenu;
+  if (resultMenu.state === "open" || resultMenu.state === "showing") {
+    let hidden = BrowserTestUtils.waitForEvent(resultMenu, "popuphidden");
+    resultMenu.hidePopup();
+    await hidden;
+  }
+}
+
+add_task(async function dismiss_menu_appears_for_adaptive_autofill_url() {
+  await PlacesUtils.history.clear();
+  await addAdaptiveHistoryEntry(ADAPTIVE_URL, ADAPTIVE_INPUT);
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.ok(result.heuristic, "Result should be the heuristic");
+  Assert.equal(
+    result.autofill?.type,
+    "adaptive",
+    "Autofill type should be 'adaptive'"
+  );
+
+  let items = await openResultMenuItems(0);
+  let dismiss = items.find(i => i.command === "dismiss_autofill");
+  Assert.ok(dismiss, "Dismiss autofill command should be in the menu");
+
+  Assert.equal(
+    dismiss.element.getAttribute("data-l10n-id"),
+    "urlbar-result-menu-dismiss-suggestion",
+    "l10n id should be the dismiss suggestion string"
+  );
+
+  let remove = items.find(i => i.command === "dismiss");
+  Assert.ok(remove, "Remove URL command should be in the menu");
+  Assert.equal(
+    remove.element.getAttribute("data-l10n-id"),
+    "urlbar-result-menu-remove-from-history",
+    "l10n id should be the same as regular remove from history command"
+  );
+
+  await closeMenu();
+  await UrlbarTestUtils.promisePopupClose(window);
+  await PlacesUtils.history.clear();
+});
+
+add_task(async function dismiss_menu_appears_for_adaptive_autofill_origin() {
+  await PlacesUtils.history.clear();
+  await addAdaptiveHistoryEntry(ORIGIN_URL, ADAPTIVE_INPUT);
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.ok(result.heuristic, "Result should be the heuristic");
+  Assert.equal(
+    result.autofill?.type,
+    "adaptive",
+    "Autofill type should be 'adaptive'"
+  );
+
+  let items = await openResultMenuItems(0);
+  let dismiss = items.find(i => i.command === "dismiss_autofill");
+  Assert.ok(dismiss, "Dismiss autofill command should be in the menu");
+
+  Assert.equal(
+    dismiss.element.getAttribute("data-l10n-id"),
+    "urlbar-result-menu-dismiss-suggestion",
+    "l10n id should be the dismiss suggestion string"
+  );
+
+  await closeMenu();
+  await UrlbarTestUtils.promisePopupClose(window);
+  await PlacesUtils.history.clear();
+});
+
+add_task(async function adaptive_autofill_result_menu_dismiss_click() {
+  await PlacesUtils.history.clear();
+  await addAdaptiveHistoryEntry(ADAPTIVE_URL, ADAPTIVE_INPUT);
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.equal(
+    result.autofill?.type,
+    "adaptive",
+    "Should be adaptive autofill"
+  );
+
+  await UrlbarTestUtils.openResultMenuAndClickItem(window, "dismiss_autofill", {
+    resultIndex: 0,
+    openByMouse: true,
+  });
+
+  // Wait for the async onEngagement handler to finish writing to the DB.
+  let originId = await PlacesTestUtils.getDatabaseValue(
+    "moz_places",
+    "origin_id",
+    { url: ADAPTIVE_URL }
+  );
+  await TestUtils.waitForCondition(async () => {
+    let val = await PlacesTestUtils.getDatabaseValue(
+      "moz_origins",
+      "block_pages_until_ms",
+      { id: originId }
+    );
+    return val > Date.now();
+  }, "block_pages_until_ms should be set after dismiss");
+
+  // The block for the origin should not be set when dismissing the page.
+  let queryResult = await PlacesTestUtils.getDatabaseValue(
+    "moz_origins",
+    "block_until_ms",
+    { id: originId }
+  );
+  Assert.equal(queryResult, null, "block_until_ms should not be set");
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let detailsAfter = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.ok(
+    !detailsAfter.result.autofill ||
+      detailsAfter.result.autofill.type !== "adaptive",
+    "Adaptive autofill should NOT appear after dismissal"
+  );
+
+  await UrlbarTestUtils.promisePopupClose(window);
+  await PlacesUtils.history.clear();
+});
+
+add_task(async function adaptive_autofill_result_menu_history_click() {
+  await PlacesUtils.history.clear();
+  await addAdaptiveHistoryEntry(ADAPTIVE_URL, ADAPTIVE_INPUT);
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.equal(
+    result.autofill?.type,
+    "adaptive",
+    "Should be adaptive autofill"
+  );
+
+  await UrlbarTestUtils.openResultMenuAndClickItem(window, "dismiss", {
+    resultIndex: 0,
+    openByMouse: true,
+  });
+
+  // Verify the adaptive autofill entry is blocked in the database.
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let detailsAfter = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.ok(
+    !detailsAfter.result.autofill ||
+      detailsAfter.result.autofill.type !== "adaptive",
+    "Adaptive autofill should NOT appear after history item was removed"
+  );
+
+  await UrlbarTestUtils.promisePopupClose(window);
+  await PlacesUtils.history.clear();
+});
+
+add_task(async function dismiss_menu_for_origin_autofill() {
+  await PlacesUtils.history.clear();
+  await PlacesTestUtils.addVisits({
+    uri: ORIGIN_URL,
+    transition: PlacesUtils.history.TRANSITIONS.TYPED,
+  });
+  await PlacesFrecencyRecalculator.recalculateAnyOutdatedFrecencies();
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.ok(result.heuristic, "Result should be the heuristic");
+  Assert.ok(result.autofill, "Result should be autofill");
+  Assert.notEqual(
+    result.autofill?.type,
+    "adaptive",
+    "Autofill type should NOT be 'adaptive'"
+  );
+
+  await UrlbarTestUtils.openResultMenuAndClickItem(window, "dismiss_autofill", {
+    resultIndex: 0,
+    openByMouse: true,
+  });
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let detailsAfter = await UrlbarTestUtils.getDetailsOfResultAt(window, 0);
+  Assert.ok(
+    !detailsAfter.result.autofill,
+    "Autofill should not appear after dismissal of origin autofill result"
+  );
+
+  await UrlbarTestUtils.promisePopupClose(window);
+  await PlacesUtils.history.clear();
+});

@@ -630,10 +630,9 @@ export class UrlbarController {
   }
 
   /**
-   * Triggers a "dismiss" engagement for the selected result if one is selected
-   * and it's not the heuristic. Providers that can respond to dismissals of
-   * their results should implement `onEngagement()`, handle the
-   * dismissal, and call `controller.removeResult()`.
+   * Triggers a "dismiss" engagement for the selected result if one is selected.
+   * Providers that can respond to dismissals of their results should implement
+   * `onEngagement()`, handle the dismissal, and call `controller.removeResult()`.
    *
    * @param {Event} event
    *   The event that triggered dismissal.
@@ -657,7 +656,10 @@ export class UrlbarController {
     }
 
     let result = this.input.view.selectedResult;
-    if (!result || result.heuristic) {
+    if (!result) {
+      return false;
+    }
+    if (result.heuristic && !result.autofill) {
       return false;
     }
 
@@ -1621,6 +1623,11 @@ class TelemetryEvent {
     }
     if (event.type === "tabswitch") {
       return "tab_switch";
+    }
+    // dismiss_autofill temporarily blocks autofill suggestions rather than
+    // removing history, but we still want to report it "dismiss" in telemetry.
+    if (details.element?.dataset.command === "dismiss_autofill") {
+      return "dismiss";
     }
     if (
       details.element?.dataset.command &&
