@@ -1107,17 +1107,17 @@ export class ContextMenuChild extends JSWindowActorChild {
           !context.onLink &&
           // Be consistent with what hrefAndLinkNodeForClickEvent
           // does in BrowserUtils.sys.msj
-          (this._isXULTextLinkLabel(elem) ||
-            (this.contentWindow.HTMLAnchorElement.isInstance(elem) &&
+          ((this.contentWindow.HTMLAnchorElement.isInstance(elem) &&
+            elem.href) ||
+            (this.contentWindow.HTMLAreaElement.isInstance(elem) &&
               elem.href) ||
+            this.contentWindow.HTMLLinkElement.isInstance(elem) ||
             (this.contentWindow.SVGAElement.isInstance(elem) &&
               (elem.href || elem.hasAttributeNS(XLINK_NS, "href"))) ||
             (this.contentWindow.MathMLElement.isInstance(elem) &&
               elem.hasAttribute("href")) ||
-            (this.contentWindow.HTMLAreaElement.isInstance(elem) &&
-              elem.href) ||
-            this.contentWindow.HTMLLinkElement.isInstance(elem) ||
-            elem.getAttributeNS(XLINK_NS, "type") == "simple")
+            elem.getAttributeNS(XLINK_NS, "type") == "simple" ||
+            this._isXULTextLinkLabel(elem))
         ) {
           // Target is a link or a descendant of a link.
           context.onLink = true;
