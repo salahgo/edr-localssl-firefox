@@ -156,7 +156,7 @@ use style::values::specified::{AbsoluteLength, NoCalcLength};
 use style::values::{specified, AtomIdent, CustomIdent, KeyframesName};
 use style_traits::{
     CssWriter, NumericValue, ParseError, ParsingMode, SpecifiedValueInfo, ToCss, ToTyped,
-    TypedValue, UnitValue,
+    TypedValue, TypedValueList, UnitValue,
 };
 use thin_vec::ThinVec as nsTArray;
 use to_shmem::SharedMemoryBuilder;
@@ -5270,15 +5270,15 @@ impl From<Arc<Locked<PropertyDeclarationBlock>>> for UnsupportedValue {
 
 /// A property-aware wrapper around reification results.
 ///
-/// While `TypedValue` is property-agnostic, this enum represents the outcome
-/// of reifying a specific property from a `PropertyDeclarationBlock`.
+/// While `TypedValueList` is property-agnostic, this enum represents the
+/// outcome of reifying a specific property from a `PropertyDeclarationBlock`.
 /// It distinguishes between properties that are not present, properties whose
-/// values cannot be represented as a `TypedValue`, and properties that were
-/// successfully reified.
+/// values cannot be represented as a `TypedValueList`, and properties that
+/// were successfully reified.
 ///
 /// In the unsupported case, the full declaration block is carried via
 /// `UnsupportedValue`, which in turn holds the
-/// `Strong<LockedDeclarationBlock>`,
+/// `Strong<LockedDeclarationBlock>`.
 #[repr(C)]
 /// cbindgen:derive-tagged-enum-copy-constructor=false
 /// cbindgen:derive-tagged-enum-copy-assignment=false
@@ -5286,15 +5286,15 @@ pub enum PropertyTypedValue {
     /// The property is not present in the declaration block.
     None,
 
-    /// The property exists but cannot be expressed as a `TypedValue`.
+    /// The property exists but cannot be expressed as a `TypedValueList`.
     ///
     /// This occurs for shorthands and other unrepresentable cases. In this
     /// case, an `UnsupportedValue` is returned so a `CSSUnsupportedValue`
     /// object can be created and tied to the property.
     Unsupported(UnsupportedValue),
 
-    /// The property was successfully reified into a `TypedValue`.
-    Typed(TypedValue),
+    /// The property was successfully reified into a `TypedValueList`.
+    Typed(TypedValueList),
 }
 
 #[no_mangle]
@@ -5306,9 +5306,9 @@ pub unsafe extern "C" fn Servo_DeclarationBlock_GetPropertyTypedValue(
     let property_id = get_property_id_from_csspropertyid!(property_id, false);
 
     *result = read_locked_arc(declarations, |decls: &PropertyDeclarationBlock| {
-        let typed_value = decls.property_value_to_typed_value(&property_id);
+        let typed_value_list = decls.property_value_to_typed_value_list(&property_id);
 
-        match typed_value {
+        match typed_value_list {
             Err(()) => PropertyTypedValue::None,
 
             Ok(None) => {
@@ -5318,7 +5318,7 @@ pub unsafe extern "C" fn Servo_DeclarationBlock_GetPropertyTypedValue(
                 )
             },
 
-            Ok(Some(typed_value)) => PropertyTypedValue::Typed(typed_value),
+            Ok(Some(typed_value_list)) => PropertyTypedValue::Typed(typed_value_list),
         }
     });
 
@@ -8477,12 +8477,13 @@ pub unsafe extern "C" fn Servo_ComputedValues_GetPropertyTypedValue(
         },
     };
 
-    let typed_value: Option<TypedValue> = match non_custom_property_id.longhand_or_shorthand() {
-        Ok(longhand) => style.computed_typed_value(longhand),
-        Err(_) => None,
-    };
+    let typed_value_list: Option<TypedValueList> =
+        match non_custom_property_id.longhand_or_shorthand() {
+            Ok(longhand) => style.property_value_to_typed_value_list(longhand),
+            Err(_) => None,
+        };
 
-    *result = match typed_value {
+    *result = match typed_value_list {
         None => {
             let global_style_data = &*GLOBAL_STYLE_DATA;
 
@@ -8510,7 +8511,7 @@ pub unsafe extern "C" fn Servo_ComputedValues_GetPropertyTypedValue(
             )
         },
 
-        Some(typed_value) => PropertyTypedValue::Typed(typed_value),
+        Some(typed_value_list) => PropertyTypedValue::Typed(typed_value_list),
     };
 
     true

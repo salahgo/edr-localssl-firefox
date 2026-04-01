@@ -31,42 +31,50 @@ CSSStyleValue::CSSStyleValue(nsCOMPtr<nsISupports> aParent,
 }
 
 // static
-RefPtr<CSSStyleValue> CSSStyleValue::Create(
-    nsCOMPtr<nsISupports> aParent, const CSSPropertyId& aPropertyId,
-    StylePropertyTypedValue&& aTypedValue) {
-  RefPtr<CSSStyleValue> styleValue;
-
+void CSSStyleValue::Create(nsCOMPtr<nsISupports> aParent,
+                           const CSSPropertyId& aPropertyId,
+                           StylePropertyTypedValue&& aTypedValue,
+                           nsTArray<RefPtr<CSSStyleValue>>& aRetVal) {
   switch (aTypedValue.tag) {
     case StylePropertyTypedValue::Tag::Typed: {
-      const auto& typedValue = aTypedValue.AsTyped();
+      const auto& typedValueList = aTypedValue.AsTyped();
 
-      switch (typedValue.tag) {
-        case StyleTypedValue::Tag::Keyword: {
-          const auto& keywordValue = typedValue.AsKeyword();
+      aRetVal.SetCapacity(typedValueList.values.Length());
 
-          styleValue =
-              CSSKeywordValue::Create(std::move(aParent), keywordValue);
+      for (const auto& typedValue : typedValueList.values) {
+        RefPtr<CSSStyleValue> styleValue;
 
-          break;
+        switch (typedValue.tag) {
+          case StyleTypedValue::Tag::Keyword: {
+            const auto& keywordValue = typedValue.AsKeyword();
+
+            styleValue = CSSKeywordValue::Create(aParent, keywordValue);
+
+            break;
+          }
+
+          case StyleTypedValue::Tag::Numeric: {
+            const auto& numericValue = typedValue.AsNumeric();
+
+            styleValue = CSSNumericValue::Create(aParent, numericValue);
+
+            break;
+          }
         }
 
-        case StyleTypedValue::Tag::Numeric: {
-          const auto& numericValue = typedValue.AsNumeric();
-
-          styleValue =
-              CSSNumericValue::Create(std::move(aParent), numericValue);
-
-          break;
-        }
+        aRetVal.AppendElement(std::move(styleValue));
       }
+
       break;
     }
 
     case StylePropertyTypedValue::Tag::Unsupported: {
       auto unsupportedValue = std::move(aTypedValue).ExtractUnsupported();
 
-      styleValue = CSSUnsupportedValue::Create(std::move(aParent), aPropertyId,
-                                               std::move(unsupportedValue));
+      RefPtr<CSSStyleValue> styleValue = CSSUnsupportedValue::Create(
+          std::move(aParent), aPropertyId, std::move(unsupportedValue));
+
+      aRetVal.AppendElement(std::move(styleValue));
 
       break;
     }
@@ -74,8 +82,6 @@ RefPtr<CSSStyleValue> CSSStyleValue::Create(
     case StylePropertyTypedValue::Tag::None:
       break;
   }
-
-  return styleValue;
 }
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF(CSSStyleValue)

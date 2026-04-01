@@ -174,11 +174,11 @@ void StylePropertyMapReadOnly::Get(const nsACString& aProperty,
     return;
   }
 
-  RefPtr<CSSStyleValue> styleValue =
-      CSSStyleValue::Create(mParent, propertyId, std::move(value));
+  nsTArray<RefPtr<CSSStyleValue>> styleValues;
+  CSSStyleValue::Create(mParent, propertyId, std::move(value), styleValues);
 
-  if (styleValue) {
-    aRetVal.SetAsCSSStyleValue() = std::move(styleValue);
+  if (!styleValues.IsEmpty()) {
+    aRetVal.SetAsCSSStyleValue() = styleValues[0];
   } else {
     aRetVal.SetUndefined();
   }
@@ -213,13 +213,9 @@ void StylePropertyMapReadOnly::GetAll(const nsACString& aProperty,
     return;
   }
 
-  RefPtr<CSSStyleValue> styleValue = CSSStyleValue::Create(
-      mParent, CSSPropertyId::FromIdOrCustomProperty(id, aProperty),
-      std::move(value));
-
-  if (styleValue) {
-    aRetVal.AppendElement(std::move(styleValue));
-  }
+  CSSStyleValue::Create(mParent,
+                        CSSPropertyId::FromIdOrCustomProperty(id, aProperty),
+                        std::move(value), aRetVal);
 }
 
 bool StylePropertyMapReadOnly::Has(const nsACString& aProperty,

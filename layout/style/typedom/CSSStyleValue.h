@@ -44,9 +44,10 @@ class CSSStyleValue : public nsISupports, public nsWrapperCache {
 
   CSSStyleValue(nsCOMPtr<nsISupports> aParent, StyleValueType aStyleValueType);
 
-  static RefPtr<CSSStyleValue> Create(nsCOMPtr<nsISupports> aParent,
-                                      const CSSPropertyId& aPropertyId,
-                                      StylePropertyTypedValue&& aTypedValue);
+  static void Create(nsCOMPtr<nsISupports> aParent,
+                     const CSSPropertyId& aPropertyId,
+                     StylePropertyTypedValue&& aTypedValue,
+                     nsTArray<RefPtr<CSSStyleValue>>& aRetVal);
 
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
   NS_DECL_CYCLE_COLLECTION_WRAPPERCACHE_CLASS(CSSStyleValue)
