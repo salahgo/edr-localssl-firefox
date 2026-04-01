@@ -112,6 +112,9 @@ private val TabListFirstItemShape = RoundedCornerShape(
     topEnd = TabListItemCornerRadius,
 )
 
+private val TabListSingleItemShape = RoundedCornerShape(TabListItemCornerRadius)
+private val TabListBorderMiddleItemShape = RoundedCornerShape(4.dp)
+
 /**
  * Top-level UI for displaying a list of tabs.
  *
@@ -440,11 +443,15 @@ private fun TabList(
                 }
             }
 
+            // As groups are not shown, this impacts the visible index of the tab being shown,
+            // which is needed to know the correct shape
+            // todo This logic should be updated when TabList is supported for groups
+            val firstVisibleIndex = tabs.indexOfFirst { it is TabsTrayItem.Tab }
+            val lastVisibleIndex = tabs.indexOfLast { it is TabsTrayItem.Tab }
             itemsIndexed(
                 items = tabs,
                 key = { _, tab -> tab.id },
             ) { index, tab ->
-
                 when (tab) {
                     is TabsTrayItem.Tab -> {
                         DragItemContainer(
@@ -452,23 +459,19 @@ private fun TabList(
                             position = index + if (header != null) 1 else 0,
                             key = tab.id,
                         ) {
+                            val tabShapeInfo = getTabShapeInfo(
+                                firstVisibleIndex = firstVisibleIndex,
+                                lastVisibleIndex = lastVisibleIndex,
+                                itemIndex = index,
+                                size = tabs.size,
+                            )
                             TabListTabItem(
                                 tab = tab,
                                 modifier = Modifier
-                                    .thenConditional(
-                                        Modifier.clip(TabListLastItemShape),
-                                        { index == tabs.size - 1 },
-                                    )
-                                    .thenConditional(
-                                        Modifier.clip(TabListFirstItemShape),
-                                        { index == 0 },
-                                    )
-                                    .thenConditional(
-                                        modifier = Modifier.border(
-                                            border = tabItemBorderFocused(),
-                                            shape = tabListItemBorderShape(index, tabs.size),
-                                        ),
-                                        { tab.id == selectedTabId },
+                                    .tabListItemShapeStyling(
+                                        tabShapeInfo = tabShapeInfo,
+                                        tabId = tab.id,
+                                        selectedTabId = selectedTabId,
                                     ),
                                 selectionState = TabsTrayItemSelectionState(
                                     isFocused = tab.id == selectedTabId,
@@ -739,11 +742,27 @@ private fun generateFakeTabsList(
     }
 }
 
-private fun tabListItemBorderShape(index: Int, tabCount: Int): RoundedCornerShape {
-    return when (index) {
-        0 -> TabListFirstItemShape
-        tabCount - 1 -> TabListLastItemShape
-        else -> RoundedCornerShape(4.dp)
+/**
+ * Data class to store a TabList's item shape information.
+ * @property borderShape: The [RoundedCornerShape] representing the item's border
+ * @property clipTabToFit: Whether the TabItem will be clipped to fit the border shape
+ */
+private data class TabListShapeInfo(
+    val borderShape: RoundedCornerShape,
+    val clipTabToFit: Boolean,
+)
+
+private fun getTabShapeInfo(
+    firstVisibleIndex: Int,
+    lastVisibleIndex: Int,
+    itemIndex: Int,
+    size: Int,
+): TabListShapeInfo {
+    return when {
+        size == 1 -> TabListShapeInfo(TabListSingleItemShape, true)
+        firstVisibleIndex == itemIndex -> TabListShapeInfo(TabListFirstItemShape, true)
+        lastVisibleIndex == itemIndex -> TabListShapeInfo(TabListLastItemShape, true)
+        else -> TabListShapeInfo(TabListBorderMiddleItemShape, false)
     }
 }
 
@@ -762,3 +781,23 @@ private fun defaultTabLayoutContentPadding(): PaddingValues = PaddingValues(
     },
     vertical = 24.dp,
 )
+
+@Composable
+private fun Modifier.tabListItemShapeStyling(
+    tabShapeInfo: TabListShapeInfo,
+    tabId: String,
+    selectedTabId: String?,
+): Modifier {
+    return this
+        .thenConditional(
+            Modifier.clip(tabShapeInfo.borderShape),
+            { tabShapeInfo.clipTabToFit },
+        )
+        .thenConditional(
+            modifier = Modifier.border(
+                border = tabItemBorderFocused(),
+                shape = tabShapeInfo.borderShape,
+            ),
+            { tabId == selectedTabId },
+        )
+}
