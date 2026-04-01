@@ -29,8 +29,8 @@
 #include "js/friend/JSMEnvironment.h"  // JS::ExecuteInJSMEnvironment, JS::GetJSMEnvironmentOfScriptedCaller, JS::NewJSMEnvironment
 #include "js/friend/ErrorMessages.h"   // JSMSG_*
 #include "js/loader/ModuleLoadRequest.h"
-#include "js/Modules.h"  // JS::CompileJsonModule
-#include "js/Object.h"   // JS::GetCompartment
+#include "js/Modules.h"  // JS::CompileJsonModule, JS::CreateDefaultExportSyntheticModule
+#include "js/Object.h"  // JS::GetCompartment
 #include "js/Printf.h"
 #include "js/PropertyAndElement.h"  // JS_DefineFunctions, JS_DefineProperty, JS_Enumerate, JS_GetElement, JS_GetProperty, JS_GetPropertyById, JS_HasOwnProperty, JS_HasOwnPropertyById, JS_SetProperty, JS_SetPropertyById
 #include "js/PropertySpec.h"
@@ -73,6 +73,7 @@
 #include "mozilla/dom/WorkerPrivate.h"  // dom::WorkerPrivate, dom::AutoSyncLoopHolder
 #include "mozilla/dom/WorkerRef.h"  // dom::StrongWorkerRef, dom::ThreadSafeWorkerRef
 #include "mozilla/dom/WorkerRunnable.h"  // dom::MainThreadStopSyncLoopRunnable
+#include "mozilla/dom/ModuleLoader.h"
 
 using namespace mozilla;
 using namespace mozilla::scache;
@@ -622,6 +623,14 @@ nsresult mozJSModuleLoader::CompileJsonModuleFromSource(
 }
 
 /* static */
+nsresult mozJSModuleLoader::CompileCssModuleFromSource(
+    JSContext* aCx, SyncModuleLoader* aModuleLoader, const nsACString& aSource,
+    nsIURI* aBaseURI, JS::MutableHandle<JSObject*> aModuleOut) {
+  return dom::CreateCssModule(aCx, aModuleLoader->GetGlobalObject(), aSource,
+                              aBaseURI, aModuleOut);
+}
+
+/* static */
 nsresult mozJSModuleLoader::LoadSingleModuleOnWorker(
     SyncModuleLoader* aModuleLoader, JSContext* aCx,
     JS::loader::ModuleLoadRequest* aRequest,
@@ -675,8 +684,10 @@ nsresult mozJSModuleLoader::LoadSingleModuleOnWorker(
       rv = CompileJsonModuleFromSource(aCx, data, location, aModuleOut);
       NS_ENSURE_SUCCESS(rv, rv);
       break;
-    case JS::ModuleType::Unknown:
     case JS::ModuleType::CSS:
+      JS_ReportErrorASCII(aCx, "CSS module scripts not supported on workers");
+      break;
+    case JS::ModuleType::Unknown:
     case JS::ModuleType::Bytes:
     case JS::ModuleType::Text:
       JS_ReportErrorASCII(aCx, "Unsupported module type");
@@ -717,18 +728,23 @@ nsresult mozJSModuleLoader::LoadSingleModule(
       NS_ENSURE_SUCCESS(rv, rv);
       break;
     }
-    case JS::ModuleType::JSON: {
+    case JS::ModuleType::JSON:
+    case JS::ModuleType::CSS: {
       ModuleLoaderInfo info(aRequest);
       nsAutoCString location;
       nsresult rv = aRequest->URI()->GetSpec(location);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCString source = MOZ_TRY(ReadScript(info));
-      rv = CompileJsonModuleFromSource(aCx, source, location, aModuleOut);
+      if (aRequest->mModuleType == JS::ModuleType::JSON) {
+        rv = CompileJsonModuleFromSource(aCx, source, location, aModuleOut);
+      } else {
+        rv = CompileCssModuleFromSource(aCx, aModuleLoader, source,
+                                        aRequest->BaseURL(), aModuleOut);
+      }
       NS_ENSURE_SUCCESS(rv, rv);
       break;
     }
     case JS::ModuleType::Unknown:
-    case JS::ModuleType::CSS:
     case JS::ModuleType::Bytes:
     case JS::ModuleType::Text:
       JS_ReportErrorASCII(aCx, "Unsupported module type");

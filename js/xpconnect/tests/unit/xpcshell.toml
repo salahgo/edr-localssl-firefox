@@ -79,6 +79,8 @@ support-files = [
   "lazy_shared_in_worker.js",
   "error_twice.mjs",
   "import_attributes.mjs",
+  "import_attributes_css.mjs",
+  "import_attributes_data.css",
   "import_attributes_data.json",
   "import_attributes_worker.js",
 ]

@@ -117,6 +117,11 @@ class mozJSModuleLoader final {
       JSContext* aCx, const nsACString& aSource, const nsACString& aLocation,
       JS::MutableHandle<JSObject*> aModuleOut);
 
+  static nsresult CompileCssModuleFromSource(
+      JSContext* aCx, mozilla::loader::SyncModuleLoader* aModuleLoader,
+      const nsACString& aSource, nsIURI* aBaseURI,
+      JS::MutableHandle<JSObject*> aModuleOut);
+
  public:
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf);
 
