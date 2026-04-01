@@ -5,6 +5,8 @@ permalink: /changelog/
 ---
 
 # 151.0 (In Development)
+* **browser-favicons**
+    * 🆕 New component for storing and restoring per-tab website favicons.
 
 # 150.0
 * **browser-engine-gecko**

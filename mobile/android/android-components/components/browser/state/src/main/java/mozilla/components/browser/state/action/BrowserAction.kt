@@ -624,6 +624,12 @@ sealed class ContentAction : BrowserAction() {
         ContentAction()
 
     /**
+     * Restores the icon of the [ContentState] with the given [sessionId] from cache.
+     */
+    data class RestoreIconAction(val sessionId: String, val pageUrl: String, val icon: Bitmap) :
+        ContentAction()
+
+    /**
      * Updates the thumbnail of the [ContentState] with the given [sessionId].
      */
     data class UpdateThumbnailAction(val sessionId: String, val thumbnail: Bitmap) : ContentAction()
