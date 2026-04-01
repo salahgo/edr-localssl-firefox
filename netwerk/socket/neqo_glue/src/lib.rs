@@ -57,7 +57,7 @@ use winapi::{
     ctypes::c_int,
     shared::ws2def::{AF_INET, AF_INET6},
 };
-use xpcom::{interfaces::nsISocketProvider, AtomicRefcnt, RefCounted, RefPtr};
+use xpcom::{AtomicRefcnt, RefCounted, RefPtr};
 use zlib_rs::{decompress_slice, InflateConfig, ReturnCode};
 
 std::thread_local! {
@@ -350,7 +350,6 @@ impl NeqoHttp3Conn {
         version_negotiation: bool,
         webtransport: bool,
         qlog_dir: &nsACString,
-        provider_flags: u32,
         idle_timeout: u32,
         fast_pto: u32,
         pmtud_enabled: bool,
@@ -498,8 +497,6 @@ impl NeqoHttp3Conn {
         ));
         if static_prefs::pref!("security.tls.enable_kyber")
             && static_prefs::pref!("network.http.http3.enable_kyber")
-            && (provider_flags & nsISocketProvider::IS_RETRY) == 0
-            && (provider_flags & nsISocketProvider::BE_CONSERVATIVE) == 0
         {
             // These operations are infallible when conn.state == State::Init.
             conn.set_groups(&[
@@ -926,7 +923,6 @@ pub extern "C" fn neqo_http3conn_new(
     version_negotiation: bool,
     webtransport: bool,
     qlog_dir: &nsACString,
-    provider_flags: u32,
     idle_timeout: u32,
     fast_pto: u32,
     socket: i64,
@@ -947,7 +943,6 @@ pub extern "C" fn neqo_http3conn_new(
         version_negotiation,
         webtransport,
         qlog_dir,
-        provider_flags,
         idle_timeout,
         fast_pto,
         pmtud_enabled,
@@ -975,7 +970,6 @@ pub extern "C" fn neqo_http3conn_new_use_nspr_for_io(
     version_negotiation: bool,
     webtransport: bool,
     qlog_dir: &nsACString,
-    provider_flags: u32,
     idle_timeout: u32,
     fast_pto: u32,
     result: &mut *const NeqoHttp3Conn,
@@ -994,7 +988,6 @@ pub extern "C" fn neqo_http3conn_new_use_nspr_for_io(
         version_negotiation,
         webtransport,
         qlog_dir,
-        provider_flags,
         idle_timeout,
         fast_pto,
         false,
