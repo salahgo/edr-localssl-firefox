@@ -24,6 +24,7 @@
 #include <optional>
 
 #include "irregexp/RegExpTypes.h"
+#include "irregexp/util/BitVectorShim.h"
 #include "irregexp/util/FlagsShim.h"
 #include "irregexp/util/VectorShim.h"
 #include "irregexp/util/ZoneShim.h"
