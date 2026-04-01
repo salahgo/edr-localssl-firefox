@@ -88,7 +88,7 @@ export class GeckoViewTranslations extends GeckoViewModule {
             this.getActor("Translations").shouldNeverTranslateSite();
           aCallback.onSuccess(value);
         } catch (error) {
-          aCallback.onError(`Could not set site setting: ${error}`);
+          aCallback.onError(`Could not get site setting: ${error}`);
         }
         break;
 

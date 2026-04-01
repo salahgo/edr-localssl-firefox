@@ -194,4 +194,13 @@ sealed class TranslationError(
      */
     class CouldNotSetBrowserEnabledError(override val cause: Throwable?) :
         TranslationError(errorName = "could-not-set-browser-enabled", displayError = false, cause = cause)
+
+    /**
+     * The translations engine is likely deactivated by AI controls.
+     * See [mozilla.components.concept.engine.ai.AIFeaturesRuntime].
+     *
+     * @param cause The original throwable before it was converted into this error state.
+     */
+    class EngineDeactivatedError(override val cause: Throwable?) :
+        TranslationError(errorName = "engine-deactivated", displayError = false, cause = cause)
 }

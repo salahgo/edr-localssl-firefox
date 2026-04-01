@@ -2660,6 +2660,7 @@ package org.mozilla.geckoview {
     field public static final int ERROR_COULD_NOT_LOAD_LANGUAGES = -5;
     field public static final int ERROR_COULD_NOT_RESTORE = -4;
     field public static final int ERROR_COULD_NOT_TRANSLATE = -3;
+    field public static final int ERROR_ENGINE_DEACTIVATED = -12;
     field public static final int ERROR_ENGINE_NOT_SUPPORTED = -2;
     field public static final int ERROR_LANGUAGE_NOT_SUPPORTED = -6;
     field public static final int ERROR_MODEL_COULD_NOT_DELETE = -8;

@@ -906,7 +906,7 @@ translations:
           could-not-translate, could-not-restore, could-not-determine-translation-download-size, could-not-load-languages,
           could-not-load-settings, could-not-load-language-settings, could-not-load-never-translate-sites,
           language-not-supported, model-could-not-retrieve, model-could-not-delete, model-could-not-download,
-          model-language-required, model-download-required, could-not-set-browser-enabled
+          model-language-required, model-download-required, could-not-set-browser-enabled, engine-deactivated
         type: string
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1886221
