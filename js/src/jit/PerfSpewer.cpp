@@ -230,6 +230,10 @@ static bool openJitDump() {
   }
 
   // Allocate a large buffer to reduce write() syscall overhead.
+  // On Android, setvbuf is not used because Android processes don't always
+  // shut down cleanly, which would leave buffered data unflushed and produce
+  // incomplete jitdump files.
+#  ifndef ANDROID
   constexpr size_t kJitDumpBufferSize = 2 * 1024 * 1024;
   jitDumpBuffer = js_pod_malloc<char>(kJitDumpBufferSize);
   if (!jitDumpBuffer) {
@@ -238,6 +242,7 @@ static bool openJitDump() {
     return false;
   }
   setvbuf(JitDumpFilePtr, jitDumpBuffer, _IOFBF, kJitDumpBufferSize);
+#  endif
 
 #  ifdef XP_LINUX
   // We need to mmap the jitdump file for perf to find it.
