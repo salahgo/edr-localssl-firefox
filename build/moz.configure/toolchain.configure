@@ -695,6 +695,9 @@ def check_compiler(configure_cache, compiler, language, target, android_version)
         # This makes clang define __ANDROID_API__ and use versioned library
         # directories from the NDK.
         toolchain = "%s%d" % (target.toolchain, android_version)
+    elif target.kernel == "WASI" and info.type == "clang" and info.version >= Version("22.1"):
+        # The wasm32-wasi target was renamed to wasm32-wasip1 in LLVM 22.1.
+        toolchain = "wasm32-wasip1"
     else:
         toolchain = target.toolchain
 
