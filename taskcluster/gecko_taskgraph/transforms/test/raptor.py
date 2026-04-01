@@ -488,8 +488,7 @@ def setup_autoland_retriggers(config, tasks):
 
     def _allow_task_duplicates(label):
         if (
-            "perftest-android-hw-a55-aarch64-shippable-startup-fenix" in label
-            or "test-windows11-64-24h2-shippable/opt-browsertime-benchmark-firefox-speedometer3"
+            "test-windows11-64-24h2-shippable/opt-browsertime-benchmark-firefox-speedometer3"
             in label
         ):
             return True
