@@ -111,7 +111,7 @@ class ContentChild final : public PContentChild,
   void Init(mozilla::ipc::UntypedEndpoint&& aEndpoint,
             const char* aParentBuildID, bool aIsForBrowser);
 
-  void InitXPCOM(XPCOMInitData&& aXPCOMInit,
+  void InitXPCOM(XPCOMInitData& aXPCOMInit,
                  NotNull<StructuredCloneData*> aInitialData,
                  bool aIsReadyForBackgroundProcessing);
 

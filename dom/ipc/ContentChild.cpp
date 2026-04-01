@@ -678,8 +678,7 @@ mozilla::ipc::IPCResult ContentChild::RecvSetXPCOMProcessAttributes(
   PerfStats::SetCollectionMask(aXPCOMInit.perfStatsMask());
   LookAndFeel::EnsureInit();
   InitSharedUASheets(std::move(aSharedUASheetHandle), aSharedUASheetAddress);
-  InitXPCOM(std::move(aXPCOMInit), aInitialData,
-            aIsReadyForBackgroundProcessing);
+  InitXPCOM(aXPCOMInit, aInitialData, aIsReadyForBackgroundProcessing);
   InitGraphicsDeviceData(aXPCOMInit.contentDeviceData());
   RefPtr<net::ChildDNSService> dnsServiceChild =
       dont_AddRef(net::ChildDNSService::GetSingleton());
@@ -1369,7 +1368,7 @@ void ContentChild::InitSharedUASheets(
 }
 
 void ContentChild::InitXPCOM(
-    XPCOMInitData&& aXPCOMInit,
+    XPCOMInitData& aXPCOMInit,
     NotNull<mozilla::dom::ipc::StructuredCloneData*> aInitialData,
     bool aIsReadyForBackgroundProcessing) {
 #if defined(XP_WIN)
@@ -1403,6 +1402,8 @@ void ContentChild::InitXPCOM(
     NS_WARNING("Couldn't register console listener for child process");
 
   mAvailableDictionaries = std::move(aXPCOMInit.dictionaries());
+  MOZ_ASSERT(aXPCOMInit.dictionaries().IsEmpty(),
+             "nsTArray is left in an empty but valid state");
 
   RecvSetOffline(aXPCOMInit.isOffline());
   RecvSetConnectivity(aXPCOMInit.isConnected());
@@ -1454,9 +1455,13 @@ void ContentChild::InitXPCOM(
 
   // The stylesheet cache is not ready yet. Store this URL for future use.
   nsCOMPtr<nsIURI> ucsURL = std::move(aXPCOMInit.userContentSheetURL());
+  MOZ_ASSERT(!aXPCOMInit.userContentSheetURL(),
+             "RefPtr is left in a null but valid state");
   GlobalStyleSheetCache::SetUserContentCSSURL(ucsURL);
 
   GfxInfoBase::SetFeatureStatus(std::move(aXPCOMInit.gfxFeatureStatus()));
+  MOZ_ASSERT(aXPCOMInit.gfxFeatureStatus().IsEmpty(),
+             "nsTArray is left in an empty but valid state");
 
   // Initialize the RemoteMediaManager thread and its associated PBackground
   // channel.
