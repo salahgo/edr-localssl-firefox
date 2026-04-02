@@ -245,6 +245,14 @@ add_task(async function test_spotlight_closes_on_WindowIsClosing() {
   // Open a second window so WindowIsClosing doesn't trigger last-window quit.
   let otherWin = await BrowserTestUtils.openNewBrowserWindow();
 
+  // Calling Spotlight.close() on a different window should not close the Spotlight
+  Spotlight.close(otherWin);
+
+  Assert.ok(
+    Spotlight.isOpen,
+    "Spotlight should remain open when different window closes"
+  );
+
   // WindowIsClosing dismisses the Spotlight before checking permitUnload.
   WindowIsClosing();
 
@@ -252,7 +260,7 @@ add_task(async function test_spotlight_closes_on_WindowIsClosing() {
 
   Assert.ok(
     !Spotlight.isOpen,
-    "Spotlight should be closed after WindowIsClosing"
+    "Spotlight should be closed after WindowIsClosing on owning window"
   );
 
   delete window.skipNextCanClose;
