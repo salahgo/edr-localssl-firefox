@@ -148,6 +148,19 @@ nsresult HappyEyeballsConnectionAttempt::ProcessConnectionResult(
        "id=%" PRIu64,
        this, aAddr.ToString().get(), aId));
 
+  // For 0RTT errors, we should restart the transaction.
+  if (PossibleZeroRTTRetryError(aStatus)) {
+    RefPtr<ConnectionEntry> entry(mEntry);
+    RefPtr<HappyEyeballsConnectionAttempt> self(this);
+    if (entry) {
+      entry->RemoveConnectionAttempt(this, true);
+    }
+    if (mTransaction) {
+      mTransaction->Close(aStatus);
+    }
+    return NS_OK;
+  }
+
   if (NS_FAILED(aStatus)) {
     mLastConnectionError = aStatus;
   }
