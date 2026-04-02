@@ -9,7 +9,6 @@
 
 #include <atomic>
 #include <cinttypes>
-#include <memory>
 #include <thread>
 
 #include "GeckoProfiler.h"
@@ -135,7 +134,7 @@ class AsyncLogger {
       sizeof(UnboundedMPSCQueue<TracePayload>::Message) == PAYLOAD_TOTAL_SIZE,
       "UnboundedMPSCQueue internal allocations has an unexpected size.");
 
-  explicit AsyncLogger() : mRunning(false) {}
+  explicit AsyncLogger() : mThread(nullptr), mRunning(false) {}
 
   void Start() {
     MOZ_ASSERT(!mRunning, "Double calls to AsyncLogger::Start");
@@ -146,15 +145,6 @@ class AsyncLogger {
   void Stop() {
     if (mRunning) {
       mRunning = false;
-      if (mThreadState) {
-        // Signal the current consumer to stop, then spin until it confirms
-        // it has exited the Pop loop to avoid spawning a second consumer.
-        mThreadState->mActive = false;
-        while (!mThreadState->mDone) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        mThreadState = nullptr;
-      }
     }
   }
 
@@ -208,17 +198,10 @@ class AsyncLogger {
   bool Enabled() { return mRunning; }
 
  private:
-  struct ThreadState {
-    std::atomic<bool> mActive{true};
-    std::atomic<bool> mDone{false};
-  };
-
   void Run() {
-    auto state = std::make_shared<ThreadState>();
-    mThreadState = state;
-    std::thread([state, this]() {
+    mThread.reset(new std::thread([this]() {
       AUTO_PROFILER_REGISTER_THREAD("AsyncLogger");
-      while (state->mActive) {
+      while (mRunning) {
         {
           struct TracingMarkerWithComment {
             static constexpr Span<const char> MarkerTypeName() {
@@ -254,7 +237,7 @@ class AsyncLogger {
           };
 
           TracePayload message;
-          while (state->mActive && mMessageQueueProfiler.Pop(&message)) {
+          while (mMessageQueueProfiler.Pop(&message) && mRunning) {
             if (message.mPhase != TracingPhase::COMPLETE) {
               if (!message.mCommentStart) {
                 profiler_add_marker(
@@ -294,8 +277,9 @@ class AsyncLogger {
         }
         Sleep();
       }
-      state->mDone = true;
-    }).detach();
+    }));
+    // cleanup is done via mRunning
+    mThread->detach();
   }
 
   uint64_t NowInUs() {
@@ -305,8 +289,8 @@ class AsyncLogger {
 
   void Sleep() { std::this_thread::sleep_for(std::chrono::milliseconds(10)); }
 
+  std::unique_ptr<std::thread> mThread;
   UnboundedMPSCQueue<TracePayload> mMessageQueueProfiler;
-  std::shared_ptr<ThreadState> mThreadState;
   std::atomic<bool> mRunning;
 };
 
