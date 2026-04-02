@@ -167,8 +167,8 @@ class MOZ_STANDALONE_DEBUG HashMap {
 
   // -- Initialization -------------------------------------------------------
 
-  explicit HashMap(AllocPolicy aAllocPolicy = AllocPolicy(),
-                   uint32_t aLen = Impl::sDefaultLen)
+  constexpr explicit HashMap(AllocPolicy aAllocPolicy = AllocPolicy(),
+                             uint32_t aLen = Impl::sDefaultLen)
       : mImpl(std::move(aAllocPolicy), aLen) {}
 
   explicit HashMap(uint32_t aLen) : mImpl(AllocPolicy(), aLen) {}
@@ -1658,7 +1658,7 @@ class MOZ_STANDALONE_DEBUG HashTable : private AllocPolicy {
     mGenAndHashShift = (mGenAndHashShift & ~sHashShiftMask) | aHashShift;
   }
 
-  static uint32_t bestCapacity(uint32_t aLen) {
+  constexpr static uint32_t bestCapacity(uint32_t aLen) {
     static_assert(
         (sMaxInit * sAlphaDenominator) / sAlphaDenominator == sMaxInit,
         "multiplication in numerator below could overflow");
@@ -1682,7 +1682,7 @@ class MOZ_STANDALONE_DEBUG HashTable : private AllocPolicy {
     return capacity;
   }
 
-  static uint32_t hashShiftForLength(uint32_t aLen) {
+  constexpr static uint32_t hashShiftForLength(uint32_t aLen) {
     // Reject all lengths whose initial computed capacity would exceed
     // sMaxCapacity. Round that maximum aLen down to the nearest power of two
     // for speedier code.
@@ -1750,7 +1750,7 @@ class MOZ_STANDALONE_DEBUG HashTable : private AllocPolicy {
   }
 
  public:
-  HashTable(AllocPolicy aAllocPolicy, uint32_t aLen)
+  constexpr HashTable(AllocPolicy aAllocPolicy, uint32_t aLen)
       : AllocPolicy(std::move(aAllocPolicy)),
         mGenAndHashShift(hashShiftForLength(aLen)),
         mTable(nullptr),

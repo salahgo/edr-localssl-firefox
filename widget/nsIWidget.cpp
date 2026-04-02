@@ -13,7 +13,6 @@
 #include "TouchEvents.h"
 #include "X11UndefineNone.h"
 #include "base/thread.h"
-#include "mozilla/Attributes.h"
 #include "mozilla/GlobalKeyListener.h"
 #include "mozilla/IMEStateManager.h"
 #include "mozilla/Logging.h"
@@ -274,7 +273,7 @@ int32_t nsIWidget::sPointerIdCounter = 0;
 // Some statics from nsIWidget.h
 /*static*/
 uint64_t AutoSynthesizedEventCallbackNotifier::sCallbackId = 0;
-MOZ_RUNINIT nsTHashMap<uint64_t, nsCOMPtr<nsISynthesizedEventCallback>>
+constinit nsTHashMap<uint64_t, nsCOMPtr<nsISynthesizedEventCallback>>
     AutoSynthesizedEventCallbackNotifier::sSavedCallbacks;
 
 // The maximum amount of time to let the EnableDragDrop runnable wait in the

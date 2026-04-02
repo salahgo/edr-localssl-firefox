@@ -50,8 +50,7 @@ NS_IMETHODIMP FetchParent::FetchParentCSPEventListener::OnCSPViolationEvent(
   return NS_OK;
 }
 
-MOZ_RUNINIT nsTHashMap<nsIDHashKey, RefPtr<FetchParent>>
-    FetchParent::sActorTable;
+constinit nsTHashMap<nsIDHashKey, RefPtr<FetchParent>> FetchParent::sActorTable;
 
 /*static*/
 RefPtr<FetchParent> FetchParent::GetActorByID(const nsID& aID) {
