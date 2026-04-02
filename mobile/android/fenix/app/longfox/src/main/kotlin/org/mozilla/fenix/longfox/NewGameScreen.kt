@@ -6,7 +6,6 @@
 
 package org.mozilla.fenix.longfox
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -84,8 +83,7 @@ fun NewGameScreen(
     Box(
         modifier = Modifier
             .size((CELL_SIZE_DP * gameState.numCells).dp)
-            .background(Color.DarkGray)
-            .border(1.dp, Color.Gray)
+            .border(1.dp, LongFoxColors.mortarColor)
             .clickable { startGame() },
     ) {
         GameCanvas(

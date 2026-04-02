@@ -93,8 +93,8 @@ fun GameCanvas(state: GameState) {
 
     Canvas(
         modifier = Modifier
-            .background(color = Color.Black)
-            .border(1.dp, Color.Gray)
+            .background(color = LongFoxColors.backgroundColor)
+            .border(1.dp, LongFoxColors.mortarColor)
             .size((CELL_SIZE_DP * state.numCells).dp),
     ) {
         drawHead(state, kitHead)

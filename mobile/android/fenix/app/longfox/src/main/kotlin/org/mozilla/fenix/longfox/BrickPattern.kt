@@ -8,7 +8,6 @@ package org.mozilla.fenix.longfox
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
 
@@ -27,7 +26,7 @@ internal fun DrawScope.brickPattern() {
     val brickHeight = 10.dp.toPx()
     val mortarWidth = 2.dp.toPx()
     val halfBrickWidth: Float = brickWidth / 2
-    drawRect(color = Color.Gray)
+    drawRect(color = LongFoxColors.mortarColor)
 
     // draw bricks
     var y = 0f
@@ -36,7 +35,7 @@ internal fun DrawScope.brickPattern() {
         var x = if (row % 2 == 0) 0f else -halfBrickWidth
         while (x < size.width) {
             drawRect(
-                color = Color.Blue,
+                color = LongFoxColors.brickColor,
                 topLeft = Offset(x, y),
                 size = Size(brickWidth, brickHeight)
             )
