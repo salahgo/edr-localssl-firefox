@@ -16,6 +16,27 @@
 
 namespace js {
 
+enum class CharEncoding : bool { Latin1 = true, TwoByte = false };
+
+template <typename CharT>
+constexpr CharEncoding CharEncodingFromType() {
+  static_assert(std::is_same_v<CharT, JS::Latin1Char> ||
+                std::is_same_v<CharT, char16_t>);
+  if constexpr (std::is_same_v<CharT, JS::Latin1Char>) {
+    return CharEncoding::Latin1;
+  }
+
+  return CharEncoding::TwoByte;
+}
+
+constexpr CharEncoding CharEncodingFromIsLatin1(bool isLatin1) {
+  if (isLatin1) {
+    return CharEncoding::Latin1;
+  }
+
+  return CharEncoding::TwoByte;
+}
+
 /*
  * JSString Flag Encoding
  *
@@ -238,6 +259,63 @@ class StringFlags {
   }
   static bool isIndex(uint32_t flags) { return flags & ATOM_IS_INDEX_BIT; }
   static bool isPinned(uint32_t flags) { return flags & PINNED_ATOM_BIT; }
+
+  static constexpr uint32_t ropeFlags(CharEncoding encoding) {
+    return INIT_ROPE_FLAGS | charEncodingFlags(encoding);
+  }
+
+  static constexpr uint32_t dependentStringFlags(CharEncoding encoding) {
+    return INIT_DEPENDENT_FLAGS | charEncodingFlags(encoding);
+  }
+
+  static constexpr uint32_t normalAtomFlags(CharEncoding encoding,
+                                            bool hasBuffer) {
+    return linearStringFlags(encoding, hasBuffer) | StringFlags::ATOM_BIT;
+  }
+
+  static constexpr uint32_t thinInlineAtomFlags(CharEncoding encoding) {
+    return thinInlineStringFlags(encoding) | StringFlags::ATOM_BIT;
+  }
+
+  static constexpr uint32_t fatInlineAtomFlags(CharEncoding encoding) {
+    return fatInlineStringFlags(encoding) | StringFlags::ATOM_BIT;
+  }
+
+  static constexpr uint32_t atomRefFlags(CharEncoding encoding) {
+    return StringFlags::INIT_ATOM_REF_FLAGS | charEncodingFlags(encoding);
+  }
+
+  static constexpr uint32_t linearStringFlags(CharEncoding encoding,
+                                              bool hasBuffer) {
+    return INIT_LINEAR_FLAGS | charEncodingFlags(encoding) |
+           hasBufferFlags(hasBuffer);
+  }
+
+  static constexpr uint32_t extensibleStringFlags(CharEncoding encoding,
+                                                  bool hasBuffer) {
+    return EXTENSIBLE_FLAGS | charEncodingFlags(encoding) |
+           hasBufferFlags(hasBuffer);
+  }
+
+  static constexpr uint32_t thinInlineStringFlags(CharEncoding encoding) {
+    return INIT_THIN_INLINE_FLAGS | charEncodingFlags(encoding);
+  }
+
+  static constexpr uint32_t fatInlineStringFlags(CharEncoding encoding) {
+    return INIT_FAT_INLINE_FLAGS | charEncodingFlags(encoding);
+  }
+
+  static constexpr uint32_t externalStringFlags(CharEncoding encoding) {
+    return EXTERNAL_FLAGS | charEncodingFlags(encoding);
+  }
+
+  static constexpr uint32_t charEncodingFlags(CharEncoding encoding) {
+    return encoding == CharEncoding::Latin1 ? LATIN1_CHARS_BIT : 0;
+  }
+
+  static constexpr uint32_t hasBufferFlags(bool hasBuffer) {
+    return hasBuffer ? HAS_STRING_BUFFER_BIT : 0;
+  }
 };
 
 }  // namespace js

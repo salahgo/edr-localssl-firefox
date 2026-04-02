@@ -44,6 +44,7 @@
 #include "vm/Opcodes.h"
 #include "vm/RealmFuses.h"
 #include "vm/RuntimeFuses.h"
+#include "vm/StringFlags.h"
 #include "wasm/WasmAnyRef.h"
 
 // [SMDOC] MacroAssembler multi-platform overview
@@ -261,8 +262,6 @@ enum class CheckUnsafeCallWithABI {
 // as an ABI function signature.
 template <typename Sig>
 static inline DynFn DynamicFunction(Sig fun);
-
-enum class CharEncoding { Latin1, TwoByte };
 
 constexpr uint32_t WasmCallerInstanceOffsetBeforeCall =
     wasm::FrameWithInstances::callerInstanceOffsetWithoutFrame();

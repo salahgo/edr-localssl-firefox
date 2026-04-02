@@ -1204,9 +1204,10 @@ finish_node: {
 
   // Change rope into a dependent string. This also clears the flags related to
   // flattening.
-  uint32_t flags = StringFlags::INIT_DEPENDENT_FLAGS;
+  CharEncoding encoding = CharEncodingFromType<CharT>();
+  uint32_t flags = StringFlags::dependentStringFlags(encoding);
   flags |= str->flags() & StringFlags::PRESERVE_ROPE_BITS_ON_REPLACE;
-  str->changeStringType(str->length(), StringFlagsForCharType<CharT>(flags));
+  str->changeStringType(str->length(), flags);
   str->d.s.u3.base =
       reinterpret_cast<JSLinearString*>(root); /* will be true on exit */
   newRootFlags |= StringFlags::DEPENDED_ON_BIT;
@@ -1237,10 +1238,11 @@ finish_root:
   MOZ_ASSERT(pos == wholeChars + wholeLength);
 
   // Change root into an extensible string.
-  uint32_t flags = StringFlagsForCharType<CharT>(StringFlags::EXTENSIBLE_FLAGS);
+  CharEncoding encoding = CharEncodingFromType<CharT>();
+  uint32_t flags =
+      StringFlags::extensibleStringFlags(encoding, hasStringBuffer);
   flags |= root->flags() & StringFlags::PRESERVE_ROPE_BITS_ON_REPLACE;
   if (hasStringBuffer) {
-    flags |= StringFlags::HAS_STRING_BUFFER_BIT;
     wholeChars[wholeLength] = '\0';
   }
   root->changeStringType(wholeLength, flags);
@@ -1262,10 +1264,10 @@ finish_root:
     newRootFlags |= StringFlags::DEPENDED_ON_BIT;
 
     // Change leftmost string into a dependent string.
-    uint32_t flags = StringFlags::INIT_DEPENDENT_FLAGS;
+    uint32_t flags = StringFlags::dependentStringFlags(encoding);
     flags |=
         left.flags() & StringFlags::PRESERVE_LINEAR_NONATOM_BITS_ON_REPLACE;
-    left.changeStringType(left.length(), StringFlagsForCharType<CharT>(flags));
+    left.changeStringType(left.length(), flags);
     left.d.s.u3.base = &root->asLinear();
     if (left.isTenured() && !root->isTenured()) {
       // leftmost child -> root is a tenured -> nursery edge. Put the leftmost
@@ -2921,19 +2923,19 @@ bool JSString::tryReplaceWithAtomRef(JSAtom* atom) {
   }
 
   // Change string into an atom ref.
-  uint32_t flags = StringFlags::INIT_ATOM_REF_FLAGS;
+  CharEncoding encoding = CharEncodingFromIsLatin1(atom->hasLatin1Chars());
+  uint32_t flags = StringFlags::atomRefFlags(encoding);
   flags |= this->flags() &
            (isRope() ? StringFlags::PRESERVE_ROPE_BITS_ON_REPLACE
                      : StringFlags::PRESERVE_LINEAR_NONATOM_BITS_ON_REPLACE);
+  changeStringType(length(), flags);
   d.s.u3.atom = atom;
   if (atom->hasLatin1Chars()) {
-    flags |= StringFlags::LATIN1_CHARS_BIT;
-    changeStringType(length(), flags);
     setNonInlineChars(atom->chars<Latin1Char>(nogc), atom->hasStringBuffer());
   } else {
-    changeStringType(length(), flags);
     setNonInlineChars(atom->chars<char16_t>(nogc), atom->hasStringBuffer());
   }
+
   // Redundant, but just a reminder that this needs to be true or else we need
   // to check and conditionally put ourselves in the store buffer
   MOZ_ASSERT(atom->isTenured());

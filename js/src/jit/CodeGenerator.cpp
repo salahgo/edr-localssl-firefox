@@ -2695,13 +2695,19 @@ void CreateDependentString::generate(MacroAssembler& masm,
           (encoding_ == CharEncoding::Latin1 ? "Latin-1" : "Two-Byte"));
 
   auto newGCString = [&](FallbackKind kind) {
-    uint32_t flags = kind == FallbackKind::InlineString
-                         ? StringFlags::INIT_THIN_INLINE_FLAGS
-                     : kind == FallbackKind::FatInlineString
-                         ? StringFlags::INIT_FAT_INLINE_FLAGS
-                         : StringFlags::INIT_DEPENDENT_FLAGS;
-    if (encoding_ == CharEncoding::Latin1) {
-      flags |= StringFlags::LATIN1_CHARS_BIT;
+    uint32_t flags;
+    switch (kind) {
+      case FallbackKind::InlineString:
+        flags = StringFlags::thinInlineStringFlags(encoding_);
+        break;
+      case FallbackKind::FatInlineString:
+        flags = StringFlags::fatInlineStringFlags(encoding_);
+        break;
+      case FallbackKind::NotInlineString:
+        flags = StringFlags::dependentStringFlags(encoding_);
+        break;
+      default:
+        MOZ_CRASH("Unexpected FallbackKind");
     }
 
     if (kind != FallbackKind::FatInlineString) {
@@ -14072,20 +14078,14 @@ static void AllocateThinOrFatInlineString(MacroAssembler& masm, Register output,
   Label isFat, allocDone;
   masm.branch32(Assembler::Above, length, Imm32(maxThinInlineLength), &isFat);
   {
-    uint32_t flags = StringFlags::INIT_THIN_INLINE_FLAGS;
-    if (encoding == CharEncoding::Latin1) {
-      flags |= StringFlags::LATIN1_CHARS_BIT;
-    }
+    uint32_t flags = StringFlags::thinInlineStringFlags(encoding);
     masm.newGCString(output, temp, initialStringHeap, failure);
     masm.store32(Imm32(flags), Address(output, JSString::offsetOfFlags()));
     masm.jump(&allocDone);
   }
   masm.bind(&isFat);
   {
-    uint32_t flags = StringFlags::INIT_FAT_INLINE_FLAGS;
-    if (encoding == CharEncoding::Latin1) {
-      flags |= StringFlags::LATIN1_CHARS_BIT;
-    }
+    uint32_t flags = StringFlags::fatInlineStringFlags(encoding);
     masm.newGCFatInlineString(output, temp, initialStringHeap, failure);
     masm.store32(Imm32(flags), Address(output, JSString::offsetOfFlags()));
   }
@@ -14361,10 +14361,7 @@ void CodeGenerator::visitSubstr(LSubstr* lir) {
                                 /* needsPostBarrier = */ false);
 
     auto initializeDependentString = [&](CharEncoding encoding) {
-      uint32_t flags = StringFlags::INIT_DEPENDENT_FLAGS;
-      if (encoding == CharEncoding::Latin1) {
-        flags |= StringFlags::LATIN1_CHARS_BIT;
-      }
+      uint32_t flags = StringFlags::dependentStringFlags(encoding);
       masm.store32(Imm32(flags), Address(output, JSString::offsetOfFlags()));
       masm.loadNonInlineStringChars(string, temp0, encoding);
       masm.addToCharPtr(temp0, begin, encoding);
@@ -14868,7 +14865,8 @@ void CodeGenerator::visitFromCodePoint(LFromCodePoint* lir) {
       static_assert(JSThinInlineString::MAX_LENGTH_TWO_BYTE >= 2,
                     "JSThinInlineString can hold a supplementary code point");
 
-      uint32_t flags = StringFlags::INIT_THIN_INLINE_FLAGS;
+      uint32_t flags =
+          StringFlags::thinInlineStringFlags(CharEncoding::TwoByte);
       masm.newGCString(output, temp0, gen->initialStringHeap(), ool->entry());
       masm.store32(Imm32(flags), Address(output, JSString::offsetOfFlags()));
     }
