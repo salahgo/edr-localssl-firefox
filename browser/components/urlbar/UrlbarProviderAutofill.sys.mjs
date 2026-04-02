@@ -516,7 +516,7 @@ export class UrlbarProviderAutofill extends UrlbarProvider {
     }
   }
 
-  getResultCommands(result) {
+  getResultCommands(result, isPrivate) {
     if (
       !result.autofill ||
       !lazy.UrlbarPrefs.get("autoFill.adaptiveHistory.enabled")
@@ -529,14 +529,16 @@ export class UrlbarProviderAutofill extends UrlbarProvider {
       result.autofill.type === "origin"
     ) {
       let isOrigin = UrlbarUtils.isOriginUrl(result.payload.url);
-      let resultArray = [
-        {
+      let resultArray = [];
+
+      if (!isPrivate) {
+        resultArray.push({
           name: RESULT_MENU_COMMANDS.DISMISS_AUTOFILL,
           l10n: {
             id: "urlbar-result-menu-dismiss-suggestion",
           },
-        },
-      ];
+        });
+      }
 
       // For non-origin URLs, include the ability to remove it from history.
       if (!isOrigin) {
@@ -547,7 +549,8 @@ export class UrlbarProviderAutofill extends UrlbarProvider {
           },
         });
       }
-      return resultArray;
+
+      return resultArray.length ? resultArray : undefined;
     }
     return undefined;
   }

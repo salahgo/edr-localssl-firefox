@@ -3471,9 +3471,11 @@ export class UrlbarProvider {
    *
    * @param {UrlbarResult} _result
    *   The menu will be shown for this result.
+   * @param {boolean} _isPrivate
+   *   Whether the query was made in a private browsing context.
    * @returns {?UrlbarResultCommand[]}
    */
-  getResultCommands(_result) {
+  getResultCommands(_result, _isPrivate) {
     return null;
   }
 

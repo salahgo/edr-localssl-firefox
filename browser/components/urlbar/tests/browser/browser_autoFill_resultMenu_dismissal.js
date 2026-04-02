@@ -470,6 +470,132 @@ add_task(async function reintegration_adaptive_origin() {
   await PlacesUtils.history.clear();
 });
 
+add_task(async function dismiss_menu_in_private_window_adaptive_url() {
+  await addAdaptiveHistoryEntry(ADAPTIVE_URL, ADAPTIVE_INPUT);
+
+  let privateWin = await BrowserTestUtils.openNewBrowserWindow({
+    private: true,
+  });
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window: privateWin,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(privateWin, 0);
+  Assert.ok(result.heuristic, "Result should be the heuristic");
+  Assert.equal(
+    result.autofill?.type,
+    "adaptive_url",
+    "Autofill type should be 'adaptive_url'"
+  );
+
+  let rows = privateWin.gURLBar.view.panel.querySelector(".urlbarView-results");
+  let row = rows?.children[0];
+  let menuButton = row?.querySelector(".urlbarView-button-menu");
+  Assert.ok(menuButton, "Result menu button should exist");
+
+  let resultMenu = privateWin.gURLBar.view.resultMenu;
+  let shown = BrowserTestUtils.waitForEvent(resultMenu, "popupshown");
+  EventUtils.synthesizeMouseAtCenter(menuButton, {}, privateWin);
+  await shown;
+
+  let items = Array.from(
+    resultMenu.querySelectorAll("menuitem.urlbarView-result-menuitem"),
+    el => ({ command: el.dataset.command, element: el })
+  );
+
+  Assert.ok(
+    !items.find(i => i.command === "dismiss_autofill"),
+    "Dismiss autofill command should NOT appear in private browsing"
+  );
+  Assert.ok(
+    items.find(i => i.command === "dismiss"),
+    "Remove from history command should still appear in private browsing"
+  );
+
+  let hidden = BrowserTestUtils.waitForEvent(resultMenu, "popuphidden");
+  resultMenu.hidePopup();
+  await hidden;
+
+  await UrlbarTestUtils.promisePopupClose(privateWin);
+  await BrowserTestUtils.closeWindow(privateWin);
+  await PlacesUtils.history.clear();
+});
+
+add_task(async function dismiss_menu_in_private_window_adaptive_origin() {
+  await addAdaptiveHistoryEntry(ORIGIN_URL, ADAPTIVE_INPUT);
+
+  let privateWin = await BrowserTestUtils.openNewBrowserWindow({
+    private: true,
+  });
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window: privateWin,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(privateWin, 0);
+  Assert.ok(result.heuristic, "Result should be the heuristic");
+  Assert.equal(
+    result.autofill?.type,
+    "adaptive_origin",
+    "Autofill type should be 'adaptive_origin'"
+  );
+
+  let rows = privateWin.gURLBar.view.panel.querySelector(".urlbarView-results");
+  let row = rows?.children[0];
+  let menuButton = row?.querySelector(".urlbarView-button-menu");
+  Assert.ok(
+    !menuButton,
+    "Result menu button should not exist for origin in private browsing"
+  );
+
+  await UrlbarTestUtils.promisePopupClose(privateWin);
+  await BrowserTestUtils.closeWindow(privateWin);
+  await PlacesUtils.history.clear();
+});
+
+add_task(async function dismiss_menu_in_private_window_origin_autofill() {
+  await PlacesTestUtils.addVisits({
+    uri: ORIGIN_URL,
+    transition: PlacesUtils.history.TRANSITIONS.TYPED,
+  });
+  await PlacesFrecencyRecalculator.recalculateAnyOutdatedFrecencies();
+
+  let privateWin = await BrowserTestUtils.openNewBrowserWindow({
+    private: true,
+  });
+
+  await UrlbarTestUtils.promiseAutocompleteResultPopup({
+    window: privateWin,
+    value: SEARCH_STRING,
+    fireInputEvent: true,
+  });
+
+  let { result } = await UrlbarTestUtils.getDetailsOfResultAt(privateWin, 0);
+  Assert.ok(result.heuristic, "Result should be the heuristic");
+  Assert.equal(
+    result.autofill?.type,
+    "origin",
+    "Autofill type should be 'origin'"
+  );
+
+  let rows = privateWin.gURLBar.view.panel.querySelector(".urlbarView-results");
+  let row = rows?.children[0];
+  let menuButton = row?.querySelector(".urlbarView-button-menu");
+  Assert.ok(
+    !menuButton,
+    "Result menu button should not exist for origin autofill in private browsing"
+  );
+
+  await UrlbarTestUtils.promisePopupClose(privateWin);
+  await BrowserTestUtils.closeWindow(privateWin);
+  await PlacesUtils.history.clear();
+});
+
 // Dismissed origin autofill (non-adaptive) should be restored after picking
 // the origin as a history result.
 add_task(async function reintegration_origins_autofill() {

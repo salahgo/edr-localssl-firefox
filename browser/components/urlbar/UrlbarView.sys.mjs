@@ -3668,7 +3668,7 @@ export class UrlbarView {
      */
     let commands = this.#providersManager
       .getProvider(result.providerName)
-      ?.tryMethod("getResultCommands", result);
+      ?.tryMethod("getResultCommands", result, this.#queryContext?.isPrivate);
     if (commands) {
       this.#resultMenuCommands.set(result, commands);
       return commands;
