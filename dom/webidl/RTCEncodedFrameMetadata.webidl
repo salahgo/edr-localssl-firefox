@@ -10,5 +10,6 @@ dictionary RTCEncodedFrameMetadata {
     unsigned long synchronizationSource;
     octet payloadType;
     sequence<unsigned long> contributingSources;
+    unsigned long rtpTimestamp;
     DOMString mimeType;
 };
