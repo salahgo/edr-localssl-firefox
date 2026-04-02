@@ -57,6 +57,8 @@ skip-if = [
 
 ["browser_combobox.js"]
 
+["browser_confirmation_hint.js"]
+
 ["browser_custom_actions.js"]
 
 ["browser_description.js"]

@@ -18,6 +18,7 @@
 
 #include "LocalAccessible-inl.h"
 #include "nsAccUtils.h"
+#include "nsTextEquivUtils.h"
 #include "DocAccessibleParent.h"
 #include "Relation.h"
 #include "mozilla/a11y/Role.h"
@@ -1172,10 +1173,31 @@ static bool ProvidesTitle(const Accessible* aAccessible, nsString& aName) {
       }
       break;
     }
-    case nsIAccessibleEvent::EVENT_LIVE_REGION_CHANGED:
+    case nsIAccessibleEvent::EVENT_LIVE_REGION_CHANGED: {
       MOZ_ASSERT(mIsLiveRegion);
       [self moxPostNotification:@"AXLiveRegionChanged"];
+      // For live region events originating from local accs, we also want to
+      // post an AXAnnouncementRequested notification. This is because:
+      // - The AXLiveRegionChanged notif above does not support an announcement
+      // string; we have to depend on VO's tree walking to compose the string
+      // correctly, and it often comes up empty which results in no
+      // announcement.
+      // - WebKit posts this notification for _every_ live region change,
+      // indicating perhaps it is necessary for VO to function properly. Chrome
+      // does not.
+      if (mGeckoAccessible->IsLocal()) {
+        if (NSString* announcementText =
+                [self composeAnnouncementMessageFromSubtree]) {
+          nsAutoString live;
+          nsAccUtils::GetLiveRegionSetting(mGeckoAccessible->AsLocal(), live);
+          uint16_t priority = live.EqualsLiteral("assertive")
+                                  ? nsIAccessibleAnnouncementEvent::ASSERTIVE
+                                  : nsIAccessibleAnnouncementEvent::POLITE;
+          [self handleAnnouncementEvent:announcementText priority:priority];
+        }
+      }
       break;
+    }
     case nsIAccessibleEvent::EVENT_ERRORMESSAGE_CHANGED: {
       // aria-errormessage was changed. If aria-invalid != "true", it means that
       // VoiceOver should (a) expose a new message or (b) remove an
@@ -1204,6 +1226,16 @@ static bool ProvidesTitle(const Accessible* aAccessible, nsString& aName) {
       }
     }
   }
+}
+
+- (NSString*)composeAnnouncementMessageFromSubtree {
+  nsAutoString text;
+  nsTextEquivUtils::GetTextEquivFromSubtree(mGeckoAccessible, text);
+  if (!text.IsEmpty()) {
+    return nsCocoaUtils::ToNSString(text);
+  }
+  NSString* label = [self moxLabel];
+  return [label length] ? label : nil;
 }
 
 - (void)handleAnnouncementEvent:(NSString*)announcement
