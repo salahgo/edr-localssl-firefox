@@ -1835,7 +1835,21 @@ export class UrlbarInput extends HTMLElement {
         input = this._lastSearchString;
       } else if (result.autofill?.type == "adaptive") {
         input = result.autofill.adaptiveHistoryInput;
+      } else if (
+        lazy.UrlbarPrefs.get("autoFillAdaptiveHistoryEnabled") &&
+        result.autofill?.type == "origin" &&
+        // Bug: 2026227: Investigate if we want to use a higher threshold
+        this._lastSearchString?.length > 0
+      ) {
+        // The origin root URL (e.g. http://example.com/) may not be in
+        // moz_places yet. It's derived from a deep-link visit. Defer the
+        // write until the navigation records the visit.
+        lazy.UrlbarUtils.addToInputHistoryWhenReady(
+          url,
+          this._lastSearchString
+        ).catch(console.error);
       }
+
       // `input` may be an empty string, so do a strict comparison here.
       if (input !== undefined) {
         // We don't await for this, because a rejection should not interrupt

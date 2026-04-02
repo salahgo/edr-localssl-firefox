@@ -50,6 +50,13 @@ const lazy = XPCOMUtils.declareLazy({
   UrlbarTokenizer:
     "moz-src:///browser/components/urlbar/UrlbarTokenizer.sys.mjs",
   UrlUtils: "resource://gre/modules/UrlUtils.sys.mjs",
+  clearTimeout: "resource://gre/modules/Timer.sys.mjs",
+  setTimeout: "resource://gre/modules/Timer.sys.mjs",
+
+  historyEnabled: {
+    pref: "places.history.enabled",
+    default: true,
+  },
 });
 
 /**
@@ -1043,21 +1050,80 @@ export var UrlbarUtils = {
    *
    * @param {string} url The url to add input history for
    * @param {string} input The associated search term
+   * @returns {Promise<boolean>}
+   *   Whether the row was written. False if the URL is not yet in moz_places
+   *   or history is disabled.
    */
   async addToInputHistory(url, input) {
-    await lazy.PlacesUtils.withConnectionWrapper("addToInputHistory", db => {
-      // use_count will asymptotically approach the max of 10.
-      return db.executeCached(
-        `
-        INSERT OR REPLACE INTO moz_inputhistory
-        SELECT h.id, IFNULL(i.input, :input), IFNULL(i.use_count, 0) * .9 + 1
-        FROM moz_places h
-        LEFT JOIN moz_inputhistory i ON i.place_id = h.id AND i.input = :input
-        WHERE url_hash = hash(:url) AND url = :url
-      `,
-        { url, input: input.toLowerCase() }
-      );
-    });
+    if (!lazy.historyEnabled) {
+      return false;
+    }
+    // use_count will asymptotically approach the max of 10.
+    let rows = await lazy.PlacesUtils.withConnectionWrapper(
+      "addToInputHistory",
+      db => {
+        return db.executeCached(
+          `
+          INSERT OR REPLACE INTO moz_inputhistory
+          SELECT h.id, IFNULL(i.input, :input), IFNULL(i.use_count, 0) * .9 + 1
+          FROM moz_places h
+          LEFT JOIN moz_inputhistory i ON i.place_id = h.id AND i.input = :input
+          WHERE url_hash = hash(:url) AND url = :url
+          RETURNING place_id
+          `,
+          { url, input: input.toLowerCase() }
+        );
+      }
+    );
+    return !!rows.length;
+  },
+
+  /**
+   * Like addToInputHistory, but if the URL is not yet in moz_places
+   * (e.g. an origin derived from a deep-link visit), waits for the
+   * visit to land before writing.
+   *
+   * @param {string} url The url to add input history for
+   * @param {string} input The associated search term
+   */
+  async addToInputHistoryWhenReady(url, input) {
+    if (!lazy.historyEnabled) {
+      return;
+    }
+    // Register the observer before the initial attempt so we can't miss
+    // a visit that lands between the check and the registration.
+    let { promise: visitedPromise, resolve: visitedResolve } =
+      Promise.withResolvers();
+    let listener = events => {
+      for (let event of events) {
+        if (event.type == "page-visited" && event.url == url) {
+          PlacesObservers.removeListener(["page-visited"], listener);
+          visitedResolve(true);
+          return;
+        }
+      }
+    };
+    PlacesObservers.addListener(["page-visited"], listener);
+
+    // Safety timeout so we don't leak the listener forever.
+    let timeoutId = lazy.setTimeout(() => {
+      PlacesObservers.removeListener(["page-visited"], listener);
+      visitedResolve(false);
+    }, 1000);
+
+    // Try immediately, succeeds if the URL is already in moz_places.
+    if (await this.addToInputHistory(url, input)) {
+      PlacesObservers.removeListener(["page-visited"], listener);
+      lazy.clearTimeout(timeoutId);
+      return;
+    }
+
+    // Page not yet in moz_places, wait for the visit to be recorded.
+    let visited = await visitedPromise;
+    lazy.clearTimeout(timeoutId);
+    if (visited) {
+      await this.addToInputHistory(url, input);
+    }
   },
 
   /**
