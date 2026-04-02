@@ -54,6 +54,18 @@ const assertStorageLocalGleanData = ({
       });
     }
     for (let metricId of GLEAN_STORAGE_LOCAL_METRICS_LABELED) {
+      // TODO(Bug 2028892): replace this for loop with the assertGleanLabeledMetric
+      // call that follows it once the underlying issue with testGetValue
+      // for labeled_* metrics.
+      for (const [k, v] of Object.entries(expectedLabelsValue)) {
+        Assert.equal(
+          Glean.extensionsTiming[metricId][k].testGetValue()?.count,
+          v.count,
+          `Got expected count on metric "${metricId}" and addon id "${k}"`
+        );
+      }
+
+      /*
       assertGleanLabeledMetric({
         metricId,
         gleanMetric: Glean.extensionsTiming[metricId],
@@ -69,6 +81,7 @@ const assertStorageLocalGleanData = ({
         // actual timing values collected.
         preprocessLabelValueFn: v => ({ count: v.count }),
       });
+      */
     }
   } else {
     // NOTE: we do not collect telemetry for the legacy JSON backend anymore

@@ -147,21 +147,31 @@ async function test_idletimeout_on_streamfilter({
       "Initial background context is still available as expected"
     );
 
-    assertGleanLabeledMetric({
-      metricId: "eventPageIdleResult",
-      gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
-      gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
-      ignoreNonExpectedLabels: true, // Only check values on the labels listed below.
-      expectedLabelsValue: {
-        reset_streamfilter: 1,
-      },
-    });
+    // TODO(Bug 2028892): replace this assertion with the assertGleanLabeledMetric
+    // call that follows it once the underlying issue with testGetValue
+    // for labeled_* metrics.
+    Assert.equal(
+      Glean.extensionsCounters.eventPageIdleResult.reset_streamfilter.testGetValue(),
+      1,
+      `Got the expected value for reset_streamfilter counter`
+    );
+
+    // assertGleanLabeledMetric({
+    //   metricId: "eventPageIdleResult",
+    //   gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
+    //   gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
+    //   ignoreNonExpectedLabels: true, // Only check values on the labels listed below.
+    //   expectedLabelsValue: {
+    //     reset_streamfilter: 1,
+    //   },
+    // });
+
     Assert.equal(
       Glean.extensionsCounters.eventPageIdleResultByAddonid
         .get(extension.id, "reset_streamfilter")
         ?.testGetValue(),
       1,
-      `Got the expected value for extension ${extension.id} reset_nativeapp counter`
+      `Got the expected value for extension ${extension.id} reset_streamfilter counter`
     );
   } else {
     const { Management } = ChromeUtils.importESModule(

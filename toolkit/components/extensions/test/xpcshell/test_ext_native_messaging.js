@@ -1038,15 +1038,24 @@ async function expectTerminateBackgroundToResetIdle({ extension, contextId }) {
     "Initial background context is still available as expected"
   );
 
-  assertGleanLabeledMetric({
-    metricId: "eventPageIdleResult",
-    gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
-    gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
-    ignoreNonExpectedLabels: true, // Only check values on the labels listed below.
-    expectedLabelsValue: {
-      reset_nativeapp: 1,
-    },
-  });
+  // TODO(Bug 2028892): replace this assertion with the assertGleanLabeledMetric
+  // call that follows it once the underlying issue with testGetValue
+  // for labeled_* metrics.
+  Assert.equal(
+    Glean.extensionsCounters.eventPageIdleResult.reset_nativeapp.testGetValue(),
+    1,
+    "Got the expected value for reset_nativeapp counter"
+  );
+  // assertGleanLabeledMetric({
+  //   metricId: "eventPageIdleResult",
+  //   gleanMetric: Glean.extensionsCounters.eventPageIdleResult,
+  //   gleanMetricLabels: GLEAN_EVENTPAGE_IDLE_RESULT_CATEGORIES,
+  //   ignoreNonExpectedLabels: true, // Only check values on the labels listed below.
+  //   expectedLabelsValue: {
+  //     reset_nativeapp: 1,
+  //   },
+  // });
+
   Assert.equal(
     Glean.extensionsCounters.eventPageIdleResultByAddonid
       .get(extension.id, "reset_nativeapp")
