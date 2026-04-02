@@ -2574,10 +2574,17 @@ nsresult nsHttpHandler::SpeculativeConnectInternal(
     }
   }
 
+  bool fetchHTTPSRR = EchConfigEnabled();
+  if (StaticPrefs::network_http_happy_eyeballs_enabled()) {
+    ci->SetHappyEyeballsEnabled(true);
+    // When HE is enabled, HTTPS RR lookups are handled by
+    // HappyEyeballsConnectionAttempt.
+    fetchHTTPSRR = false;
+  }
+
   LOG(("MaybeSpeculativeConnectWithHTTPSRR for ci=%s", ci->HashKey().get()));
   // When ech is enabled, always do speculative connect with HTTPS RR.
-  return MaybeSpeculativeConnectWithHTTPSRR(ci, aCallbacks, 0,
-                                            EchConfigEnabled());
+  return MaybeSpeculativeConnectWithHTTPSRR(ci, aCallbacks, 0, fetchHTTPSRR);
 }
 
 nsresult nsHttpHandler::SpeculativeConnect(nsHttpConnectionInfo* ci,

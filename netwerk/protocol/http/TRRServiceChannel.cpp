@@ -466,6 +466,23 @@ nsresult TRRServiceChannel::BeginConnect() {
     mConnectionInfo->SetNoSpdy(true);
   }
 
+  auto canUseHappyEyeballs = [&]() {
+    if (!StaticPrefs::network_http_happy_eyeballs_enabled()) {
+      return false;
+    }
+    if (mProxyInfo || mConnectionInfo->ProxyInfo()) {
+      return false;
+    }
+    return true;
+  };
+
+  if (canUseHappyEyeballs()) {
+    LOG(("%p NS_HTTP_USE_HAPPY_EYEBALLS ", this));
+    mCaps |= NS_HTTP_USE_HAPPY_EYEBALLS;
+    mCaps &= ~NS_HTTP_FORCE_WAIT_HTTP_RR;
+    mConnectionInfo->SetHappyEyeballsEnabled(true);
+  }
+
   // if this somehow fails we can go on without it
   (void)gHttpHandler->AddConnectionHeader(&mRequestHead, mCaps);
 
