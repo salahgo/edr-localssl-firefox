@@ -1490,6 +1490,15 @@ int64_t nsTSubstring<T>::ToInteger64(nsresult* aErrorCode,
 }
 
 /**
+ * nsTSubstring::ToUnsignedInteger64
+ */
+template <typename T>
+uint64_t nsTSubstring<T>::ToUnsignedInteger64(nsresult* aErrorCode,
+                                              uint32_t aRadix) const {
+  return ToIntegerCommon<T, uint64_t>(*this, aErrorCode, aRadix);
+}
+
+/**
  * nsTSubstring::Mid
  */
 template <typename T>

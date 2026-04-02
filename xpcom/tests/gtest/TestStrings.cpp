@@ -1373,6 +1373,44 @@ TEST_F(Strings, string_tointeger64) {
   }
 }
 
+struct ToUnsignedInteger64Test {
+  const char* str;
+  uint32_t radix;
+  uint64_t result;
+  nsresult rv;
+};
+
+static const ToUnsignedInteger64Test kToUnsignedInteger64Tests[] = {
+    {"123", 10, 123, NS_OK},
+    {"7b", 16, 123, NS_OK},
+
+    // uint64_t limits
+    {"18446744073709551615", 10, UINT64_MAX, NS_OK},
+    {"ffffffffffffffff", 16, UINT64_MAX, NS_OK},
+
+    // overflow
+    {"18446744073709551616", 10, 0, NS_ERROR_ILLEGAL_VALUE},
+    {"10000000000000000", 16, 0, NS_ERROR_ILLEGAL_VALUE},
+
+    // random other values
+    {"90194313659", 10, UINT64_C(90194313659), NS_OK},
+    {"8abc1234", 16, UINT64_C(0x8abc1234), NS_OK},
+
+    // invalid input
+    {"-194313659", 10, 0, NS_ERROR_ILLEGAL_VALUE},
+
+    {nullptr, 0, 0, NS_OK}};
+
+TEST_F(Strings, string_to_unsigned_integer64) {
+  nsresult rv;
+  for (const ToUnsignedInteger64Test* t = kToUnsignedInteger64Tests; t->str;
+       ++t) {
+    uint64_t result = nsAutoCString(t->str).ToUnsignedInteger64(&rv, t->radix);
+    EXPECT_EQ(rv, t->rv);
+    EXPECT_EQ(result, t->result);
+  }
+}
+
 static void test_parse_string_helper(const char* str, char separator, int len,
                                      const char* s1, const char* s2) {
   nsCString data(str);

@@ -391,6 +391,15 @@ class nsTSubstring : public mozilla::detail::nsTStringRepr<T> {
   int64_t ToInteger64(nsresult* aErrorCode, uint32_t aRadix = 10) const;
 
   /**
+   * Perform string to 64-bit uint conversion.
+   * @param   aErrorCode will contain error if one occurs
+   * @param   aRadix is the radix to use. Only 10 and 16 are supported.
+   * @return  64-bit uint rep of string value, and possible (out) error code
+   */
+  uint64_t ToUnsignedInteger64(nsresult* aErrorCode,
+                               uint32_t aRadix = 10) const;
+
+  /**
    * assignment
    */
 
