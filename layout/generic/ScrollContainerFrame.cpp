@@ -5726,6 +5726,34 @@ void ScrollContainerFrame::AppendAnonymousContentTo(
   }
 }
 
+enum class WebkitScrollbarSize { Auto, Zero, NonZero };
+
+static std::pair<WebkitScrollbarSize, WebkitScrollbarSize>
+GetWebkitScrollbarWidthAndHeight(
+    const RefPtr<ComputedStyle>& aWebKitScrollbarStyle) {
+  MOZ_ASSERT(aWebKitScrollbarStyle);
+  const auto webkitScrollbarWidth =
+      aWebKitScrollbarStyle->StylePosition()->GetWidth(
+          // scrollbar elements are not affected by anchor positioning.
+          AnchorPosResolutionParams{nullptr, StylePositionProperty::Static});
+  const auto webkitScrollbarHeight =
+      aWebKitScrollbarStyle->StylePosition()->GetHeight(
+          // scrollbar elements are not affected by anchor positioning.
+          AnchorPosResolutionParams{nullptr, StylePositionProperty::Static});
+  auto toSize = [](const AnchorResolvedSize& size) {
+    if (!size->IsLengthPercentage()) {
+      return WebkitScrollbarSize::Auto;
+    }
+    // On Blink/WebKit %-unit size is treated as 0.
+    if (size->AsLengthPercentage().IsLength() &&
+        !size->AsLengthPercentage().AsLength().IsZero()) {
+      return WebkitScrollbarSize::NonZero;
+    }
+    return WebkitScrollbarSize::Zero;
+  };
+  return {toSize(webkitScrollbarWidth), toSize(webkitScrollbarHeight)};
+}
+
 void ScrollContainerFrame::DidSetComputedStyle(
     ComputedStyle* aOldComputedStyle) {
   nsContainerFrame::DidSetComputedStyle(aOldComputedStyle);
@@ -5747,22 +5775,9 @@ void ScrollContainerFrame::DidSetComputedStyle(
         if (style->StyleDisplay()->mDisplay == StyleDisplay::None) {
           return false;
         }
-        const auto webkitScrollbarWidth = style->StylePosition()->GetWidth(
-            // scrollbar elements are not affected anchor positioning.
-            AnchorPosResolutionParams{nullptr, StylePositionProperty::Static});
-        const auto webkitScrollbarHeight = style->StylePosition()->GetHeight(
-            // scrollbar elements are not affected anchor positioning.
-            AnchorPosResolutionParams{nullptr, StylePositionProperty::Static});
-
-        auto isNonZeroLength = [](const AnchorResolvedSize& size) {
-          // On Blink/WebKit %-unit size is treated as 0.
-          return size->IsLengthPercentage() &&
-                 size->AsLengthPercentage().IsLength() &&
-                 !size->AsLengthPercentage().AsLength().IsZero();
-        };
-
-        return isNonZeroLength(webkitScrollbarWidth) ||
-               isNonZeroLength(webkitScrollbarHeight);
+        auto [width, height] = GetWebkitScrollbarWidthAndHeight(style);
+        return width == WebkitScrollbarSize::NonZero ||
+               height == WebkitScrollbarSize::NonZero;
       }(mWebKitScrollbarStyle);
 
   if (mForceDisableOverlayScrollbars != disableOverlayScrollbars) {
@@ -7809,9 +7824,14 @@ StyleScrollbarWidth ScrollContainerFrame::ScrollbarWidth(
       aStyle ? aStyle : nsLayoutUtils::StyleForScrollbar(this);
   auto scrollbarWidth = style->StyleUIReset()->ComputedScrollbarWidth();
   if (!mWebKitScrollbarStyle ||
-      mWebKitScrollbarStyle->StyleDisplay()->mDisplay != StyleDisplay::None ||
-      // On Chrome even if `display: none` is specified on
-      // `::-webkit-scrollbar`, non auto `scrollbar-color` or non auto
+      (mWebKitScrollbarStyle->StyleDisplay()->mDisplay != StyleDisplay::None &&
+       [&] {
+         auto [w, h] = GetWebkitScrollbarWidthAndHeight(mWebKitScrollbarStyle);
+         return w != WebkitScrollbarSize::Zero ||
+                h != WebkitScrollbarSize::Zero;
+       }()) ||
+      // On Chrome even if `display: none` or `width: 0; height: 0` is specified
+      // on `::-webkit-scrollbar`, non auto `scrollbar-color` or non auto
       // `scrollbar-width` clobbers it.
       scrollbarWidth != StyleScrollbarWidth::Auto ||
       style->StyleUI()->HasCustomScrollbars()) {

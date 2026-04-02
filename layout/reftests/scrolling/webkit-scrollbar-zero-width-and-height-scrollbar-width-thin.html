@@ -5,6 +5,7 @@
   height: 100px;
   width: 100px;
   border: 2px solid black;
+  scrollbar-width: thin;
 }
 .scrollable::before {
   display: block;
@@ -12,13 +13,9 @@
   height: 300px;
   width: 300px;
 }
-.pseudo8::-webkit-scrollbar {
-  width: 8%;
-}
-.pseudo20::-webkit-scrollbar {
-  height: 20%;
+.scrollable::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 </style>
 <div class="scrollable"></div>
-<div class="scrollable pseudo8"></div>
-<div class="scrollable pseudo20"></div>

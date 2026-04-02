@@ -152,6 +152,10 @@ pref(layout.css.fake-webkit-scrollbar.enabled,true) == webkit-scrollbar-in-at-su
 pref(layout.css.fake-webkit-scrollbar.enabled,true) test-pref(ui.useOverlayScrollbars,1) test-pref(layout.testing.overlay-scrollbars.always-visible,false) test-pref(ui.scrollbarFadeBeginDelay,0) ref-pref(ui.useOverlayScrollbars,0) == webkit-scrollbar.html webkit-scrollbar-ref.html
 # Test case where ::-webkit-scrollbar has zero `width`, thus overlay scrollbars are enabled.
 pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(ui.useOverlayScrollbars,1)  == webkit-scrollbar-zero-width.html webkit-scrollbar-overlay-ref.html
+# Test case where ::-webkit-scrollbar has zero `width` and `height`, thus the scrollbars SHOULD NOT be visible.
+pref(layout.css.fake-webkit-scrollbar.enabled,true) test-pref(layout.testing.overlay-scrollbars.always-visible,false) test-pref(ui.scrollbarFadeBeginDelay,0) pref(ui.useOverlayScrollbars,1) == webkit-scrollbar-zero-width-and-height.html webkit-scrollbar-display-none-ref.html
+# Test case where ::-webkit-scrollbar has zero `width` and `height` but `scrollbar-width: thin` clobbers it, thus scrollbars SHOULD be visible.
+pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(layout.css.scrollbar-width-thin.disabled,false) == webkit-scrollbar-zero-width-and-height-scrollbar-width-thin.html webkit-scrollbar-display-none-scrollbar-width-thin-ref.html
 # Test case where ::-webkit-scrollbar has percent units `width` and `height`, thus overlay scrollbars are enabled.
 pref(layout.css.fake-webkit-scrollbar.enabled,true) pref(ui.useOverlayScrollbars,1)  == webkit-scrollbar-percent-width-height.html webkit-scrollbar-overlay-ref.html
 # Test case where ::-webkit-scrollbar has neither `width` nor `height`, thus overlay scrollbars are enabled.
