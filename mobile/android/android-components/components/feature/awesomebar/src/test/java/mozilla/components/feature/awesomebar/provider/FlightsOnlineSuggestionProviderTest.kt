@@ -7,12 +7,15 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import mozilla.components.concept.awesomebar.AwesomeBar
 import mozilla.components.concept.awesomebar.optimizedsuggestions.FlightSuggestionStatus
+import mozilla.components.feature.search.SearchUseCases.SearchUseCase
+import mozilla.components.support.test.mock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito.verify
 import java.time.ZoneId
 import java.util.Locale
 
@@ -36,6 +39,7 @@ class FlightsOnlineSuggestionProviderTest {
         )
 
         provider = FlightsOnlineSuggestionProvider(
+            searchUseCase = mock(),
             dataSource = fakeDataSource,
             suggestionsHeader = null,
             maxNumberOfSuggestions = DEFAULT_FLIGHT_SUGGESTION_LIMIT,
@@ -66,6 +70,32 @@ class FlightsOnlineSuggestionProviderTest {
     }
 
     @Test
+    fun `onSuggestionClicked invokes search use case with query`() = runTest {
+        val searchUseCase: SearchUseCase = mock()
+        val localDateSource = FakeFlightsSuggestionDataSource(
+            results = listOf(
+                sampleFlightItem("test query"),
+            ),
+        )
+        val localProvider = FlightsOnlineSuggestionProvider(
+            searchUseCase = searchUseCase,
+            dataSource = localDateSource,
+            suggestionsHeader = null,
+            maxNumberOfSuggestions = DEFAULT_FLIGHT_SUGGESTION_LIMIT,
+        )
+
+        val deferred = async { localProvider.onInputChanged("aa123") }
+        advanceTimeBy(ARTIFICIAL_DELAY)
+        val results = deferred.await()
+
+        val suggestion = results.single()
+        assertNotNull(suggestion.onSuggestionClicked)
+        suggestion.onSuggestionClicked!!.invoke()
+
+        verify(searchUseCase).invoke("test query")
+    }
+
+    @Test
     fun `respects maxNumberOfSuggestions`() = runTest {
         val manyResults = listOf(
             sampleFlightItem(query = "a flight", flightNumber = "A"),
@@ -76,6 +106,7 @@ class FlightsOnlineSuggestionProviderTest {
         val localDataSource = FakeFlightsSuggestionDataSource(results = manyResults)
 
         val limitedProvider = FlightsOnlineSuggestionProvider(
+            searchUseCase = mock(),
             dataSource = localDataSource,
             suggestionsHeader = null,
             maxNumberOfSuggestions = 1,
@@ -91,6 +122,7 @@ class FlightsOnlineSuggestionProviderTest {
     @Test
     fun `id is stable per instance`() = runTest {
         val p = FlightsOnlineSuggestionProvider(
+            searchUseCase = mock(),
             dataSource = fakeDataSource,
             suggestionsHeader = null,
             maxNumberOfSuggestions = 1,
@@ -109,6 +141,7 @@ class FlightsOnlineSuggestionProviderTest {
     fun `cancellation before delay prevents data source call`() = runTest {
         val localDataSource = fakeDataSource
         val cancellableProvider = FlightsOnlineSuggestionProvider(
+            searchUseCase = mock(),
             dataSource = localDataSource,
             suggestionsHeader = null,
             maxNumberOfSuggestions = 1,

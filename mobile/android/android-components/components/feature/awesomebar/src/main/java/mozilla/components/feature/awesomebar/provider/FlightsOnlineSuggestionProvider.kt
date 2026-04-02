@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import mozilla.components.concept.awesomebar.AwesomeBar
 import mozilla.components.concept.awesomebar.optimizedsuggestions.FlightData
 import mozilla.components.concept.awesomebar.optimizedsuggestions.FlightSuggestionStatus
+import mozilla.components.feature.search.SearchUseCases
 import java.time.DateTimeException
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -25,6 +26,7 @@ const val DEFAULT_FLIGHT_SUGGESTION_LIMIT = 1
  * @property maxNumberOfSuggestions the maximum number of suggestions to be provided.
  */
 class FlightsOnlineSuggestionProvider(
+    private val searchUseCase: SearchUseCases.SearchUseCase,
     private val dataSource: AwesomeBar.FlightsSuggestionDataSource,
     private val suggestionsHeader: String? = null,
     @get:VisibleForTesting internal val maxNumberOfSuggestions: Int = DEFAULT_FLIGHT_SUGGESTION_LIMIT,
@@ -66,7 +68,9 @@ class FlightsOnlineSuggestionProvider(
 
         return if (hasAllFields) {
             AwesomeBar.FlightSuggestion(
+                onSuggestionClicked = { searchUseCase.invoke(query) },
                 provider = this@FlightsOnlineSuggestionProvider,
+                score = Int.MAX_VALUE,
                 query = query,
                 flightNumber = flightNumber,
                 airlineName = airline.name,
