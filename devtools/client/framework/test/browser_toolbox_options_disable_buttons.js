@@ -25,6 +25,7 @@ const TOGGLE_BUTTONS = [
   "command-button-rulers",
   "command-button-responsive",
   "command-button-pick",
+  "command-button-jstracer",
 ];
 
 add_task(async function test() {
