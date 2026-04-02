@@ -3029,6 +3029,12 @@ bool JSStructuredCloneReader::readSharedWasmMemory(uint32_t nbytes,
   if (!startRead(&isHuge)) {
     return false;
   }
+  if (!isHuge.isBoolean()) {
+    JS_ReportErrorNumberASCII(context(), GetErrorMessage, nullptr,
+                              JSMSG_SC_BAD_SERIALIZED_DATA,
+                              "isHuge must be a boolean");
+    return false;
+  }
 
   // Read the SharedArrayBuffer object.
   RootedValue payload(cx);
@@ -3901,7 +3907,13 @@ JSObject* JSStructuredCloneReader::readErrorHeader(uint32_t type) {
   if (!startRead(&val)) {
     return nullptr;
   }
-  bool hasCause = ToBoolean(val);
+  if (!val.isBoolean()) {
+    JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr,
+                              JSMSG_SC_BAD_SERIALIZED_DATA,
+                              "hasCause must be a boolean");
+    return nullptr;
+  }
+  bool hasCause = val.toBoolean();
   Rooted<Maybe<Value>> cause(cx, mozilla::Nothing());
   if (hasCause) {
     cause = mozilla::Some(BooleanValue(true));
@@ -3967,6 +3979,12 @@ bool JSStructuredCloneReader::readErrorFields(Handle<ErrorObject*> errorObj,
   }
 
   if (errorObj->type() == JSEXN_AGGREGATEERR) {
+    if (!errors.isObject() || !errors.toObject().is<ArrayObject>()) {
+      JS_ReportErrorNumberASCII(
+          cx, GetErrorMessage, nullptr, JSMSG_SC_BAD_SERIALIZED_DATA,
+          "AggregateError 'errors' field must be an Array");
+      return false;
+    }
     if (!DefineDataProperty(context(), errorObj, cx->names().errors, errors,
                             0)) {
       return false;
