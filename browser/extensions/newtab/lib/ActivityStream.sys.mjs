@@ -1187,6 +1187,13 @@ export const PREFS_CONFIG = new Map([
     },
   ],
   [
+    "widgets.lists.size",
+    {
+      title: "Size of the lists widget (medium or large)",
+      value: "large",
+    },
+  ],
+  [
     "widgets.feedback.enabled",
     {
       title: "Enables the feedback link in the widgets container",
