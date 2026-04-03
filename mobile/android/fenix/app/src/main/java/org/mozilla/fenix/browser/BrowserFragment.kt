@@ -20,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mozilla.components.browser.state.selector.findTab
@@ -194,10 +193,8 @@ class BrowserFragment : BaseBrowserFragment(), UserInteractionHandler, SystemIns
             lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     accelerometer.detectShakes()
-                        .onStart {
-                            summarizeToolbarCfrBinding.get()?.maybeDismissCfr()
-                        }
                         .collect {
+                            summarizeToolbarCfrBinding.get()?.maybeDismissCfr()
                             navigateToSummarizationIfEligible()
                         }
                 }
