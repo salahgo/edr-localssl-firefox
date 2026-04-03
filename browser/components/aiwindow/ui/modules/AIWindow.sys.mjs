@@ -400,10 +400,15 @@ export const AIWindow = {
     );
 
     const isPrivateWindow = lazy.PrivateBrowsingUtils.isWindowPrivate(win);
+    const isAIActive = this.isAIWindowActive(win);
 
     if (!isPrivateWindow) {
-      view.querySelector("#ai-window-switch-classic").hidden = false;
-      view.querySelector("#ai-window-switch-ai").hidden = false;
+      let classicSwitchButton = view.querySelector("#ai-window-switch-classic");
+      let smartSwitchButton = view.querySelector("#ai-window-switch-ai");
+      classicSwitchButton.hidden = false;
+      smartSwitchButton.hidden = false;
+      classicSwitchButton.toggleAttribute("checked", !isAIActive);
+      smartSwitchButton.toggleAttribute("checked", isAIActive);
     }
 
     let windowState = this._windowStates.get(win);
