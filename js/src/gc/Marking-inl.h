@@ -159,16 +159,6 @@ inline RelocationOverlay* RelocationOverlay::forwardCell(Cell* src, Cell* dst) {
   return new (src) RelocationOverlay(dst);
 }
 
-inline bool IsAboutToBeFinalizedDuringMinorSweep(Cell** cellp) {
-  MOZ_ASSERT(JS::RuntimeHeapIsMinorCollecting());
-
-  if ((*cellp)->isTenured()) {
-    return false;
-  }
-
-  return !Nursery::getForwardedPointer(cellp);
-}
-
 // Special case pre-write barrier for strings used during rope flattening. This
 // avoids eager marking of ropes which does not immediately mark the cells if we
 // hit OOM. This does not traverse ropes and is instead called on every node in

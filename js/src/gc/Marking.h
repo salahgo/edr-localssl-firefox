@@ -77,8 +77,6 @@ inline bool IsAboutToBeFinalizedUnbarriered(const T& thing) {
   return IsAboutToBeFinalizedInternal(thing);
 }
 
-inline bool IsAboutToBeFinalizedDuringMinorSweep(Cell* cell);
-
 inline Cell* ToMarkable(const Value& v) {
   if (v.isGCThing()) {
     return (Cell*)v.toGCThing();

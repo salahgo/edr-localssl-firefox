@@ -225,7 +225,7 @@ class MarkStack {
   static size_t moveSomeWork(GCMarker* marker, MarkStack& dst, MarkStack& src,
                              bool allowDistribute);
 
-  size_t sizeOfExcludingThis(mozilla::MallocSizeOf mallocSizeOf) const;
+  size_t sizeOfExcludingThis() const;
 
  private:
   uintptr_t at(size_t index) const {
