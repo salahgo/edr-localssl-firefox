@@ -71,7 +71,7 @@ class TabsTrayTelemetryMiddlewareTest {
 
     @Test
     fun `WHEN multi select mode by long press is entered THEN relevant metrics are collected`() {
-        store.dispatch(TabsTrayAction.AddSelectTab(mockk()))
+        store.dispatch(TabsTrayAction.AddSelectTabItem(mockk()))
 
         assertNotNull(TabsTray.enterMultiselectMode.testGetValue())
         val snapshot = TabsTray.enterMultiselectMode.testGetValue()!!

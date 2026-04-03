@@ -23,12 +23,7 @@ class FakeTabGroupRepository(
         tabIds: List<String>,
     ) {
         tabGroupFlow.emit(tabGroupFlow.value + tabGroup)
-        val assignments = hashMapOf<String, String>()
-        assignments.putAll(tabGroupAssignmentFlow.value)
-        tabIds.forEach {
-            assignments[it] = tabGroup.id
-        }
-        tabGroupAssignmentFlow.emit(assignments)
+        addTabsToTabGroup(tabIds = tabIds, tabGroupId = tabGroup.id)
     }
 
     override fun observeTabGroups(): Flow<List<StoredTabGroup>> = tabGroupFlow
@@ -66,7 +61,9 @@ class FakeTabGroupRepository(
 
     override suspend fun deleteTabGroupById(tabGroupId: String) {}
 
-    override suspend fun deleteTabGroupsById(ids: List<String>) {}
+    override suspend fun deleteTabGroupsById(ids: List<String>) {
+        tabGroupFlow.emit(fetchTabGroups().filterNot { it.id in ids })
+    }
 
     override fun observeTabGroupAssignments(): Flow<Map<String, String>> = tabGroupAssignmentFlow
 
@@ -76,14 +73,28 @@ class FakeTabGroupRepository(
     override suspend fun addTabGroupAssignment(
         tabId: String,
         tabGroupId: String,
-    ) {}
+    ) {
+        val updatedAssignments = hashMapOf<String, String>()
+        updatedAssignments.putAll(tabGroupAssignmentFlow.value)
+        updatedAssignments[tabId] = tabGroupId
+        tabGroupAssignmentFlow.emit(updatedAssignments)
+    }
 
-    override suspend fun addTabGroupAssignments(assignments: List<TapGroupAssignment>) {}
+    override suspend fun addTabGroupAssignments(assignments: List<TapGroupAssignment>) {
+        val updatedAssignments = hashMapOf<String, String>()
+        updatedAssignments.putAll(tabGroupAssignmentFlow.value)
+        assignments.forEach {
+            updatedAssignments[it.id] = it.tabGroupId
+        }
+        tabGroupAssignmentFlow.emit(updatedAssignments)
+    }
 
     override suspend fun addTabsToTabGroup(
         tabGroupId: String,
         tabIds: List<String>,
-    ) {}
+    ) {
+        addTabGroupAssignments(assignments = tabIds.map { TapGroupAssignment(id = it, tabGroupId = tabGroupId) })
+    }
 
     override suspend fun updateTabGroupAssignment(
         tabId: String,

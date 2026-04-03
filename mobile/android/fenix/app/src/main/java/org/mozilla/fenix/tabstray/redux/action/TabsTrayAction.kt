@@ -46,12 +46,12 @@ sealed interface TabsTrayAction : Action {
     /**
      * Added a new [TabsTrayItem] to the selection set.
      */
-    data class AddSelectTab(val tab: TabsTrayItem) : TabsTrayAction
+    data class AddSelectTabItem(val item: TabsTrayItem) : TabsTrayAction
 
     /**
      * Removed a [TabsTrayItem] from the selection set.
      */
-    data class RemoveSelectTab(val tab: TabsTrayItem) : TabsTrayAction
+    data class RemoveSelectTabItem(val item: TabsTrayItem) : TabsTrayAction
 
     /**
      * The active page in the tray that is now in focus.

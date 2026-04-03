@@ -4,6 +4,7 @@
 
 package org.mozilla.fenix.tabstray.redux.reducer
 
+import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
 import org.mozilla.fenix.tabstray.redux.action.TabSearchAction
@@ -28,8 +29,8 @@ internal object TabsTrayReducer {
             // Selection Mode Actions
             is TabsTrayAction.EnterSelectMode,
             is TabsTrayAction.ExitSelectMode,
-            is TabsTrayAction.AddSelectTab,
-            is TabsTrayAction.RemoveSelectTab,
+            is TabsTrayAction.AddSelectTabItem,
+            is TabsTrayAction.RemoveSelectTabItem,
                  -> handleSelectionModeActions(state, action)
 
             // Tab Update Actions
@@ -80,16 +81,55 @@ internal object TabsTrayReducer {
     private fun handleSelectionModeActions(state: TabsTrayState, action: TabsTrayAction): TabsTrayState {
         return when (action) {
             is TabsTrayAction.EnterSelectMode ->
-                state.copy(mode = TabsTrayState.Mode.Select(emptySet()))
+                state.copy(
+                    mode = TabsTrayState.Mode.Select(
+                    selectedTabs = emptySet(),
+                    selectedTabGroups = emptySet(),
+                ),
+                )
             is TabsTrayAction.ExitSelectMode ->
                 state.copy(mode = TabsTrayState.Mode.Normal)
-            is TabsTrayAction.AddSelectTab ->
-                state.copy(mode = TabsTrayState.Mode.Select(state.mode.selectedTabs + action.tab))
-            is TabsTrayAction.RemoveSelectTab -> {
-                val selected = state.mode.selectedTabs.filter { it.id != action.tab.id }.toSet()
+            is TabsTrayAction.AddSelectTabItem -> {
+                val selectedTabs = state.mode.selectedTabs.toHashSet()
+                val selectedTabGroups = state.mode.selectedTabGroups.toHashSet()
+
+                when (action.item) {
+                    is TabsTrayItem.Tab -> selectedTabs.add(action.item)
+                    is TabsTrayItem.TabGroup -> {
+                        selectedTabGroups.add(action.item)
+                        selectedTabs.addAll(action.item.tabs)
+                    }
+                }
+
                 state.copy(
-                    mode = if (selected.isEmpty()) TabsTrayState.Mode.Normal else TabsTrayState.Mode.Select(selected),
+                    mode = TabsTrayState.Mode.Select(
+                        selectedTabs = selectedTabs,
+                        selectedTabGroups = selectedTabGroups,
+                    ),
                 )
+            }
+            is TabsTrayAction.RemoveSelectTabItem -> {
+                val selectedTabs = state.mode.selectedTabs.toHashSet()
+                val selectedTabGroups = state.mode.selectedTabGroups.toHashSet()
+
+                when (action.item) {
+                    is TabsTrayItem.Tab -> selectedTabs.remove(action.item)
+                    is TabsTrayItem.TabGroup -> {
+                        selectedTabGroups.remove(action.item)
+                        selectedTabs.removeAll(action.item.tabs.toSet())
+                    }
+                }
+
+                val newMode = if (selectedTabs.isEmpty() && selectedTabGroups.isEmpty()) {
+                    TabsTrayState.Mode.Normal
+                } else {
+                    TabsTrayState.Mode.Select(
+                        selectedTabs = selectedTabs,
+                        selectedTabGroups = selectedTabGroups,
+                    )
+                }
+
+                state.copy(mode = newMode)
             }
             else -> state
         }

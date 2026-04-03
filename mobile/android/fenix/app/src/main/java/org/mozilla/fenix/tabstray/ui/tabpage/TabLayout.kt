@@ -266,7 +266,7 @@ private fun TabGrid(
                     hasHeader = header != null,
                     isSelected = tab.id == selectedTabId,
                     isInMultiSelectMode = isInMultiSelectMode,
-                    isMultiSelected = selectionMode.selectedTabs.any { it.id == tab.id },
+                    isMultiSelected = selectionMode.contains(tab),
                     reorderState = reorderState,
                     gridState = gridState,
                     onTabClose = onTabClose,
@@ -466,7 +466,7 @@ private fun TabList(
                                 selectionState = TabsTrayItemSelectionState(
                                     isFocused = tab.id == selectedTabId,
                                     multiSelectEnabled = isInMultiSelectMode,
-                                    isSelected = selectionMode.selectedTabs.any { it.id == tab.id },
+                                    isSelected = selectionMode.contains(tab),
                                 ),
                                 shouldClickListen = reorderState.draggingItemKey != tab.id,
                                 swipingEnabled = !state.isScrollInProgress,
@@ -628,32 +628,10 @@ private const val SELECTED_TAB_COUNT_PREVIEW = 4
 private fun TabGridMultiSelectPreview(
     @PreviewParameter(TabLayoutPreviewParameterProvider::class) previewModel: ThemedValue<TabLayoutPreviewModel>,
 ) {
-    val tabs = generateFakeTabsList(
-        tabCount = previewModel.value.tabCount,
-        tabGroupIndices = previewModel.value.tabGroupIndices,
+    MultiSelectPreview(
+        previewModel = previewModel,
+        displayTabsInGrid = true,
     )
-    val selectedTabs = remember { tabs.take(SELECTED_TAB_COUNT_PREVIEW).toMutableStateList() }
-
-    FirefoxTheme(theme = previewModel.theme) {
-        TabLayout(
-            tabs = tabs,
-            selectedTabId = tabs[previewModel.value.selectedTabIndex].id,
-            selectionMode = TabsTrayState.Mode.Select(selectedTabs.toSet()),
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-            displayTabsInGrid = true,
-            onTabClose = {},
-            onItemClick = { tab ->
-                if (selectedTabs.contains(tab)) {
-                    selectedTabs.remove(tab)
-                } else {
-                    selectedTabs.add(tab)
-                }
-            },
-            onItemLongClick = {},
-            onTabDragStart = {},
-            onMove = { _, _, _ -> },
-        )
-    }
 }
 
 @Preview
@@ -661,25 +639,51 @@ private fun TabGridMultiSelectPreview(
 private fun TabListMultiSelectPreview(
     @PreviewParameter(TabLayoutPreviewParameterProvider::class) previewModel: ThemedValue<TabLayoutPreviewModel>,
 ) {
+    MultiSelectPreview(
+        previewModel = previewModel,
+        displayTabsInGrid = false,
+    )
+}
+
+@Composable
+private fun MultiSelectPreview(
+    previewModel: ThemedValue<TabLayoutPreviewModel>,
+    displayTabsInGrid: Boolean,
+) {
     val tabs = generateFakeTabsList(
         tabCount = previewModel.value.tabCount,
         tabGroupIndices = previewModel.value.tabGroupIndices,
     )
-    val selectedTabs = remember { tabs.take(SELECTED_TAB_COUNT_PREVIEW).toMutableStateList() }
+    val selectedTabs = remember {
+        tabs.take(SELECTED_TAB_COUNT_PREVIEW).filterIsInstance<TabsTrayItem.Tab>().toMutableStateList()
+    }
+    val selectedTabGroups = remember {
+        tabs.take(SELECTED_TAB_COUNT_PREVIEW).filterIsInstance<TabsTrayItem.TabGroup>().toMutableStateList()
+    }
 
     FirefoxTheme(theme = previewModel.theme) {
         TabLayout(
             tabs = tabs,
             selectedTabId = tabs[previewModel.value.selectedTabIndex].id,
-            selectionMode = TabsTrayState.Mode.Select(selectedTabs.toSet()),
+            selectionMode = TabsTrayState.Mode.Select(
+                selectedTabs = selectedTabs.toSet(),
+                selectedTabGroups = selectedTabGroups.toSet(),
+            ),
             modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-            displayTabsInGrid = false,
+            displayTabsInGrid = displayTabsInGrid,
             onTabClose = {},
             onItemClick = { tab ->
-                if (selectedTabs.contains(tab)) {
-                    selectedTabs.remove(tab)
-                } else {
-                    selectedTabs.add(tab)
+                when (tab) {
+                    is TabsTrayItem.Tab -> if (selectedTabs.contains(tab)) {
+                        selectedTabs.remove(tab)
+                    } else {
+                        selectedTabs.add(tab)
+                    }
+                    is TabsTrayItem.TabGroup -> if (selectedTabGroups.contains(tab)) {
+                        selectedTabGroups.remove(tab)
+                    } else {
+                        selectedTabGroups.add(tab)
+                    }
                 }
             },
             onItemLongClick = {},

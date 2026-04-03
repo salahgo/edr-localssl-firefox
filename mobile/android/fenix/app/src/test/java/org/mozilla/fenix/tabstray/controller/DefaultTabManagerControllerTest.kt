@@ -726,17 +726,17 @@ class DefaultTabManagerControllerTest {
         val tab2 = TabsTrayItem.Tab(tab = createTab(id = "2", url = "www.google.com"))
         val controller = createController()
         trayStore.dispatch(TabsTrayAction.EnterSelectMode)
-        trayStore.dispatch(TabsTrayAction.AddSelectTab(tab1))
-        trayStore.dispatch(TabsTrayAction.AddSelectTab(tab2))
+        trayStore.dispatch(TabsTrayAction.AddSelectTabItem(tab1))
+        trayStore.dispatch(TabsTrayAction.AddSelectTabItem(tab2))
 
         controller.handleTabSelected(tab1, "Tab Manager")
-        middleware.assertLastAction(TabsTrayAction.RemoveSelectTab::class) {
-            assertEquals(tab1, it.tab)
+        middleware.assertLastAction(TabsTrayAction.RemoveSelectTabItem::class) {
+            assertEquals(tab1, it.item)
         }
 
         controller.handleTabSelected(tab2, "Tab Manager")
-        middleware.assertLastAction(TabsTrayAction.RemoveSelectTab::class) {
-            assertEquals(tab2, it.tab)
+        middleware.assertLastAction(TabsTrayAction.RemoveSelectTabItem::class) {
+            assertEquals(tab2, it.item)
         }
     }
 
@@ -750,12 +750,12 @@ class DefaultTabManagerControllerTest {
         val tab2 = TabsTrayItem.Tab(tab = createTab(id = "2", url = "www.google.com"))
 
         trayStore.dispatch(TabsTrayAction.EnterSelectMode)
-        trayStore.dispatch(TabsTrayAction.AddSelectTab(tab1))
+        trayStore.dispatch(TabsTrayAction.AddSelectTabItem(tab1))
 
         controller.handleTabSelected(tab2, "Tab Manager")
 
-        middleware.assertLastAction(TabsTrayAction.AddSelectTab::class) {
-            assertEquals(tab2, it.tab)
+        middleware.assertLastAction(TabsTrayAction.AddSelectTabItem::class) {
+            assertEquals(tab2, it.item)
         }
     }
 
@@ -779,12 +779,12 @@ class DefaultTabManagerControllerTest {
         )
 
         trayStore.dispatch(TabsTrayAction.EnterSelectMode)
-        trayStore.dispatch(TabsTrayAction.AddSelectTab(normalTab))
+        trayStore.dispatch(TabsTrayAction.AddSelectTabItem(normalTab))
 
         controller.handleTabSelected(inactiveTab, INACTIVE_TABS_FEATURE_NAME)
 
-        middleware.assertLastAction(TabsTrayAction.AddSelectTab::class) {
-            assertEquals(normalTab, it.tab)
+        middleware.assertLastAction(TabsTrayAction.AddSelectTabItem::class) {
+            assertEquals(normalTab, it.item)
         }
     }
 
@@ -1149,7 +1149,7 @@ class DefaultTabManagerControllerTest {
         createController().handleTabLongClick(currentTab)
 
         assertNotNull(Collections.longPress.testGetValue())
-        verify { trayStore.dispatch(TabsTrayAction.AddSelectTab(currentTab)) }
+        verify { trayStore.dispatch(TabsTrayAction.AddSelectTabItem(currentTab)) }
     }
 
     @Test

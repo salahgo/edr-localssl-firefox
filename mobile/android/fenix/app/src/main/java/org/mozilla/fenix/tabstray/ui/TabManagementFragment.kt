@@ -441,7 +441,9 @@ class TabManagementFragment : DialogFragment() {
                                     onAddToNewTabGroup = {
                                         tabsTrayStore.dispatch(TabGroupAction.AddToNewTabGroup)
                                     },
-                                    onAddToExistingTabGroup = {},
+                                    onAddToExistingTabGroup = { group ->
+                                        tabsTrayStore.dispatch(TabGroupAction.TabsAddedToGroup(groupId = group.id))
+                                    },
                                 )
                             }
                         },

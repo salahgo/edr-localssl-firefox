@@ -84,6 +84,13 @@ object TabGroupActionReducer {
 
                 is TabsTrayState.Mode.Select -> state
             }
+
+            is TabGroupAction.TabAddedToGroup -> state
+
+            is TabGroupAction.TabsAddedToGroup -> state.copy(
+                mode = TabsTrayState.Mode.Normal,
+                backStack = state.backStack.popTabGroupFlow(),
+            )
         }
     }
 

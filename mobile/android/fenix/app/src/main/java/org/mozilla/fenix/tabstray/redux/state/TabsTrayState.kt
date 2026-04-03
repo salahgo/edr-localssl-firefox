@@ -46,9 +46,34 @@ data class TabsTrayState(
     sealed class Mode {
 
         /**
-         * A set of selected tabs which we would want to perform an action on.
+         * A set of selected [TabsTrayItem.Tab]s which we would want to perform an action on.
          */
-        open val selectedTabs = emptySet<TabsTrayItem>()
+        open val selectedTabs = emptySet<TabsTrayItem.Tab>()
+
+        /**
+         * A set of selected [TabsTrayItem.TabGroup]s which we would want to perform an action on.
+         */
+        open val selectedTabGroups = emptySet<TabsTrayItem.TabGroup>()
+
+        /**
+         * The IDs of the currently-selected tabs.
+         */
+        val selectedTabIds: List<String>
+            get() = selectedTabs.map { it.id }
+
+        /**
+         * The IDs of the currently-selected tab groups.
+         */
+        val selectedTabGroupIds: List<String>
+            get() = selectedTabGroups.map { it.id }
+
+        /**
+         * Returns true if [item] is selected.
+         *
+         * @param item The [TabsTrayItem] to search for.
+         */
+        fun contains(item: TabsTrayItem) =
+            selectedTabs.contains(item) || selectedTabGroups.contains(item)
 
         /**
          * The default mode the tabs list is in.
@@ -57,9 +82,12 @@ data class TabsTrayState(
 
         /**
          * The multi-select mode that the tabs list is in containing the set of currently
-         * selected tabs.
+         * selected [TabsTrayItem]s.
          */
-        data class Select(override val selectedTabs: Set<TabsTrayItem>) : Mode()
+        data class Select(
+            override val selectedTabs: Set<TabsTrayItem.Tab> = emptySet(),
+            override val selectedTabGroups: Set<TabsTrayItem.TabGroup> = emptySet(),
+        ) : Mode()
     }
 
     /**
