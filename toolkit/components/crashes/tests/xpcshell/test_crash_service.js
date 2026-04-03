@@ -93,8 +93,12 @@ async function test_addCrashBase(crashId, allThreads) {
 
   try {
     let stackTraces = crash.metadata.StackTraces;
-    Assert.equal(stackTraces.status, "OK");
-    Assert.ok(stackTraces.crash_info, "The crash_info field is populated.");
+    Assert.equal("error" in stackTraces, false);
+    Assert.ok(stackTraces.crash_type, "The crash_type field is populated.");
+    Assert.ok(
+      stackTraces.crash_address,
+      "The crash_address field is populated."
+    );
     Assert.ok(
       stackTraces.modules && !!stackTraces.modules.length,
       "The module list is populated."

@@ -172,17 +172,14 @@ class GleanCrashReporterServiceTest {
         val service = GleanCrashReporterService(context)
         val stackTracesAnnotation = """
         {
-            "status": "OK",
-            "crash_info": {
-                "type": "main",
-                "address": "0xf001ba11",
-                "crashing_thread": 1
-            },
+            "crash_type": "main",
+            "crash_address": "0xf001ba11",
+            "crash_thread": 1,
             "main_module": 0,
             "modules": [
             {
-                "base_addr": "0x00000000",
-                "end_addr": "0x00004000",
+                "base_address": "0x00000000",
+                "end_address": "0x00004000",
                 "code_id": "8675309",
                 "debug_file": "",
                 "debug_id": "18675309",
@@ -190,8 +187,8 @@ class GleanCrashReporterServiceTest {
                 "version": "1.0.0"
             },
             {
-                "base_addr": "0x00004000",
-                "end_addr": "0x00008000",
+                "base_address": "0x00004000",
+                "end_address": "0x00008000",
                 "code_id": "42",
                 "debug_file": "foo.pdb",
                 "debug_id": "43",
