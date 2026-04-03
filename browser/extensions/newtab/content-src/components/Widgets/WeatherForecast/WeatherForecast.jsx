@@ -13,13 +13,11 @@ const USER_ACTION_TYPES = {
   DETECT_LOCATION: "detect_location",
   CHANGE_TEMP_UNIT: "change_temperature_units",
   CHANGE_DISPLAY: "change_weather_display",
-  CHANGE_SIZE: "change_size",
   LEARN_MORE: "learn_more",
   PROVIDER_LINK_CLICK: "provider_link_click",
 };
 
 const PREF_NOVA_ENABLED = "nova.enabled";
-const PREF_WEATHER_SIZE = "widgets.weather.size";
 
 function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
   const prefs = useSelector(state => state.Prefs.values);
@@ -27,66 +25,9 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
   const impressionFired = useRef(false);
   const errorTelemetrySent = useRef(false);
   const errorRef = useRef(null);
-  // @nova-cleanup(remove-pref): Remove pref check, always apply col-4 class after Nova ships
-  const novaEnabled = prefs[PREF_NOVA_ENABLED];
-  const isSmallSize = novaEnabled
-    ? (prefs[PREF_WEATHER_SIZE] || "large") !== "large"
-    : !isMaximized && widgetsMayBeMaximized;
-  let widgetSize;
-  if (novaEnabled) {
-    widgetSize = prefs[PREF_WEATHER_SIZE] || "large";
-  } else {
-    widgetSize = isSmallSize ? "small" : "medium";
-  }
 
-  const handleChangeSize = useCallback(
-    size => {
-      batch(() => {
-        dispatch(
-          ac.OnlyToMain({
-            type: at.SET_PREF,
-            data: {
-              name: PREF_WEATHER_SIZE,
-              value: size,
-            },
-          })
-        );
-        dispatch(
-          ac.OnlyToMain({
-            type: at.WIDGETS_USER_EVENT,
-            data: {
-              widget_name: "weather",
-              widget_source: "context_menu",
-              user_action: USER_ACTION_TYPES.CHANGE_SIZE,
-              action_value: size,
-              widget_size: size,
-            },
-          })
-        );
-      });
-    },
-    [dispatch]
-  );
-
-  const sizeSubmenuRef = useRef(null);
-  useEffect(() => {
-    const el = sizeSubmenuRef.current;
-    if (!el) {
-      return undefined;
-    }
-    // The size submenu panel-list is moved into the panel-item's shadow DOM by
-    // the panel-list custom element, so React's synthetic onClick doesn't reach
-    // inner items. We use composedPath() to find the clicked item across the
-    // shadow boundary via its data-size attribute.
-    const listener = e => {
-      const item = e.composedPath().find(node => node.dataset?.size);
-      if (item) {
-        handleChangeSize(item.dataset.size);
-      }
-    };
-    el.addEventListener("click", listener);
-    return () => el.removeEventListener("click", listener);
-  }, [handleChangeSize]);
+  const isSmallSize = !isMaximized && widgetsMayBeMaximized;
+  const widgetSize = isSmallSize ? "small" : "medium";
 
   const handleIntersection = useCallback(() => {
     if (impressionFired.current) {
@@ -96,7 +37,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
 
     const telemetryData = {
       widget_name: "weather",
-      widget_size: widgetSize,
+      widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
     };
     dispatch(
       ac.AlsoToMain({
@@ -104,7 +45,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         data: telemetryData,
       })
     );
-  }, [dispatch, widgetSize]);
+  }, [dispatch, widgetSize, widgetsMayBeMaximized]);
 
   const forecastRef = useIntersectionObserver(handleIntersection);
 
@@ -125,7 +66,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
             type: at.WIDGETS_ERROR,
             data: {
               widget_name: "weather",
-              widget_size: widgetSize,
+              widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
               error_type: "load_error",
             },
           })
@@ -133,7 +74,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         errorTelemetrySent.current = true;
       }
     },
-    [dispatch, widgetSize]
+    [dispatch, widgetSize, widgetsMayBeMaximized]
   );
 
   useEffect(() => {
@@ -171,10 +112,8 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
   // - The weather forecast widget is enabled (system.weatherForecast.enabled)
   // Note that if the view is set to "detailed" but the weather forecast widget is not enabled,
   // then the mini weather widget will display with the "detailed" view
-  // @nova-cleanup(remove-conditional): Remove the !showDetailedView branch; after Nova
-  // ships only the size-based check remains, replace with `widgetSize === "small"`
   if (
-    (novaEnabled ? widgetSize === "small" : !showDetailedView) ||
+    !showDetailedView ||
     !weatherData?.initialized ||
     !weatherForecastWidgetEnabled ||
     !isWeatherEnabled
@@ -201,7 +140,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         widget_name: "weather",
         widget_source: "context_menu",
         user_action: USER_ACTION_TYPES.CHANGE_LOCATION,
-        widget_size: widgetSize,
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
       };
       dispatch(
         ac.OnlyToMain({
@@ -223,7 +162,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         widget_name: "weather",
         widget_source: "context_menu",
         user_action: USER_ACTION_TYPES.DETECT_LOCATION,
-        widget_size: widgetSize,
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
       };
       dispatch(
         ac.OnlyToMain({
@@ -249,7 +188,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         widget_name: "weather",
         widget_source: "context_menu",
         user_action: USER_ACTION_TYPES.CHANGE_TEMP_UNIT,
-        widget_size: widgetSize,
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
         action_value: unit,
       };
       dispatch(
@@ -277,7 +216,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         widget_source: "context_menu",
         user_action: USER_ACTION_TYPES.CHANGE_DISPLAY,
         action_value: "switch_to_mini_widget",
-        widget_size: widgetSize,
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
       };
       dispatch(
         ac.OnlyToMain({
@@ -303,7 +242,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         widget_name: "weather",
         widget_source: "context_menu",
         enabled: false,
-        widget_size: widgetSize,
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
       };
       dispatch(
         ac.OnlyToMain({
@@ -328,7 +267,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
         widget_name: "weather",
         widget_source: "context_menu",
         user_action: USER_ACTION_TYPES.LEARN_MORE,
-        widget_size: widgetSize,
+        widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
       };
       dispatch(
         ac.OnlyToMain({
@@ -344,7 +283,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
       widget_name: "weather",
       widget_source: "widget",
       user_action: USER_ACTION_TYPES.PROVIDER_LINK_CLICK,
-      widget_size: widgetSize,
+      widget_size: widgetsMayBeMaximized ? widgetSize : "medium",
     };
     dispatch(
       ac.OnlyToMain({
@@ -389,48 +328,17 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
               onClick={() => handleChangeTempUnit("f")}
             />
           )}
-          {
-            // @nova-cleanup(remove-conditional): Remove this block; the simple/detailed
-            // display toggle is replaced by the size submenu after Nova ships
-            !novaEnabled &&
-              (!showDetailedView ? (
-                <panel-item
-                  data-l10n-id="newtab-weather-menu-change-weather-display-detailed"
-                  onClick={() => handleChangeDisplay("detailed")}
-                />
-              ) : (
-                <panel-item
-                  data-l10n-id="newtab-weather-menu-change-weather-display-simple"
-                  onClick={() => handleChangeDisplay("simple")}
-                />
-              ))
-          }
-          {
-            // @nova-cleanup(remove-conditional): Remove the novaEnabled check
-            // Always render the size submenu
-            novaEnabled && (
-              <panel-item
-                submenu="weather-forecast-size-submenu"
-                data-l10n-id="newtab-widget-menu-change-size"
-              >
-                <panel-list
-                  ref={sizeSubmenuRef}
-                  slot="submenu"
-                  id="weather-forecast-size-submenu"
-                >
-                  {["small", "medium", "large"].map(size => (
-                    <panel-item
-                      key={size}
-                      type="checkbox"
-                      checked={widgetSize === size || undefined}
-                      data-size={size}
-                      data-l10n-id={`newtab-widget-size-${size}`}
-                    />
-                  ))}
-                </panel-list>
-              </panel-item>
-            )
-          }
+          {!showDetailedView ? (
+            <panel-item
+              data-l10n-id="newtab-weather-menu-change-weather-display-detailed"
+              onClick={() => handleChangeDisplay("detailed")}
+            />
+          ) : (
+            <panel-item
+              data-l10n-id="newtab-weather-menu-change-weather-display-simple"
+              onClick={() => handleChangeDisplay("simple")}
+            />
+          )}
           <panel-item
             data-l10n-id="newtab-widget-menu-hide"
             onClick={handleHideWeather}
@@ -443,6 +351,9 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
       </div>
     );
   }
+
+  // @nova-cleanup(remove-pref): Remove pref check, always apply col-4 class after Nova ships
+  const novaEnabled = prefs[PREF_NOVA_ENABLED];
 
   return (
     <article

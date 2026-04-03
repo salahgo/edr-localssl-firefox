@@ -1180,20 +1180,6 @@ export const PREFS_CONFIG = new Map([
     },
   ],
   [
-    "widgets.weather.size",
-    {
-      title: "Size of the weather forecast widget (small, medium, or large)",
-      value: "large",
-    },
-  ],
-  [
-    "widgets.lists.size",
-    {
-      title: "Size of the lists widget (medium or large)",
-      value: "large",
-    },
-  ],
-  [
     "widgets.feedback.enabled",
     {
       title: "Enables the feedback link in the widgets container",
