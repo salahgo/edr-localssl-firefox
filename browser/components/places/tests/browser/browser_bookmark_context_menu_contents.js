@@ -49,16 +49,15 @@ async function hidePopupAndWait(popup) {
 /**
  * Executes a task and awaits for the expected context menu panel to receive
  * the popupshown event, retries if it doesn't fire within a reasonable time.
- * This is a workaround for test failures on Linux where the synthesized mouse
- * event is apparently lost when this is the first test to run.
+ * TODO (Bug 2018551): this is a workaround for test failures where the
+ * synthesized mouse event is apparently lost when this test is the first to run.
  *
  * @param {DOMElement} contextMenuPanel
  * @param {Function} openingFn
  * @returns {Promise<DOMElement>}
  */
 async function openContextMenuWithRetry(contextMenuPanel, openingFn) {
-  const os = Services.appinfo.OS;
-  let attempts = os === "Linux" || os === "Darwin" ? 10 : 1;
+  const attempts = 10;
   for (let i = 0; i < attempts; i++) {
     if (i > 0 && contextMenuPanel.state !== "closed") {
       await hidePopupAndWait(contextMenuPanel);
@@ -242,9 +241,6 @@ add_task(async function test_bookmark_contextmenu_contents() {
     });
 
     let toolbarNode = await waitForToolbarNode(toolbarBookmark.guid);
-
-    // TODO (Bug 2018551): figure out why on Linux apparently some time is
-    // needed before the UI is ready to handle mouse events.
     return openContextMenuWithRetry(
       document.getElementById("placesContext"),
       () => {
@@ -845,10 +841,7 @@ add_task(async function test_private_browsing_window() {
       });
 
       let toolbarNode = await waitForToolbarNode(toolbarBookmark.guid, win);
-
       let contextMenu = win.document.getElementById("placesContext");
-      // TODO (Bug 2018551): figure out why on Linux apparently some time is
-      // needed before the UI is ready to handle mouse events.
       return openContextMenuWithRetry(contextMenu, () => {
         EventUtils.synthesizeMouseAtCenter(
           toolbarNode,
