@@ -114,17 +114,17 @@ bool StoreBuffer::WholeCellBuffer::isEmpty() const {
 }
 
 void StoreBuffer::WholeCellBuffer::clear() {
-  for (LifoAlloc::Enum e(*storage_); !e.empty();) {
-    ArenaCellSet* cellSet = e.read<ArenaCellSet>();
-    cellSet->arena->bufferedCells() = &ArenaCellSet::Empty;
-  }
-  sweepHead_ = nullptr;
-
   if (storage_) {
+    for (LifoAlloc::Enum e(*storage_); !e.empty();) {
+      ArenaCellSet* cellSet = e.read<ArenaCellSet>();
+      cellSet->arena->bufferedCells() = &ArenaCellSet::Empty;
+    }
+
     storage_->used() ? storage_->releaseAll() : storage_->freeAll();
   }
 
   last_ = nullptr;
+  sweepHead_ = nullptr;
 }
 
 ArenaCellSet* StoreBuffer::WholeCellBuffer::allocateCellSet(Arena* arena) {

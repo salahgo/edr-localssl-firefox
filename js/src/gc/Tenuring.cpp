@@ -755,7 +755,7 @@ void JSDependentString::updateToPromotedBaseImpl(JSLinearString* base) {
   const CharT* oldChars = JSString::nonInlineCharsRaw<CharT>();
   size_t offset = oldChars - oldBaseChars;
   JSLinearString* promotedBase = Forwarded(base);
-  MOZ_ASSERT(offset < promotedBase->length());
+  MOZ_ASSERT(offset + this->length() <= promotedBase->length());
 
   const CharT* newBaseChars =
       promotedBase->JSString::nonInlineCharsRaw<CharT>();

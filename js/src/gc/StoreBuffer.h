@@ -349,6 +349,8 @@ class StoreBuffer {
       uint32_t end = std::max(start_ + count_, other.start_ + other.count_);
       start_ = std::min(start_, other.start_);
       count_ = end - start_;
+      MOZ_ASSERT(count_ > 0);
+      MOZ_ASSERT(start_ + count_ > start_);
     }
 
     bool maybeInRememberedSet(const Nursery& n) const {
