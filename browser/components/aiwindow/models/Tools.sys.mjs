@@ -367,6 +367,7 @@ export function stripSearchBrowsingHistoryFields(result) {
 export class RunSearch {
   static NAVIGATION_TIMEOUT_MS = 15000;
   static CONTENT_SETTLE_MS = 2000;
+  static MAX_CHARACTERS = 15000;
 
   static #ensureTabSelected(tab) {
     if (!tab.selected) {
@@ -571,51 +572,39 @@ export class RunSearch {
     await new Promise(r => lazy.setTimeout(r, RunSearch.CONTENT_SETTLE_MS));
   }
 
+  /**
+   * Run PageExtractor on the search engine page.
+   *
+   * @param {MozBrowser} browser
+   * @returns {string}
+   */
   static async #extractSerpContent(browser) {
     const windowContext = browser.browsingContext?.currentWindowContext;
     if (!windowContext) {
       return "Error: could not access search results page content.";
     }
 
+    /** @type {string} */
+    let text;
+    /** @type {PageExtractorParent} */
     const pageExtractor = await windowContext.getActor("PageExtractor");
-    let extraction;
     try {
-      extraction = await pageExtractor.getReaderModeContent();
+      const result = await pageExtractor.getText({
+        sufficientLength: RunSearch.MAX_CHARACTERS,
+        cleanWhitespace: true,
+        removeBoilerplate: true,
+      });
+      if (!result) {
+        return "No content could be extracted from the search results page.";
+      }
+      text = result.text;
     } catch {
-      // Fall back to full text extraction
-    }
-
-    let text = extraction?.text ?? "";
-    if (!text) {
-      try {
-        extraction = await pageExtractor.getText();
-        text = extraction?.text ?? "";
-      } catch {
-        return "Error: failed to extract search results content.";
-      }
-    }
-
-    if (!text) {
-      return "No content could be extracted from the search results page.";
-    }
-
-    let cleanContent = text
-      .replace(/\s+/g, " ")
-      .replace(/\n\s*\n/g, "\n")
-      .trim();
-
-    const MAX_CHARS = 15000;
-    if (cleanContent.length > MAX_CHARS) {
-      const truncatePoint = cleanContent.lastIndexOf(".", MAX_CHARS);
-      if (truncatePoint > MAX_CHARS - 100) {
-        cleanContent = cleanContent.substring(0, truncatePoint + 1);
-      } else {
-        cleanContent = cleanContent.substring(0, MAX_CHARS) + "...";
-      }
+      return "Error: failed to extract search results content.";
     }
 
     const url = browser.currentURI?.spec || "unknown";
-    return `Search results from ${url}:\n\n${cleanContent}`;
+
+    return `Search results from ${url}:\n\n${text}`;
   }
 }
 
