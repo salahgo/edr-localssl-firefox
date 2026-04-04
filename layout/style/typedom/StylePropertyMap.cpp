@@ -4,15 +4,11 @@
 
 #include "mozilla/dom/StylePropertyMap.h"
 
-#include "CSSUnsupportedValue.h"
+#include "mozilla/CSSPropertyId.h"
 #include "mozilla/ErrorResult.h"
 #include "mozilla/RefPtr.h"
 #include "mozilla/dom/BindingDeclarations.h"
-#include "mozilla/dom/CSSKeywordValue.h"
-#include "mozilla/dom/CSSMathSum.h"
 #include "mozilla/dom/CSSStyleValue.h"
-#include "mozilla/dom/CSSTransformValue.h"
-#include "mozilla/dom/CSSUnitValue.h"
 #include "mozilla/dom/StylePropertyMapBinding.h"
 #include "nsCOMPtr.h"
 #include "nsCSSProps.h"
@@ -79,41 +75,7 @@ void StylePropertyMap::Set(
   }
 
   nsAutoCString cssText;
-
-  switch (styleValue.GetStyleValueType()) {
-    case CSSStyleValue::StyleValueType::TransformValue: {
-      CSSTransformValue& transformValue = styleValue.GetAsCSSTransformValue();
-
-      transformValue.ToCssTextWithProperty(propertyId, cssText);
-      break;
-    }
-
-    case CSSStyleValue::StyleValueType::NumericValue: {
-      CSSNumericValue& numericValue = styleValue.GetAsCSSNumericValue();
-
-      numericValue.ToCssTextWithProperty(propertyId, cssText);
-      break;
-    }
-
-    case CSSStyleValue::StyleValueType::KeywordValue: {
-      CSSKeywordValue& keywordValue = styleValue.GetAsCSSKeywordValue();
-
-      keywordValue.ToCssTextWithProperty(propertyId, cssText);
-      break;
-    }
-
-    case CSSStyleValue::StyleValueType::UnsupportedValue: {
-      CSSUnsupportedValue& unsupportedValue =
-          styleValue.GetAsCSSUnsupportedValue();
-
-      unsupportedValue.ToCssTextWithProperty(propertyId, cssText);
-      break;
-    }
-
-    case CSSStyleValue::StyleValueType::Uninitialized:
-      break;
-  }
-
+  styleValue.ToCssTextWithProperty(propertyId, cssText);
   if (cssText.IsEmpty()) {
     aRv.Throw(NS_ERROR_NOT_IMPLEMENTED);
     return;
