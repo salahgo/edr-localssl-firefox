@@ -19,7 +19,7 @@ const { searchBrowsingHistory, stripSearchBrowsingHistoryFields } =
  */
 
 add_task(async function test_searchBrowsingHistory_wrapper() {
-  const outputStr = await searchBrowsingHistory(
+  const output = await searchBrowsingHistory(
     {
       searchTerm: "",
       startTs: null,
@@ -28,8 +28,6 @@ add_task(async function test_searchBrowsingHistory_wrapper() {
     },
     makeConversation()
   );
-
-  const output = JSON.parse(outputStr);
 
   Assert.equal(output.searchTerm, "", "searchTerm match");
   Assert.ok("results" in output, "results field present");
@@ -232,8 +230,7 @@ add_task(
 
 // test: tool called with no arguments
 add_task(async function test_searchBrowsingHistory_wrapper_no_args() {
-  const outputStr = await searchBrowsingHistory(undefined, makeConversation());
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory(undefined, makeConversation());
 
   Assert.ok("searchTerm" in output, "searchTerm field present");
   Assert.ok("results" in output, "results field present");
@@ -248,8 +245,7 @@ add_task(async function test_searchBrowsingHistory_wrapper_no_args() {
 
 // test: tool called with undefined
 add_task(async function test_searchBrowsingHistory_wrapper_undefined_args() {
-  const outputStr = await searchBrowsingHistory(undefined, makeConversation());
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory(undefined, makeConversation());
 
   Assert.ok("searchTerm" in output, "searchTerm field present");
   Assert.ok("results" in output, "results field present");
@@ -262,8 +258,7 @@ add_task(async function test_searchBrowsingHistory_wrapper_undefined_args() {
 
 // test: tool called with null
 add_task(async function test_searchBrowsingHistory_wrapper_null_args() {
-  const outputStr = await searchBrowsingHistory(null, makeConversation());
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory(null, makeConversation());
 
   Assert.ok("searchTerm" in output, "searchTerm field present");
   Assert.ok("results" in output, "results field present");
@@ -276,8 +271,7 @@ add_task(async function test_searchBrowsingHistory_wrapper_null_args() {
 
 // test: tool called with non-object (string)
 add_task(async function test_searchBrowsingHistory_wrapper_string_args() {
-  const outputStr = await searchBrowsingHistory("mozilla", makeConversation());
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory("mozilla", makeConversation());
 
   Assert.ok("searchTerm" in output, "searchTerm field present");
   Assert.ok("results" in output, "results field present");
@@ -290,8 +284,7 @@ add_task(async function test_searchBrowsingHistory_wrapper_string_args() {
 
 // test: tool called with non-object (number)
 add_task(async function test_searchBrowsingHistory_wrapper_number_args() {
-  const outputStr = await searchBrowsingHistory(123, makeConversation());
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory(123, makeConversation());
 
   Assert.ok("searchTerm" in output, "searchTerm field present");
   Assert.ok("results" in output, "results field present");
@@ -323,16 +316,14 @@ add_task(async function test_searchBrowsingHistory_allowed_when_flags_set() {
     privateData: true,
     untrustedInput: true,
   });
-  const outputStr = await searchBrowsingHistory({}, conversation);
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory({}, conversation);
 
   Assert.ok("results" in output, "returns results, not a refusal");
 });
 
 // test: tool called with non-object (boolean)
 add_task(async function test_searchBrowsingHistory_wrapper_boolean_args() {
-  const outputStr = await searchBrowsingHistory(true, makeConversation());
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory(true, makeConversation());
 
   Assert.ok("searchTerm" in output, "searchTerm field present");
   Assert.ok("results" in output, "results field present");

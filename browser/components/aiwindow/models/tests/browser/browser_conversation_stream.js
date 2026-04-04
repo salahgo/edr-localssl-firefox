@@ -219,10 +219,10 @@ add_task(async function test_chat_tool_call_search_browsing_history() {
           message => message.role === MESSAGE_ROLE.TOOL
         );
         Assert.equal(toolMessages.length, 1, "Tool result recorded");
-        const parsed = JSON.parse(toolMessages[0].content.body);
-        info("got history: " + toolMessages[0].content.body);
+        const toolResult = toolMessages[0].content.body;
+        info("got history: " + JSON.stringify(toolResult));
         Assert.greaterOrEqual(
-          parsed.results.length,
+          toolResult.results.length,
           1,
           "History tool returns stored visits"
         );

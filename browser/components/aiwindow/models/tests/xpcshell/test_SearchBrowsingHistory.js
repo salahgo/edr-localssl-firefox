@@ -71,16 +71,12 @@ add_task(async function test_basic_history_fetch_and_shape() {
 
   await PlacesUtils.history.insertMany(seeded);
 
-  const allRowsStr = await searchBrowsingHistory(
-    {
-      searchTerm: "",
-      startTs: null,
-      endTs: null,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  const allRowsObj = JSON.parse(allRowsStr);
+  const allRowsObj = await searchBrowsingHistory({
+    searchTerm: "",
+    startTs: null,
+    endTs: null,
+    historyLimit: 15,
+  });
 
   // check count match
   Assert.equal(
@@ -136,16 +132,12 @@ add_task(async function test_time_range_only_startTs() {
   // records after last 10 minutes
   const startTs = new Date(now - 10 * 60 * 1000).toISOString(); // ISO input
 
-  const rowsStr = await searchBrowsingHistory(
-    {
-      searchTerm: "",
-      startTs,
-      endTs: null,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  const rows = JSON.parse(rowsStr);
+  const rows = await searchBrowsingHistory({
+    searchTerm: "",
+    startTs,
+    endTs: null,
+    historyLimit: 15,
+  });
   const urls = rows.results.map(r => r.url);
 
   Assert.ok(
@@ -180,16 +172,12 @@ add_task(async function test_time_range_only_endTs() {
   // Anything before last 10 minutes
   const endTs = new Date(now - 10 * 60 * 1000).toISOString(); // ISO input
 
-  const rowsStr = await searchBrowsingHistory(
-    {
-      searchTerm: "",
-      startTs: null,
-      endTs,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  const rows = JSON.parse(rowsStr);
+  const rows = await searchBrowsingHistory({
+    searchTerm: "",
+    startTs: null,
+    endTs,
+    historyLimit: 15,
+  });
   const urls = rows.results.map(r => r.url);
 
   Assert.ok(
@@ -230,16 +218,12 @@ add_task(async function test_time_range_start_and_endTs() {
   const startTs = new Date(now - 45 * 60 * 1000).toISOString();
   const endTs = new Date(now - 15 * 60 * 1000).toISOString();
 
-  const rowsStr = await searchBrowsingHistory(
-    {
-      searchTerm: "",
-      startTs,
-      endTs,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  const rows = JSON.parse(rowsStr);
+  const rows = await searchBrowsingHistory({
+    searchTerm: "",
+    startTs,
+    endTs,
+    historyLimit: 15,
+  });
   const urls = rows.results.map(r => r.url);
 
   Assert.ok(urls.includes(inWindow.url), "In window entry should be included");
@@ -264,16 +248,12 @@ add_task(async function test_no_results_messages() {
   await PlacesUtils.history.clear();
 
   // No search term: time range message.
-  let outputStr = await searchBrowsingHistory(
-    {
-      searchTerm: "",
-      startTs: null,
-      endTs: null,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  let output = JSON.parse(outputStr);
+  let output = await searchBrowsingHistory({
+    searchTerm: "",
+    startTs: null,
+    endTs: null,
+    historyLimit: 15,
+  });
 
   Assert.equal(output.results.length, 0, "No results when history is empty");
   Assert.ok(
@@ -282,16 +262,12 @@ add_task(async function test_no_results_messages() {
   );
 
   // With search term: search specific message.
-  outputStr = await searchBrowsingHistory(
-    {
-      searchTerm: "mozilla",
-      startTs: null,
-      endTs: null,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  output = JSON.parse(outputStr);
+  output = await searchBrowsingHistory({
+    searchTerm: "mozilla",
+    startTs: null,
+    endTs: null,
+    historyLimit: 15,
+  });
 
   Assert.equal(output.results.length, 0, "No results for semantic search");
   Assert.ok(
@@ -327,16 +303,12 @@ add_task(async function test_basic_text_search_when_semantic_disabled() {
   Services.prefs.setBoolPref("browser.ml.enable", false);
   Services.prefs.setBoolPref("places.semanticHistory.featureGate", false);
 
-  const outputStr = await searchBrowsingHistory(
-    {
-      searchTerm: "mozilla",
-      startTs: null,
-      endTs: null,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  const output = JSON.parse(outputStr);
+  const output = await searchBrowsingHistory({
+    searchTerm: "mozilla",
+    startTs: null,
+    endTs: null,
+    historyLimit: 15,
+  });
 
   Assert.equal(output.searchTerm, "mozilla", "searchTerm match");
   Assert.equal(output.results.length, 1, "One history entry is returned");
@@ -383,16 +355,12 @@ add_task(async function test_time_range_search_with_region_ro() {
   const startTs = new Date(now - 45 * 60 * 1000).toISOString();
   const endTs = new Date(now - 15 * 60 * 1000).toISOString();
 
-  const rowsStr = await searchBrowsingHistory(
-    {
-      searchTerm: "",
-      startTs,
-      endTs,
-      historyLimit: 15,
-    },
-    new SecurityProperties()
-  );
-  const rows = JSON.parse(rowsStr);
+  const rows = await searchBrowsingHistory({
+    searchTerm: "",
+    startTs,
+    endTs,
+    historyLimit: 15,
+  });
   const urls = rows.results.map(r => r.url);
 
   Assert.ok(
