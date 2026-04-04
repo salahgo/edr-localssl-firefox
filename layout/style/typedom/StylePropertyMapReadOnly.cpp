@@ -11,8 +11,10 @@
 #include "mozilla/ErrorResult.h"
 #include "mozilla/RefPtr.h"
 #include "mozilla/ServoStyleConsts.h"
+#include "mozilla/StyleSheet.h"
 #include "mozilla/dom/CSSStyleRule.h"
 #include "mozilla/dom/CSSStyleValue.h"
+#include "mozilla/dom/Document.h"
 #include "mozilla/dom/Element.h"
 #include "mozilla/dom/StylePropertyMapReadOnlyBinding.h"
 #include "nsCSSProps.h"
@@ -51,6 +53,12 @@ struct DeclarationTraits<InlineStyleDeclarations> {
 
     return valueList;
   }
+
+  static URLExtraData* GetURLExtraData(Element* aElement) {
+    MOZ_ASSERT(aElement);
+
+    return aElement->OwnerDoc()->DefaultStyleAttrURLData();
+  }
 };
 
 // Specialization for computed style (computed values)
@@ -78,6 +86,12 @@ struct DeclarationTraits<ComputedStyleDeclarations> {
 
     return valueList;
   }
+
+  static URLExtraData* GetURLExtraData(Element* aElement) {
+    MOZ_ASSERT(aElement);
+
+    return aElement->OwnerDoc()->DefaultStyleAttrURLData();
+  }
 };
 
 // Specialization for style rule
@@ -99,6 +113,17 @@ struct DeclarationTraits<StyleRuleDeclarations> {
     }
 
     return valueList;
+  }
+
+  static URLExtraData* GetURLExtraData(const CSSStyleRule* aRule) {
+    MOZ_ASSERT(aRule);
+
+    StyleSheet* sheet = aRule->GetStyleSheet();
+    if (!sheet) {
+      return nullptr;
+    }
+
+    return sheet->URLData();
   }
 };
 
@@ -264,6 +289,22 @@ StylePropertyTypedValueList StylePropertyMapReadOnly::Declarations::GetAll(
     case Kind::Rule:
       return DeclarationTraits<StyleRuleDeclarations>::GetAll(mRule,
                                                               aPropertyId, aRv);
+  }
+  MOZ_MAKE_COMPILER_ASSUME_IS_UNREACHABLE("Bad kind value!");
+}
+
+URLExtraData* StylePropertyMapReadOnly::Declarations::GetURLExtraData() const {
+  switch (mKind) {
+    case Kind::Inline:
+      return DeclarationTraits<InlineStyleDeclarations>::GetURLExtraData(
+          mElement);
+
+    case Kind::Computed:
+      return DeclarationTraits<ComputedStyleDeclarations>::GetURLExtraData(
+          mElement);
+
+    case Kind::Rule:
+      return DeclarationTraits<StyleRuleDeclarations>::GetURLExtraData(mRule);
   }
   MOZ_MAKE_COMPILER_ASSUME_IS_UNREACHABLE("Bad kind value!");
 }

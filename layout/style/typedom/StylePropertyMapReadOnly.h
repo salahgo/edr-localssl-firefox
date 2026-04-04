@@ -25,6 +25,7 @@ namespace mozilla {
 struct CSSPropertyId;
 class ErrorResult;
 struct StylePropertyTypedValueList;
+struct URLExtraData;
 
 namespace dom {
 
@@ -89,6 +90,8 @@ class StylePropertyMapReadOnly : public nsISupports, public nsWrapperCache {
 
     StylePropertyTypedValueList GetAll(const CSSPropertyId& aPropertyId,
                                        ErrorResult& aRv) const;
+
+    URLExtraData* GetURLExtraData() const;
 
     void Unlink();
 

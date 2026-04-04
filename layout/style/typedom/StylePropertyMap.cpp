@@ -58,16 +58,23 @@ void StylePropertyMap::Set(
 
   const auto& styleValueOrString = aValues[0];
 
-  if (!styleValueOrString.IsCSSStyleValue()) {
-    aRv.Throw(NS_ERROR_NOT_IMPLEMENTED);
-    return;
-  }
+  RefPtr<CSSStyleValue> styleValue;
 
-  CSSStyleValue& styleValue = styleValueOrString.GetAsCSSStyleValue();
+  if (styleValueOrString.IsCSSStyleValue()) {
+    styleValue = styleValueOrString.GetAsCSSStyleValue();
+  } else {
+    styleValue = CSSStyleValue::ParseStyleValue(
+        mParent, aProperty, styleValueOrString.GetAsUTF8String(),
+        mDeclarations.GetURLExtraData(),
+        /* aStyleValues */ nullptr, aRv);
+    if (aRv.Failed()) {
+      return;
+    }
+  }
 
   // Step 4
 
-  const auto* valuePropertyId = styleValue.GetPropertyId();
+  const auto* valuePropertyId = styleValue->GetPropertyId();
 
   if (valuePropertyId && *valuePropertyId != propertyId) {
     aRv.ThrowTypeError("Invalid type for property"_ns);
@@ -75,7 +82,7 @@ void StylePropertyMap::Set(
   }
 
   nsAutoCString cssText;
-  styleValue.ToCssTextWithProperty(propertyId, cssText);
+  styleValue->ToCssTextWithProperty(propertyId, cssText);
   if (cssText.IsEmpty()) {
     aRv.Throw(NS_ERROR_NOT_IMPLEMENTED);
     return;
