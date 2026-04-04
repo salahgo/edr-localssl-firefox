@@ -41,10 +41,10 @@ index fa6ccf8773..7cd379eff3 100644
  
    void Init();
 diff --git a/video/rtp_video_stream_receiver2.cc b/video/rtp_video_stream_receiver2.cc
-index 09665a2915..6a7132426d 100644
+index f12d232105..678cf28dc4 100644
 --- a/video/rtp_video_stream_receiver2.cc
 +++ b/video/rtp_video_stream_receiver2.cc
-@@ -382,7 +382,7 @@ RtpVideoStreamReceiver2::RtpVideoStreamReceiver2(
+@@ -381,7 +381,7 @@ RtpVideoStreamReceiver2::RtpVideoStreamReceiver2(
      frame_transformer_delegate_ =
          make_ref_counted<RtpVideoStreamReceiverFrameTransformerDelegate>(
              this, &env_.clock(), std::move(frame_transformer),
