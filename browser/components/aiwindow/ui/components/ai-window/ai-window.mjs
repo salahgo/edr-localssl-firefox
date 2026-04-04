@@ -332,6 +332,10 @@ export class AIWindow extends MozLitElement {
       "chat-conversation:message-complete",
       this.#onMessageComplete
     );
+    this.#conversation.on(
+      "chat-conversation:seen-urls-updated",
+      this.#onSeenUrlsUpdated
+    );
   }
 
   #removeConversationListeners() {
@@ -347,7 +351,18 @@ export class AIWindow extends MozLitElement {
       "chat-conversation:message-complete",
       this.#onMessageComplete
     );
+    this.#conversation.off(
+      "chat-conversation:seen-urls-updated",
+      this.#onSeenUrlsUpdated
+    );
   }
+
+  #onSeenUrlsUpdated = () => {
+    const actor = this.#getAIChatContentActor();
+    if (actor) {
+      this.#dispatchSeenUrls(actor);
+    }
+  };
 
   #onMessageUpdate = (_event, message) => {
     this.#dispatchMessageToChatContent(message);
@@ -953,12 +968,7 @@ export class AIWindow extends MozLitElement {
         this.#calculateCurrentMentions(contextMentions);
 
       if (allUrls.size) {
-        const actor = this.#getAIChatContentActor();
-        if (actor && this.#conversation?.id) {
-          for (const url of allUrls) {
-            actor.seedMentionedUrl(this.#conversation.id, url);
-          }
-        }
+        this.#conversation.addSeenUrls(allUrls);
       }
       this.submitChatMessage({
         text: value,
@@ -1445,12 +1455,27 @@ export class AIWindow extends MozLitElement {
   }
 
   /**
+   * A helper function to dispatches the current conversation's seen urls to the
+   * chat content.
+   *
+   * @param {AIChatContentParent} actor
+   */
+  #dispatchSeenUrls(actor) {
+    if (!this.#conversation?.id) {
+      return;
+    }
+    actor.dispatchSeenUrlsToChatContent({
+      conversationId: this.#conversation.id,
+      seenUrls: this.#conversation.seenUrls,
+    });
+  }
+
+  /**
    * Retrieves the AIChatContent actor from the browser's window global.
    *
    * @returns {Promise<object|null>} The AIChatContent actor, or null if unavailable.
    * @private
    */
-
   #getAIChatContentActor() {
     if (!this.#browser) {
       lazy.log.warn("AI browser not set, cannot get AIChatContent actor");
@@ -1534,10 +1559,7 @@ export class AIWindow extends MozLitElement {
    * @param {JSActor} actor
    */
   #deliverConversationMessages(actor) {
-    // Notify actor of current conversation for security ledger access.
-    if (this.#conversation?.id) {
-      actor.setConversation(this.#conversation.id);
-    }
+    this.#dispatchSeenUrls(actor);
 
     if (!this.#pendingMessageDelivery) {
       return;

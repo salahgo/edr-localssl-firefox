@@ -786,5 +786,6 @@ export class ChatConversation extends EventEmitter {
     for (const url of urls) {
       this.seenUrls.add(url);
     }
+    this.emit("chat-conversation:seen-urls-updated", this.seenUrls);
   }
 }
