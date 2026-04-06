@@ -2486,6 +2486,14 @@ class Settings(
     )
 
     /**
+     * Indicates if Add Shortcuts improvement is enabled.
+     */
+    var enableAddShortcutsImprovement by booleanPreference(
+        key = appContext.getPreferenceKey(R.string.pref_key_enable_add_shortcuts_improvement),
+        default = { FxNimbus.features.addShortcutsImprovement.value().enabled },
+    )
+
+    /**
      * Indicates if Merino Client is enabled.
      */
     var enableMerinoClient by booleanPreference(
