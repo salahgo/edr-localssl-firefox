@@ -234,7 +234,7 @@ internal sealed class HomepageState {
                     browserState = components.core.store.state,
                     browsingModeManager = browsingModeManager,
                 ),
-                pocketState = PocketState.build(appState = appState, settings = settings),
+                pocketState = PocketState.build(appState = appState),
                 showTopSites = settings.showTopSitesFeature && topSites.isNotEmpty(),
                 showTopSitesHeader = !(settings.privateModeAndStoriesEntryPointEnabled && topSites.size <= 8),
                 showRecentTabs = shouldShowRecentTabs(settings),

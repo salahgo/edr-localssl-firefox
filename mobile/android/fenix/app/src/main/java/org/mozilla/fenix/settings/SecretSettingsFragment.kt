@@ -336,12 +336,6 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
 
-        requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_discover_more_stories).apply {
-            isVisible = Config.channel.isNightlyOrDebug
-            isChecked = context.settings().enableDiscoverMoreStories
-            onPreferenceChangeListener = SharedPreferenceUpdater()
-        }
-
         requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_privacy_report).apply {
             isVisible = Config.channel.isNightlyOrDebug
             isChecked = context.settings().showPrivacyReportSectionToggle
