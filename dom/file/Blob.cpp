@@ -120,6 +120,11 @@ Blob::Blob(nsIGlobalObject* aGlobal, BlobImpl* aImpl)
 
 Blob::~Blob() = default;
 
+already_AddRefed<Blob> Blob::Clone() const {
+  RefPtr<Blob> clone = Create(GetParentObject(), Impl());
+  return clone.forget();
+}
+
 bool Blob::IsFile() const { return mImpl->IsFile(); }
 
 const nsTArray<RefPtr<BlobImpl>>* Blob::GetSubBlobImpls() const {
