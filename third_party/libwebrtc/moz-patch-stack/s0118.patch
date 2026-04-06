@@ -70,7 +70,7 @@ index 902b60d306..dcbfa227ef 100644
    static std::unique_ptr<Call> Create(CallConfig config);
  
 diff --git a/modules/desktop_capture/BUILD.gn b/modules/desktop_capture/BUILD.gn
-index 6a1c8ec37b..24ce008ab5 100644
+index 303f7a2674..29f0f6846d 100644
 --- a/modules/desktop_capture/BUILD.gn
 +++ b/modules/desktop_capture/BUILD.gn
 @@ -397,6 +397,11 @@ rtc_library("desktop_capture") {

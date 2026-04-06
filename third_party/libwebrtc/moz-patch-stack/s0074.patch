@@ -8,14 +8,14 @@ Depends on D172224
 Differential Revision: https://phabricator.services.mozilla.com/D172229
 Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/237d19fe96dd7d25b6a817415ee4e6854678d648
 ---
- .../linux/wayland/shared_screencast_stream.cc            | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ .../linux/wayland/shared_screencast_stream.cc               | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc b/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc
-index d5ed0c6be9..2c0412a857 100644
+index 34a84e168d..b1767475d6 100644
 --- a/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc
 +++ b/modules/desktop_capture/linux/wayland/shared_screencast_stream.cc
-@@ -476,7 +476,9 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
+@@ -459,7 +459,9 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
      RTC_LOG(LS_ERROR) << "Unable to open PipeWire library";
      return false;
    }
@@ -26,17 +26,7 @@ index d5ed0c6be9..2c0412a857 100644
  
    pw_stream_node_id_ = stream_node_id;
  
-@@ -568,7 +570,8 @@ bool SharedScreenCastStreamPrivate::StartScreenCastStream(
-     for (uint32_t format : {SPA_VIDEO_FORMAT_BGRA, SPA_VIDEO_FORMAT_RGBA,
-                             SPA_VIDEO_FORMAT_BGRx, SPA_VIDEO_FORMAT_RGBx}) {
-       // Modifiers can be used with PipeWire >= 0.3.33
--      if (has_required_pw_client_version && has_required_pw_server_version) {
-+      if (egl_dmabuf_ &&
-+          has_required_pw_client_version && has_required_pw_server_version) {
-         std::vector<uint64_t> modifiers;
-         auto render_device = egl_dmabuf_->GetRenderDevice();
-         if (render_device) {
-@@ -1021,7 +1024,7 @@ bool SharedScreenCastStreamPrivate::ProcessDMABuffer(
+@@ -996,7 +998,7 @@ bool SharedScreenCastStreamPrivate::ProcessDMABuffer(
  
    const uint n_planes = spa_buffer->n_datas;
  
