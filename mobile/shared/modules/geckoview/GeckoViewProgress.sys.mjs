@@ -562,10 +562,7 @@ export class GeckoViewProgress extends GeckoViewModule {
     this.progressFilter.addProgressListener(this, flags);
     this.browser.addProgressListener(this.progressFilter, flags);
     Services.obs.addObserver(this, "oop-frameloader-crashed");
-    this.registerListener([
-      "GeckoView:FlushSessionState",
-      "GeckoView:GetQWACStatus",
-    ]);
+    this.registerListener("GeckoView:GetQWACStatus");
   }
 
   onDisable() {
@@ -577,10 +574,7 @@ export class GeckoViewProgress extends GeckoViewModule {
     }
 
     Services.obs.removeObserver(this, "oop-frameloader-crashed");
-    this.unregisterListener([
-      "GeckoView:FlushSessionState",
-      "GeckoView:GetQWACStatus",
-    ]);
+    this.unregisterListener("GeckoView:GetQWACStatus");
   }
 
   receiveMessage(aMsg) {
@@ -607,9 +601,6 @@ export class GeckoViewProgress extends GeckoViewModule {
     debug`onEvent: event=${aEvent}, data=${aData}`;
 
     switch (aEvent) {
-      case "GeckoView:FlushSessionState":
-        this.messageManager.sendAsyncMessage("GeckoView:FlushSessionState");
-        break;
       case "GeckoView:GetQWACStatus":
         this._securityTracker.qwacStatus(aCallback);
         break;
