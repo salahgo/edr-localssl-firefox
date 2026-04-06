@@ -18,6 +18,7 @@ const CONTAINER_ACTION_TYPES = {
 };
 
 const PREF_WIDGETS_ENABLED = "widgets.enabled";
+const PREF_NOVA_ENABLED = "nova.enabled";
 const PREF_WIDGETS_LISTS_ENABLED = "widgets.lists.enabled";
 const PREF_WIDGETS_SYSTEM_LISTS_ENABLED = "widgets.system.lists.enabled";
 const PREF_WIDGETS_TIMER_ENABLED = "widgets.focusTimer.enabled";
@@ -28,6 +29,9 @@ const PREF_WIDGETS_MAXIMIZED = "widgets.maximized";
 const PREF_WIDGETS_SYSTEM_MAXIMIZED = "widgets.system.maximized";
 const PREF_WIDGETS_FEEDBACK_ENABLED = "widgets.feedback.enabled";
 const PREF_WIDGETS_HIDE_ALL_TOAST_ENABLED = "widgets.hideAllToast.enabled";
+const PREF_LISTS_SIZE = "widgets.lists.size";
+const PREF_FOCUS_TIMER_SIZE = "widgets.focusTimer.size";
+const PREF_WEATHER_SIZE = "widgets.weather.size";
 const WIDGETS_FEEDBACK_URL =
   "https://connect.mozilla.org/t5/discussions/feedback-welcome-for-new-tab-widgets-now-available-via-firefox/td-p/108354";
 
@@ -73,6 +77,7 @@ function Widgets() {
   const widgetsMayBeMaximized = prefs[PREF_WIDGETS_SYSTEM_MAXIMIZED];
   const dispatch = useDispatch();
 
+  const novaEnabled = prefs[PREF_NOVA_ENABLED];
   const nimbusListsEnabled = prefs.widgetsConfig?.listsEnabled;
   const nimbusTimerEnabled = prefs.widgetsConfig?.timerEnabled;
   const nimbusListsTrainhopEnabled =
@@ -254,6 +259,23 @@ function Widgets() {
 
     batch(() => {
       dispatch(ac.SetPref(PREF_WIDGETS_MAXIMIZED, newMaximizedState));
+
+      // When Nova is enabled, drive individual widget size prefs rather than
+      // the legacy maximized flag. Widgets pinned to "small" are left
+      // untouched so users who opted them down don't get unexpectedly resized.
+      if (novaEnabled) {
+        const targetSize = newMaximizedState ? "large" : "medium";
+
+        if (prefs[PREF_LISTS_SIZE] !== "small") {
+          dispatch(ac.SetPref(PREF_LISTS_SIZE, targetSize));
+        }
+        if (prefs[PREF_FOCUS_TIMER_SIZE] !== "small") {
+          dispatch(ac.SetPref(PREF_FOCUS_TIMER_SIZE, targetSize));
+        }
+        if (prefs[PREF_WEATHER_SIZE] !== "small") {
+          dispatch(ac.SetPref(PREF_WEATHER_SIZE, targetSize));
+        }
+      }
 
       const telemetryData = {
         action_type: CONTAINER_ACTION_TYPES.CHANGE_SIZE_ALL,

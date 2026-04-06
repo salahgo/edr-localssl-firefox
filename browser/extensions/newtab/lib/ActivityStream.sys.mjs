@@ -1117,8 +1117,9 @@ export const PREFS_CONFIG = new Map([
   [
     "widgets.maximized",
     {
-      title: "Toggles maximized state for all widgets in the widgets section",
-      value: false,
+      title:
+        "Toggles maximized state for all widgets in the widgets section. It defaults to true as the default widget size is large",
+      value: true,
     },
   ],
   [
