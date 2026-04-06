@@ -5575,7 +5575,7 @@ hr {
     width: auto;
   }
   .has-sections-grid .ds-outer-wrapper-breakpoint-override main .body-wrapper {
-    width: 989px;
+    width: 975px;
   }
 }
 @media (min-width: 1390px) {
@@ -5585,7 +5585,7 @@ hr {
   .has-sections-grid .ds-outer-wrapper-breakpoint-override main .body-wrapper {
     display: flex;
     flex-direction: column;
-    width: 1311px;
+    width: 1290px;
   }
   .has-sections-grid .ds-outer-wrapper-breakpoint-override main .ds-highlights .card-outer {
     min-width: 216px;
