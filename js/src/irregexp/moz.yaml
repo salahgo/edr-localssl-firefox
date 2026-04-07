@@ -25,6 +25,7 @@ vendoring:
     - patches/icu4x.patch
     - patches/remove-using-enum.patch
     - patches/regexp-tracer-unique-ptr.patch
+    - patches/unordered-set-include.patch
 
   update-actions:
     - action: run-script
