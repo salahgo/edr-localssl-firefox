@@ -92,6 +92,8 @@ internal val sharedDiskCache = IconDiskCache()
  * @param httpClient The [Client] used to fetch icons over the network.
  * @param generator The [IconGenerator] to generate an icon if no icon could be loaded.
  * @param memoryInfoProvider Used to check available memory when deciding whether to cache icons.
+ * @param manifestProvider An instance of [MerinoManifestProvider] used to look up website metadata
+ * for loading an icon.
  * @param useMerinoManifest Whether to use the embedded Merino manifest instead of the Tippy Top
  * icon list as an icon source.
  * @param preparers List of [IconPreprarer] instances that enrich an [IconRequest] before loading.
@@ -105,10 +107,11 @@ class BrowserIcons(
     httpClient: Client,
     private val generator: IconGenerator = DefaultIconGenerator(),
     private val memoryInfoProvider: MemoryInfoProvider = DefaultMemoryInfoProvider(context),
+    manifestProvider: MerinoManifestProvider = MerinoManifestProvider(context.assets),
     useMerinoManifest: Boolean = false,
     private val preparers: List<IconPreprarer> = listOf(
         if (useMerinoManifest) {
-            MerinoManifestIconPreparer(MerinoManifestProvider(context.assets))
+            MerinoManifestIconPreparer(manifestProvider = manifestProvider)
         } else {
             TippyTopIconPreparer(context.assets)
         },
