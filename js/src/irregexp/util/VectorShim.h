@@ -195,12 +195,12 @@ class SmallVector {
   explicit SmallVector(const Allocator& allocator = DefaultAllocator())
       : inner_(allocator.policy()) {}
   SmallVector(size_t size, const Allocator& allocator = DefaultAllocator())
-    : inner_(allocator.policy()) {
+      : inner_(allocator.policy()) {
     resize(size);
   }
   SmallVector(size_t size, const T& initialValue,
-	      const Allocator& allocator = DefaultAllocator())
-    : inner_(allocator.policy()) {
+              const Allocator& allocator = DefaultAllocator())
+      : inner_(allocator.policy()) {
     js::AutoEnterOOMUnsafeRegion oomUnsafe;
     if (!inner_.appendN(initialValue, size)) {
       oomUnsafe.crash("Irregexp SmallVector constructor");

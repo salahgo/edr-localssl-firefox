@@ -192,7 +192,7 @@ std::unique_ptr<char[]> String::ToCString() {
 }
 
 bool Isolate::init() {
-  regexpStack_ = js_new<RegExpStack>();
+  regexpStack_ = js_new<regexp::Stack>();
   if (!regexpStack_) {
     return false;
   }
@@ -213,7 +213,7 @@ const void* ExternalReference::TopOfRegexpStack(Isolate* isolate) {
 
 /* static */
 size_t ExternalReference::SizeOfExcludingThis(
-    mozilla::MallocSizeOf mallocSizeOf, RegExpStack* regexpStack) {
+    mozilla::MallocSizeOf mallocSizeOf, regexp::Stack* regexpStack) {
   if (regexpStack->thread_local_.owns_memory_) {
     return mallocSizeOf(regexpStack->thread_local_.memory_);
   }
@@ -305,6 +305,8 @@ template Handle<String> Isolate::InternalizeString(
 template Handle<String> Isolate::InternalizeString(
     const base::Vector<const char16_t>& str);
 
+namespace regexp {
+
 static_assert(JSRegExp::RegistersForCaptureCount(JSRegExp::kMaxCaptures) <=
               RegExpMacroAssembler::kMaxRegisterCount);
 
@@ -314,8 +316,8 @@ static_assert(JSRegExp::RegistersForCaptureCount(JSRegExp::kMaxCaptures) <=
 // The semantics are to advance 2 code units for properly paired
 // surrogates in unicode mode, and 1 code unit otherwise
 // (non-surrogates, unpaired surrogates, or non-unicode mode).
-uint64_t RegExpUtils::AdvanceStringIndex(Tagged<String> wrappedString,
-                                         uint64_t index, bool unicode) {
+uint64_t Utils::AdvanceStringIndex(Tagged<String> wrappedString, uint64_t index,
+                                   bool unicode) {
   MOZ_ASSERT(index < kMaxSafeIntegerUint64);
   MOZ_ASSERT(wrappedString->IsFlat());
   JSLinearString* string = &wrappedString->str()->asLinear();
@@ -332,11 +334,13 @@ uint64_t RegExpUtils::AdvanceStringIndex(Tagged<String> wrappedString,
 
   return index + 1;
 }
+}  // namespace regexp
 
 // RegexpMacroAssemblerTracer::GetCode dumps the flags by first converting to
 // a String, then into a C string. To avoid allocating while assembling,
 // we just return a handle to the well-known atom "flags".
-Handle<String> JSRegExp::StringFromFlags(Isolate* isolate, RegExpFlags flags) {
+Handle<String> JSRegExp::StringFromFlags(Isolate* isolate,
+                                         regexp::Flags flags) {
   return Handle<String>(String(isolate->cx()->names().flags), isolate);
 }
 

@@ -18,6 +18,7 @@
 
 namespace v8 {
 namespace internal {
+namespace regexp {
 
 struct FrameData {
   // Character position at the start of the input, stored as a
@@ -113,8 +114,7 @@ class SMRegExpMacroAssembler final : public NativeRegExpMacroAssembler {
   virtual void RecordComment(std::string_view comment) {}
   virtual MacroAssembler* masm() { return &masm_; }
 
-  virtual Handle<HeapObject> GetCode(Handle<RegExpData> data,
-                                     RegExpFlags flags);
+  virtual Handle<HeapObject> GetCode(Handle<RegExpData> data, Flags flags);
 
   virtual bool CanReadUnaligned() const;
 
@@ -162,7 +162,7 @@ class SMRegExpMacroAssembler final : public NativeRegExpMacroAssembler {
   void CheckBacktrackStackLimit();
 
  public:
-  static bool GrowBacktrackStack(RegExpStack* regexp_stack);
+  static bool GrowBacktrackStack(Stack* regexp_stack);
 
   static uint32_t CaseInsensitiveCompareNonUnicode(const char16_t* substring1,
                                                    const char16_t* substring2,
@@ -321,6 +321,7 @@ class SMRegExpMacroAssembler final : public NativeRegExpMacroAssembler {
   }
 };
 
+}  // namespace regexp
 }  // namespace internal
 }  // namespace v8
 

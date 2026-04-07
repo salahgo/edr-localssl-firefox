@@ -55,7 +55,12 @@ namespace internal {
 class Heap;
 class Isolate;
 class RegExpMatchInfo;
-class RegExpStack;
+
+namespace regexp {
+class Stack;
+class SMRegExpMacroAssembler;
+class Utils;
+}  // namespace regexp
 
 using MacroAssembler = ::js::jit::MacroAssembler;
 
@@ -888,7 +893,7 @@ class ByteArray : public HeapObject {
     return b;
   }
 
-  friend class SMRegExpMacroAssembler;
+  friend class regexp::SMRegExpMacroAssembler;
 };
 
 // A byte array that can be trusted to not contain malicious data.
@@ -1195,7 +1200,7 @@ class String : public HeapObject {
   base::Vector<const Char> GetCharVector(
       const DisallowGarbageCollection& no_gc);
 
-  friend class RegExpUtils;
+  friend class regexp::Utils;
 };
 
 template <>
@@ -1214,8 +1219,10 @@ inline base::Vector<const base::uc16> String::GetCharVector(
   return flat.ToUC16Vector();
 }
 
-using RegExpFlags = JS::RegExpFlags;
-using RegExpFlag = JS::RegExpFlags::Flag;
+namespace regexp {
+using Flags = JS::RegExpFlags;
+using Flag = JS::RegExpFlags::Flag;
+}  // namespace regexp
 
 class JSRegExp {
  public:
@@ -1224,10 +1231,10 @@ class JSRegExp {
     return (count + 1) * 2;
   }
 
-  static RegExpFlags AsRegExpFlags(RegExpFlags flags) { return flags; }
-  static RegExpFlags AsJSRegExpFlags(RegExpFlags flags) { return flags; }
+  static regexp::Flags AsRegExpFlags(regexp::Flags flags) { return flags; }
+  static regexp::Flags AsJSRegExpFlags(regexp::Flags flags) { return flags; }
 
-  static Handle<String> StringFromFlags(Isolate* isolate, RegExpFlags flags);
+  static Handle<String> StringFromFlags(Isolate* isolate, regexp::Flags flags);
 
   // ******************************
   // Static constants
@@ -1272,7 +1279,7 @@ class RegExpData : public HeapObject {
     return inner()->getMaxRegisters();
   }
 
-  RegExpFlags flags() const { return inner()->getFlags(); }
+  regexp::Flags flags() const { return inner()->getFlags(); }
 
   size_t capture_count() const {
     // Subtract 1 because pairCount includes the implicit global capture.
@@ -1301,33 +1308,26 @@ class IrRegExpData : public RegExpData {
   }
 };
 
-inline bool IsUnicode(RegExpFlags flags) { return flags.unicode(); }
-inline bool IsGlobal(RegExpFlags flags) { return flags.global(); }
-inline bool IsIgnoreCase(RegExpFlags flags) { return flags.ignoreCase(); }
-inline bool IsMultiline(RegExpFlags flags) { return flags.multiline(); }
-inline bool IsDotAll(RegExpFlags flags) { return flags.dotAll(); }
-inline bool IsSticky(RegExpFlags flags) { return flags.sticky(); }
-inline bool IsUnicodeSets(RegExpFlags flags) { return flags.unicodeSets(); }
-inline bool IsEitherUnicode(RegExpFlags flags) {
+inline bool IsUnicode(regexp::Flags flags) { return flags.unicode(); }
+inline bool IsGlobal(regexp::Flags flags) { return flags.global(); }
+inline bool IsIgnoreCase(regexp::Flags flags) { return flags.ignoreCase(); }
+inline bool IsMultiline(regexp::Flags flags) { return flags.multiline(); }
+inline bool IsDotAll(regexp::Flags flags) { return flags.dotAll(); }
+inline bool IsSticky(regexp::Flags flags) { return flags.sticky(); }
+inline bool IsUnicodeSets(regexp::Flags flags) { return flags.unicodeSets(); }
+inline bool IsEitherUnicode(regexp::Flags flags) {
   return flags.unicode() || flags.unicodeSets();
 }
 
-inline std::optional<RegExpFlag> TryRegExpFlagFromChar(char c) {
-  RegExpFlag flag;
+inline std::optional<regexp::Flag> TryFlagFromChar(char c) {
+  regexp::Flag flag;
 
   // The parser only calls this after verifying that it's a supported flag.
   if (JS::MaybeParseRegExpFlag(c, &flag)) {
     return flag;
   }
 
-  return std::optional<RegExpFlag>{};
-}
-
-inline bool operator==(const RegExpFlags& lhs, const int& rhs) {
-  return lhs.value() == rhs;
-}
-inline bool operator!=(const RegExpFlags& lhs, const int& rhs) {
-  return !(lhs == rhs);
+  return std::optional<regexp::Flag>{};
 }
 
 class Histogram {
@@ -1374,7 +1374,7 @@ class Isolate {
   size_t sizeOfIncludingThis(mozilla::MallocSizeOf mallocSizeOf) const;
 
   //********** Isolate code **********//
-  RegExpStack* regexp_stack() const { return regexpStack_; }
+  regexp::Stack* regexp_stack() const { return regexpStack_; }
 
   js::LifoAlloc* allocator() { return &cx_->tempLifoAlloc(); }
 
@@ -1479,7 +1479,7 @@ class Isolate {
   friend class HandleScope;
 
   JSContext* cx_;
-  RegExpStack* regexpStack_{};
+  regexp::Stack* regexpStack_{};
   Counters counters_{};
   LocalHeap main_thread_local_heap_;
 #ifdef DEBUG
@@ -1526,7 +1526,7 @@ class ExternalReference {
  public:
   static const void* TopOfRegexpStack(Isolate* isolate);
   static size_t SizeOfExcludingThis(mozilla::MallocSizeOf mallocSizeOf,
-                                    RegExpStack* regexpStack);
+                                    regexp::Stack* regexpStack);
 };
 
 class Code : public HeapObject {
@@ -1549,8 +1549,24 @@ class Code : public HeapObject {
 // (NativeRegExpMacroAssembler::CheckStackGuardState)
 class InstructionStream {};
 
+namespace regexp {
+
+inline bool operator==(const Flags& lhs, const int& rhs) {
+  return lhs.value() == rhs;
+}
+inline bool operator!=(const Flags& lhs, const int& rhs) {
+  return !(lhs == rhs);
+}
+
 // Only used in the definition of RegExpGlobalExecRunner, which we don't use.
-class RegExpResultVectorScope {};
+class ResultVectorScope {};
+
+class Utils {
+ public:
+  static uint64_t AdvanceStringIndex(Tagged<String> string, uint64_t index,
+                                     bool unicode);
+};
+}  // namespace regexp
 
 // Origin: https://github.com/v8/v8/blob/master/src/codegen/label.h
 class Label {
@@ -1574,13 +1590,7 @@ class Label {
   js::jit::Label inner_;
   js::jit::CodeOffset patchOffset_;
 
-  friend class SMRegExpMacroAssembler;
-};
-
-class RegExpUtils {
- public:
-  static uint64_t AdvanceStringIndex(Tagged<String> string, uint64_t index,
-                                     bool unicode);
+  friend class regexp::SMRegExpMacroAssembler;
 };
 
 #define v8_flags js::jit::JitOptions

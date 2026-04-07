@@ -22,6 +22,7 @@
 
 namespace v8 {
 namespace internal {
+namespace regexp {
 
 using js::MatchPairs;
 using js::jit::AbsoluteAddress;
@@ -75,7 +76,7 @@ SMRegExpMacroAssembler::SMRegExpMacroAssembler(JSContext* cx,
 }
 
 int SMRegExpMacroAssembler::stack_limit_slack_slot_count() {
-  return RegExpStack::kStackLimitSlackSlotCount;
+  return Stack::kStackLimitSlackSlotCount;
 }
 
 void SMRegExpMacroAssembler::AdvanceCurrentPosition(int by) {
@@ -1006,7 +1007,7 @@ static Handle<HeapObject> DummyCode() {
 // Finalize code. This is called last, so that we know how many
 // registers we need.
 Handle<HeapObject> SMRegExpMacroAssembler::GetCode(Handle<RegExpData> data,
-                                                   RegExpFlags flags) {
+                                                   Flags flags) {
   if (!cx_->zone()->ensureJitZoneExists(cx_)) {
     return DummyCode();
   }
@@ -1355,7 +1356,7 @@ void SMRegExpMacroAssembler::stackOverflowHandler() {
   volatileRegs.takeUnchecked(temp1_);
   masm_.PushRegsInMask(volatileRegs);
 
-  using Fn = bool (*)(RegExpStack* regexp_stack);
+  using Fn = bool (*)(Stack* regexp_stack);
   masm_.setupUnalignedABICall(temp0_);
   masm_.passABIArg(temp1_);
   masm_.callWithABI<Fn, ::js::irregexp::GrowBacktrackStack>();
@@ -1407,8 +1408,8 @@ uint32_t SMRegExpMacroAssembler::CaseInsensitiveCompareNonUnicode(
     if (c1 != c2) {
 #ifdef JS_HAS_INTL_API
       // Non-unicode regexps have weird case-folding rules.
-      c1 = RegExpCaseFolding::Canonicalize(c1);
-      c2 = RegExpCaseFolding::Canonicalize(c2);
+      c1 = CaseFolding::Canonicalize(c1);
+      c2 = CaseFolding::Canonicalize(c2);
 #else
       // If we aren't building with ICU, fall back to `/iu` mode. The only
       // differences are in corner cases.
@@ -1451,7 +1452,7 @@ uint32_t SMRegExpMacroAssembler::CaseInsensitiveCompareUnicode(
 }
 
 /* static */
-bool SMRegExpMacroAssembler::GrowBacktrackStack(RegExpStack* regexp_stack) {
+bool SMRegExpMacroAssembler::GrowBacktrackStack(Stack* regexp_stack) {
   js::AutoUnsafeCallWithABI unsafe;
   size_t size = regexp_stack->memory_size();
   return !!regexp_stack->EnsureCapacity(size * 2);
@@ -1467,5 +1468,6 @@ bool SMRegExpMacroAssembler::CanReadUnaligned() const {
 #endif
 }
 
+}  // namespace regexp
 }  // namespace internal
 }  // namespace v8
