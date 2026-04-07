@@ -3410,25 +3410,49 @@ bool nsGenericHTMLElement::PopoverOpen() const {
 bool nsGenericHTMLElement::CheckPopoverValidity(
     PopoverVisibilityState aExpectedState, Document* aExpectedDocument,
     ErrorResult& aRv) {
+  // 1. If element's popover attribute is in the No Popover state, then:
   if (GetPopoverAttributeState() == PopoverAttributeState::None) {
+    // 1. If throwExceptions is true, then throw a "NotSupportedError"
+    //    DOMException.
     aRv.ThrowNotSupportedError("Element is in the no popover state");
+    // 2. Return false.
     return false;
   }
 
+  // 2. If any of the following are true:
+  //  - expectedToBeShowing is true and element's popover visibility state is
+  //    not showing; or
+  //  - expectedToBeShowing is false and element's popover visibility state is
+  //    not hidden,
   if (GetPopoverData()->GetPopoverVisibilityState() != aExpectedState) {
+    // then return false.
     return false;
   }
 
+  // 3. If any of the following are true:
+  //   - element is not connected;
   if (!IsInComposedDoc()) {
+    // 1. If throwExceptions is true, then throw an "InvalidStateError"
+    //    DOMException.
     aRv.ThrowInvalidStateError("Element is not connected");
+    // 2. Return false.
     return false;
   }
 
+  //   - element's node document is not fully active;
+  if (!OwnerDoc()->IsFullyActive()) {
+    aRv.ThrowInvalidStateError("Element's document is not fully active");
+    return false;
+  }
+
+  //   - expectedDocument is not null and element's node document is not
+  //     expectedDocument;
   if (aExpectedDocument && aExpectedDocument != OwnerDoc()) {
     aRv.ThrowInvalidStateError("Element is moved to other document");
     return false;
   }
 
+  //  - element is a dialog element and its is modal is set to true; or
   if (auto* dialog = HTMLDialogElement::FromNode(this)) {
     if (dialog->IsInTopLayer()) {
       aRv.ThrowInvalidStateError("Element is a modal <dialog> element");
@@ -3436,6 +3460,7 @@ bool nsGenericHTMLElement::CheckPopoverValidity(
     }
   }
 
+  //  - element's fullscreen flag is set,
   if (State().HasState(ElementState::FULLSCREEN)) {
     aRv.ThrowInvalidStateError("Element is fullscreen");
     return false;
