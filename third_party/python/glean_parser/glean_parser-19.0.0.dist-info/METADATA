@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: glean-parser
-Version: 18.2.0
+Version: 19.0.0
 Summary: Parser tools for Mozilla's Glean telemetry
 Project-URL: Homepage, https://mozilla.github.io/glean
 Project-URL: Repository, https://github.com/mozilla/glean_parser
@@ -34,7 +34,7 @@ Parser tools for Mozilla's Glean telemetry.
 
 Contains various utilities for handling `metrics.yaml` and `pings.yaml` for [the
 Glean SDKs](https://mozilla.github.io/glean). This includes producing generated
-code for various integrations, linting and coverage testing.
+code for various integrations and linting.
 
 ## Documentation
 
