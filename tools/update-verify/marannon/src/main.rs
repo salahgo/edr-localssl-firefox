@@ -12,6 +12,7 @@ use std::path::Path;
 use std::process::exit;
 use tempfile::TempDir;
 
+use anyhow::{anyhow, Result};
 use env_logger::{Builder, Env};
 use log::info;
 
@@ -29,7 +30,7 @@ fn get_extension(filename: &str) -> Option<&str> {
     return Path::new(filename).extension()?.to_str();
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     Builder::from_env(Env::default().default_filter_or("info")).init();
     let args = Args::parse_and_validate();
     // Using `keep()` prevents the temporary directory from being cleaned up.
@@ -38,7 +39,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // a new task begins). When running locally it's preferable to keep artifacts
     // around for debugging.
     let tmpdir = TempDir::with_prefix("update-verify")?.keep();
-    let tmppath = tmpdir.to_str().ok_or("Couldn't parse tmpdir")?;
+    let tmppath = tmpdir
+        .to_str()
+        .ok_or_else(|| anyhow!("Couldn't parse tmpdir"))?;
     info!("Using tmpdir: {tmppath}");
 
     let mut cache_dir = tmpdir.clone();
@@ -62,8 +65,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // contained a partial MAR will be additionally tested against that.
     for (i, entry) in args.from.iter().enumerate() {
         let mut installer_dest_path = download_dir.clone();
-        let ext =
-            get_extension(&entry.installer).ok_or("Couldn't find from installer extension!")?;
+        let ext = get_extension(&entry.installer)
+            .ok_or_else(|| anyhow!("Couldn't find from installer extension!"))?;
         installer_dest_path.push(format!("{i}.{ext}"));
         downloader.fetch(&entry.installer, &installer_dest_path, &cache_dir)?;
         let mut updater_dest_path = download_dir.clone();

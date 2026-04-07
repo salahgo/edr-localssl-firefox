@@ -10,6 +10,7 @@ use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use anyhow::{anyhow, Result};
 use log::{error, info};
 
 use crate::runner::CommandRunner;
@@ -89,7 +90,7 @@ pub(crate) fn run_tests(
     tmpdir: &Path,
     artifact_dir: &Path,
     runner: &dyn CommandRunner,
-) -> Result<Vec<TestResult>, Box<dyn std::error::Error>> {
+) -> Result<Vec<TestResult>> {
     let mut results: Vec<TestResult> = vec![];
     let mut prepared_updaters: HashMap<PathBuf, PathBuf> = HashMap::new();
     for test in tests {
@@ -141,7 +142,7 @@ fn run_test(
     tmpdir: &Path,
     artifact_dir: &Path,
     runner: &dyn CommandRunner,
-) -> Result<TestOutcome, Box<dyn std::error::Error>> {
+) -> Result<TestOutcome> {
     let updater = match prepared_updaters.get(&test.from_installer) {
         Some(path) => path.clone(),
         None => {
@@ -190,7 +191,7 @@ fn run_test(
         .arg(
             updater
                 .parent()
-                .ok_or("Couldn't determine update-settings.ini dir!")?,
+                .ok_or_else(|| anyhow!("Couldn't determine update-settings.ini dir!"))?,
         )
         .arg(appname)
         .current_dir(test_dir);
@@ -226,7 +227,7 @@ fn run_test(
 /// inside of it, containing the MAR to be applied in `update.mar`.
 /// When we get rid of `check_updates.sh` we can consider changing or getting
 /// rid of this.
-fn setup_test_dir(mar: &Path, tmpdir: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn setup_test_dir(mar: &Path, tmpdir: &Path) -> Result<PathBuf> {
     let test_dir = tempfile::Builder::new()
         .prefix("work_")
         .tempdir_in(tmpdir)?
@@ -249,7 +250,7 @@ mod tests {
 
     struct FakeRunner(i32);
     impl CommandRunner for FakeRunner {
-        fn run(&self, _: Command) -> Result<CommandResult, Box<dyn std::error::Error>> {
+        fn run(&self, _: Command) -> Result<CommandResult> {
             Ok(CommandResult {
                 exit_code: self.0,
                 output: String::new(),

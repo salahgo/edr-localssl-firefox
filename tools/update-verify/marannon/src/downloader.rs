@@ -7,28 +7,19 @@ use std::io::copy;
 use std::os::unix::fs::symlink;
 use std::path::Path;
 
+use anyhow::Result;
 use log::info;
 use ureq;
 
 /// A simple trait to facilitate unit testing of functions that download files.
 pub(crate) trait FileDownloader {
-    fn fetch(
-        &self,
-        url: &str,
-        dest: &Path,
-        cache_dir: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    fn fetch(&self, url: &str, dest: &Path, cache_dir: &Path) -> Result<()>;
 }
 
 pub(crate) struct UreqDownloader;
 
 impl FileDownloader for UreqDownloader {
-    fn fetch(
-        &self,
-        url: &str,
-        dest: &Path,
-        cache_dir: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn fetch(&self, url: &str, dest: &Path, cache_dir: &Path) -> Result<()> {
         let mut cached_path = cache_dir.to_path_buf();
         cached_path.push(url_to_filename(url));
 
