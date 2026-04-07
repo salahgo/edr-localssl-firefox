@@ -5185,7 +5185,7 @@ ${
         }
         // Don't close the view when clicking on a tab; we may want to keep the
         // view open on tab switch, and the TabSelect event arrived earlier.
-        if (event.target.closest("tab")) {
+        if (event.target.closest?.("tab")) {
           break;
         }
 
