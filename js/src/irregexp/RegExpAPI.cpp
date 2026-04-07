@@ -301,8 +301,7 @@ static bool CheckPatternSyntaxImpl(js::LifoAlloc& alloc,
                                    JS::RegExpFlags flags,
                                    RegExpCompileData* result,
                                    JS::AutoAssertNoGC& nogc) {
-  LifoAllocScope allocScope(&alloc);
-  Zone zone(allocScope.alloc());
+  Zone zone(&alloc);
 
   return RegExpParser::VerifyRegExpSyntax(&zone, stackLimit, input, inputLength,
                                           flags, result, nogc);
@@ -766,9 +765,8 @@ bool CompilePattern(JSContext* cx, MutableHandleRegExpShared re,
                     RegExpShared::CodeKind codeKind) {
   Rooted<JSAtom*> pattern(cx, re->getSource());
   JS::RegExpFlags flags = re->getFlags();
-  LifoAllocScope allocScope(&cx->tempLifoAlloc());
   HandleScope handleScope(cx->isolate);
-  Zone zone(allocScope.alloc());
+  Zone zone(&cx->tempLifoAlloc());
 
   RegExpCompileData data;
   {
