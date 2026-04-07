@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 use crate::LockstoreError;
-use kvstore::skv::Value;
+use kvstore::Value;
 
 /// Convert bytes to a kvstore Value (stored as base64 JSON string)
 pub fn bytes_to_value(bytes: &[u8]) -> Result<Value, LockstoreError> {

@@ -6,8 +6,7 @@ use crate::crypto::{self, CipherSuite, DEFAULT_CIPHER_SUITE};
 use crate::utils;
 use crate::{LockstoreError, SecurityLevel};
 
-use kvstore::skv::store::{Store, StorePath};
-use kvstore::skv::{Database, GetOptions, Key};
+use kvstore::{Database, GetOptions, Key, Store, StorePath};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -255,7 +254,7 @@ impl LockstoreKeystore {
     }
 
     pub fn list_collections(&self) -> Result<Vec<String>, LockstoreError> {
-        use kvstore::skv::DatabaseError;
+        use kvstore::DatabaseError;
 
         let reader = self.store.reader()?;
         let db_name = DB_NAME.to_string();

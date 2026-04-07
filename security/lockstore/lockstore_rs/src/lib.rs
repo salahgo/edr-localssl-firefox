@@ -14,8 +14,7 @@ pub use keystore::LockstoreKeystore;
 #[cfg(test)]
 pub use utils::{bytes_to_value, value_to_bytes};
 
-use kvstore::skv::store::StoreError;
-use kvstore::skv::DatabaseError;
+use kvstore::{DatabaseError, StoreError};
 use nss_gk_api::Error as NssError;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;

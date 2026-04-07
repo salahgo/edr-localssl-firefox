@@ -6,8 +6,7 @@ use crate::crypto;
 use crate::utils;
 use crate::{datastore_filename, LockstoreError, LockstoreKeystore, SecurityLevel, StoredValue};
 
-use kvstore::skv::store::{Store, StorePath};
-use kvstore::skv::{Database, DatabaseError, GetOptions, Key};
+use kvstore::{Database, DatabaseError, GetOptions, Key, Store, StorePath};
 use std::path::PathBuf;
 use std::sync::Arc;
 

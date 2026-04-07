@@ -24,6 +24,11 @@ mod owned_value;
 pub mod skv;
 mod task;
 
+pub use skv::database::{Database, DatabaseError, GetOptions};
+pub use skv::key::Key;
+pub use skv::store::{Store, StorePath, StoreError};
+pub use skv::value::Value;
+
 use atomic_refcell::AtomicRefCell;
 use error::KeyValueError;
 use libc::c_void;

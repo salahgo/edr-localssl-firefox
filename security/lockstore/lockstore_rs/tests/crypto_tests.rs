@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-use kvstore::skv::store::{Store, StorePath};
-use kvstore::skv::{Database, GetOptions, Key};
+use kvstore::{Database, GetOptions, Key, Store, StorePath};
 use lockstore_rs::bytes_to_value;
 use lockstore_rs::crypto::{
     decrypt_with_key, encrypt_with_key, generate_random_key, generate_random_nonce, secure_delete,
