@@ -177,9 +177,9 @@ async function ensureQuickSuggestInit({ ...args } = {}) {
   });
 }
 
-async function doBlur(testUtils = UrlbarTestUtils, win = window) {
-  await testUtils.promisePopupClose(win, () => {
-    testUtils.getUrlbar(win).blur();
+async function doBlur(testUtils = UrlbarTestUtils) {
+  await testUtils.promisePopupClose(window, () => {
+    testUtils.getUrlbar(window).blur();
   });
 }
 
@@ -208,9 +208,9 @@ async function doDropAndGo(data) {
   await onLoad;
 }
 
-async function doEnter(modifier = {}, win = window) {
-  const onLoad = BrowserTestUtils.browserLoaded(win.gBrowser.selectedBrowser);
-  EventUtils.synthesizeKey("KEY_Enter", modifier, win);
+async function doEnter(modifier = {}) {
+  const onLoad = BrowserTestUtils.browserLoaded(gBrowser.selectedBrowser);
+  EventUtils.synthesizeKey("KEY_Enter", modifier);
   await onLoad;
 }
 
@@ -409,11 +409,11 @@ async function loadRemoteTab(url) {
   };
 }
 
-async function openPopup(input, testUtils = UrlbarTestUtils, win = window) {
-  await testUtils.promisePopupOpen(win, async () => {
-    await testUtils.inputIntoURLBar(win, input);
+async function openPopup(input, testUtils = UrlbarTestUtils) {
+  await testUtils.promisePopupOpen(window, async () => {
+    await testUtils.inputIntoURLBar(window, input);
   });
-  await testUtils.promiseSearchComplete(win);
+  await testUtils.promiseSearchComplete(window);
 }
 
 async function selectRowByURL(url) {

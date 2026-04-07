@@ -179,7 +179,6 @@ add_task(async function test_disable_suggest_after_engagement() {
               search_engine_default_id: ENGINE_ID,
               n_chars: test.input.length,
               n_words: "1",
-              window_mode: "classic",
             },
           ]);
         } else {
@@ -229,7 +228,6 @@ add_task(async function test_disable_suggest_after_abandonment() {
             search_engine_default_id: ENGINE_ID,
             n_chars: test.input.length,
             n_words: "1",
-            window_mode: "classic",
           },
         ]);
       } else {

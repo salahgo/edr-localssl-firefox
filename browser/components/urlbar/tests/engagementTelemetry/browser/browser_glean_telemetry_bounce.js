@@ -96,7 +96,6 @@ add_task(async function test_bounce_tab_close() {
         engagement_type: expected.engagement_type,
         provider: expected.provider,
         threshold: expected.threshold,
-        window_mode: "classic",
       },
     ]);
 
@@ -181,7 +180,6 @@ add_task(async function test_bounce_back_button() {
         engagement_type: expected.engagement_type,
         provider: expected.provider,
         threshold: expected.threshold,
-        window_mode: "classic",
       },
     ]);
 
@@ -234,7 +232,6 @@ add_task(async function test_other_engagement() {
         engagement_type: expected.engagement_type,
         provider: expected.provider,
         threshold: expected.threshold,
-        window_mode: "classic",
       },
     ]);
 

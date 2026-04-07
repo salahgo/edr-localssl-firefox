@@ -30,7 +30,6 @@ const { AppConstants } = ChromeUtils.importESModule(
  * @import { SmartbarAction } from "moz-src:///browser/components/aiwindow/ui/components/input-cta/input-cta.mjs"
  * @import { WebsiteChipContainer } from "chrome://browser/content/aiwindow/components/website-chip-container.mjs"
  * @import { AIWindow } from "moz-src:///browser/components/aiwindow/ui/components/ai-window/ai-window.mjs"
- * @import { WindowMode } from "moz-src:///browser/components/urlbar/content/UrlbarInput.mjs"
  */
 
 /**
@@ -270,8 +269,6 @@ export class SmartbarInput extends HTMLElement {
   #sapName;
   #smartbarAction = "";
   #smartbarActionPending = false;
-  /** @type {SmartbarAction} */
-  #detectedIntent = "";
   #smartbarEditor = null;
   #smartbarInputController = null;
   _userTypedValue = "";
@@ -733,31 +730,12 @@ export class SmartbarInput extends HTMLElement {
   }
 
   /**
-   * Gets the original detected intent model action.
-   *
-   * @returns {SmartbarAction} The detected intent
-   */
-  get detectedIntent() {
-    return this.#detectedIntent;
-  }
-
-  /**
    * Gets the Smartbar location.
    *
    * @returns {SapLocation} The location of the smartbar
    */
   get sapLocation() {
     return this.#isSidebarMode ? "sidebar" : "fullpage";
-  }
-
-  /**
-   * Gets the window mode for telemetry.
-   *
-   * @returns {WindowMode} The window mode.
-   */
-  get windowMode() {
-    // For now smartbar is always in the Smart Window.
-    return "smartwindow";
   }
 
   /**
@@ -795,7 +773,7 @@ export class SmartbarInput extends HTMLElement {
    * @returns {number} The number of context websites
    */
   get contextWebsitesCount() {
-    return this.#getResolvedContextWebsites().length;
+    return this.#contextWebsites.length;
   }
 
   /**
@@ -1412,20 +1390,10 @@ export class SmartbarInput extends HTMLElement {
    * @param {object} triggeringPrincipal - The principal that the action was triggered from.
    * @returns {boolean} - True if the action was user initiated handled and false if we fell through.
    */
-  #handleSmartbarOnChangeAction(event, triggeringPrincipal) {
+  _handleSmartbarOnChangeAction(event, triggeringPrincipal) {
     const committedValue = this.untrimmedValue;
     const action = this.smartbarAction;
     const contextMentions = this.#getResolvedContextWebsites();
-
-    const buttonSelType = action === "chat" ? "ask" : action;
-    this.controller.engagementEvent.record(event, {
-      location: this.sapLocation,
-      searchString: committedValue,
-      searchSource: this.getSearchSource(event),
-      selType: `${buttonSelType}_button`,
-      result: null,
-      windowMode: this.windowMode,
-    });
 
     this.dispatchEvent(
       new CustomEvent("smartbar-commit", {
@@ -1443,74 +1411,82 @@ export class SmartbarInput extends HTMLElement {
 
     // Submit chat
     if (action === "chat") {
+      this.controller.engagementEvent.record(event, {
+        location: this.sapLocation,
+        searchString: committedValue,
+        searchSource: this.getSearchSource(event),
+        selType: "ask_button",
+        result: null,
+      });
       this.#contextWebsites = [];
       this.#updateContextChips();
       return true;
     }
 
     // Run search
-    if (action === "search") {
+    if (action === "search" && this.smartbarActionIsUserInitiated) {
       const engine = lazy.UrlbarSearchUtils.getDefaultEngine();
+      const [url, postData] = lazy.UrlbarUtils.getSearchQueryUrl(
+        engine,
+        committedValue
+      );
+      this.controller.engagementEvent.record(event, {
+        location: this.sapLocation,
+        searchString: committedValue,
+        searchSource: this.getSearchSource(event),
+        selType: "search_button",
+        result: null,
+      });
       const { chat_id, message_seq } = this.conversationTelemetryInfo;
       Glean.smartWindow.searchSubmit.record({
         chat_id,
-        detected_intent: this.detectedIntent,
+        detected_intent: this.#smartbarAction,
         length: String(committedValue.length),
         location: this.sapLocation,
         message_seq: String(message_seq),
         model: this.modelName,
         provider: engine.name,
-        submit_type:
-          event?.type === "aiwindow-input-cta:on-action" ? "button" : "enter",
       });
-
-      if (this.smartbarActionIsUserInitiated) {
-        const [url, postData] = lazy.UrlbarUtils.getSearchQueryUrl(
-          engine,
-          committedValue
-        );
-        this._loadURL(url, event, this._whereToOpen(event), {
-          triggeringPrincipal,
-          postData,
-          allowInheritPrincipal: false,
-        });
-        this._recordSearch(engine, event);
-        return true;
-      }
+      this._loadURL(url, event, this._whereToOpen(event), {
+        triggeringPrincipal,
+        postData,
+        allowInheritPrincipal: false,
+      });
+      this._recordSearch(engine, event);
+      return true;
     }
 
     // Attempt to navigate to URL
-    if (action === "navigate") {
+    if (action === "navigate" && this.smartbarActionIsUserInitiated) {
+      let flags = Ci.nsIURIFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
+      if (this.isPrivate) {
+        flags |= Ci.nsIURIFixup.FIXUP_FLAG_PRIVATE_CONTEXT;
+      }
+
+      let fixupInfo = Services.uriFixup.getFixupURIInfo(committedValue, flags);
+      this.controller.engagementEvent.record(event, {
+        searchString: committedValue,
+        location: this.sapLocation,
+        searchSource: this.getSearchSource(event),
+        selType: "navigate_button",
+        result: null,
+      });
       const { chat_id, message_seq } = this.conversationTelemetryInfo;
       Glean.smartWindow.navigateSubmit.record({
         chat_id,
-        detected_intent: this.detectedIntent,
-        length: String(committedValue.length),
+        detected_intent: this.#smartbarAction,
         location: this.sapLocation,
         message_seq: String(message_seq),
         model: this.modelName,
-        submit_type:
-          event?.type === "aiwindow-input-cta:on-action" ? "button" : "enter",
+        submit_type: event?.type === "click" ? "button" : "enter",
       });
-
-      if (this.smartbarActionIsUserInitiated) {
-        let flags = Ci.nsIURIFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
-        if (this.isPrivate) {
-          flags |= Ci.nsIURIFixup.FIXUP_FLAG_PRIVATE_CONTEXT;
-        }
-
-        let fixupInfo = Services.uriFixup.getFixupURIInfo(
-          committedValue,
-          flags
-        );
-        this._loadURL(
-          fixupInfo.preferredURI.spec,
-          event,
-          this._whereToOpen(event),
-          { triggeringPrincipal, allowInheritPrincipal: false }
-        );
-        return true;
-      }
+      this._loadURL(
+        fixupInfo.preferredURI.spec,
+        event,
+        this._whereToOpen(event),
+        { triggeringPrincipal, allowInheritPrincipal: false }
+      );
+      return true;
     }
 
     // Let the handleNavigation logic continue
@@ -1535,7 +1511,7 @@ export class SmartbarInput extends HTMLElement {
   handleNavigation({ event, oneOffParams, triggeringPrincipal }) {
     if (
       this.#isSmartbarMode &&
-      this.#handleSmartbarOnChangeAction(event, triggeringPrincipal)
+      this._handleSmartbarOnChangeAction(event, triggeringPrincipal)
     ) {
       this.#clearSmartbarInput();
       return;
@@ -1678,7 +1654,6 @@ export class SmartbarInput extends HTMLElement {
       searchSource: this.getSearchSource(event),
       searchString: typedValue,
       result: selectedResult || this._resultForCurrentValue || null,
-      windowMode: this.windowMode,
     });
 
     if (URL.canParse(url)) {
@@ -1907,7 +1882,6 @@ export class SmartbarInput extends HTMLElement {
         searchSource: this.getSearchSource(event),
         searchString: this._lastSearchString,
         selType: "dismiss",
-        windowMode: this.windowMode,
       });
       this.view.onQueryResultRemoved(result.rowIndex);
       return;
@@ -1951,7 +1925,6 @@ export class SmartbarInput extends HTMLElement {
         selType: "canonized",
         searchSource: this.getSearchSource(event),
         searchString: this._lastSearchString,
-        windowMode: this.windowMode,
       });
       this._loadURL(this._untrimmedValue, event, where, openParams, browser);
       return;
@@ -2040,7 +2013,6 @@ export class SmartbarInput extends HTMLElement {
             result,
             element
           ),
-          windowMode: this.windowMode,
         });
 
         let switched = this.window.switchToTabHavingURI(
@@ -2092,7 +2064,6 @@ export class SmartbarInput extends HTMLElement {
               result,
               element
             ),
-            windowMode: this.windowMode,
           });
           this.maybeConfirmSearchModeFromResult({
             result,
@@ -2182,7 +2153,6 @@ export class SmartbarInput extends HTMLElement {
           selType: "tip",
           searchSource: this.getSearchSource(event),
           searchString: this._lastSearchString,
-          windowMode: this.windowMode,
         });
         return;
       }
@@ -2205,7 +2175,6 @@ export class SmartbarInput extends HTMLElement {
               result,
               element
             ),
-            windowMode: this.windowMode,
           });
           return;
         }
@@ -2219,7 +2188,6 @@ export class SmartbarInput extends HTMLElement {
           selType: "extension",
           searchSource: this.getSearchSource(event),
           searchString: this._lastSearchString,
-          windowMode: this.windowMode,
         });
 
         // The urlbar needs to revert to the loaded url when a command is
@@ -2250,7 +2218,6 @@ export class SmartbarInput extends HTMLElement {
             result,
             element
           ),
-          windowMode: this.windowMode,
         });
         this.maybeConfirmSearchModeFromResult({
           result,
@@ -2270,7 +2237,6 @@ export class SmartbarInput extends HTMLElement {
             result,
             element
           ),
-          windowMode: this.windowMode,
         });
         this.#clearSmartbarInput();
         return;
@@ -2307,7 +2273,6 @@ export class SmartbarInput extends HTMLElement {
       searchString: this._lastSearchString,
       selType: this.controller.engagementEvent.typeFromElement(result, element),
       searchSource: this.getSearchSource(event),
-      windowMode: this.windowMode,
     });
 
     this.controller.engagementEvent.record(event, {
@@ -2317,7 +2282,6 @@ export class SmartbarInput extends HTMLElement {
       searchString: this._lastSearchString,
       selType: this.controller.engagementEvent.typeFromElement(result, element),
       searchSource: this.getSearchSource(event),
-      windowMode: this.windowMode,
     });
 
     if (result.payload.sendAttributionRequest) {
@@ -2356,7 +2320,6 @@ export class SmartbarInput extends HTMLElement {
     this._autofillPlaceholder = null;
     this._resultForCurrentValue = null;
     this.smartbarAction = "";
-    this.#detectedIntent = "";
     this.setSelectionRange(0, 0);
     this.view.close();
   }
@@ -3551,7 +3514,6 @@ export class SmartbarInput extends HTMLElement {
         location: this.sapLocation,
         searchString: this._lastSearchString,
         searchSource: this.getSearchSource(event),
-        windowMode: this.windowMode,
       });
     }
 
@@ -4350,7 +4312,6 @@ export class SmartbarInput extends HTMLElement {
       searchSource: this.getSearchSource(event),
       searchString: this._lastSearchString,
       selType: element.dataset.command,
-      windowMode: this.windowMode,
     });
 
     if (element.dataset.command == "manage") {
@@ -5402,7 +5363,6 @@ export class SmartbarInput extends HTMLElement {
       location: this.sapLocation,
       searchString: this._lastSearchString,
       searchSource: this.getSearchSource(event),
-      windowMode: this.windowMode,
     });
 
     this.focusedViaMousedown = false;
@@ -5651,7 +5611,6 @@ export class SmartbarInput extends HTMLElement {
               location: this.sapLocation,
               searchString: this._lastSearchString,
               searchSource: this.getSearchSource(blurEvent),
-              windowMode: this.windowMode,
             });
           }
 
@@ -6416,28 +6375,24 @@ export class SmartbarInput extends HTMLElement {
    * @param {UrlbarResult} [firstResult] The first result received.
    */
   #updateSmartbarCTAButton(firstResult) {
-    /** @type {SmartbarAction} */
-    let detectedAction;
     if (!firstResult || !firstResult.heuristic) {
-      detectedAction = this.value ? "chat" : "";
-    } else {
-      switch (firstResult.type) {
-        case lazy.UrlbarUtils.RESULT_TYPE.URL:
-        case lazy.UrlbarUtils.RESULT_TYPE.KEYWORD:
-          detectedAction = "navigate";
-          break;
-        case lazy.UrlbarUtils.RESULT_TYPE.AI_CHAT:
-          detectedAction = "chat";
-          break;
-        case lazy.UrlbarUtils.RESULT_TYPE.SEARCH:
-          detectedAction = "search";
-          break;
-        default:
-          detectedAction = "";
-      }
+      this.smartbarAction = this.value ? "chat" : "";
+      return;
     }
-    this.smartbarAction = detectedAction;
-    this.#detectedIntent = detectedAction;
+    switch (firstResult.type) {
+      case lazy.UrlbarUtils.RESULT_TYPE.URL:
+      case lazy.UrlbarUtils.RESULT_TYPE.KEYWORD:
+        this.smartbarAction = "navigate";
+        break;
+      case lazy.UrlbarUtils.RESULT_TYPE.AI_CHAT:
+        this.smartbarAction = "chat";
+        break;
+      case lazy.UrlbarUtils.RESULT_TYPE.SEARCH:
+        this.smartbarAction = "search";
+        break;
+      default:
+        this.smartbarAction = "";
+    }
   }
 
   /**
