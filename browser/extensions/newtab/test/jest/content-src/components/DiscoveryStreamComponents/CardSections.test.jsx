@@ -323,16 +323,31 @@ describe("<CardSections />", () => {
       },
     });
 
+    expect(dispatch).toHaveBeenNthCalledWith(3, {
+      type: at.SHOW_TOAST_MESSAGE,
+      data: {
+        toastId: "followSectionToast",
+        showNotifications: true,
+        toastData: { l10nId: "newtab-section-toast-follow", topic: "title" },
+      },
+      meta: {
+        from: MAIN_MESSAGE_TYPE,
+        skipMain: true,
+        to: "ActivityStream:Content",
+        toTarget: "ActivityStream:Content",
+      },
+    });
+
     fireEvent.click(
       container.querySelector(".section-follow.following moz-button")
     );
 
-    expect(dispatch).toHaveBeenNthCalledWith(3, {
+    expect(dispatch).toHaveBeenNthCalledWith(4, {
       type: at.SECTION_PERSONALIZATION_SET,
       data: {},
       meta: { from: CONTENT_MESSAGE_TYPE, to: MAIN_MESSAGE_TYPE },
     });
-    expect(dispatch).toHaveBeenNthCalledWith(4, {
+    expect(dispatch).toHaveBeenNthCalledWith(5, {
       type: at.UNFOLLOW_SECTION,
       data: {
         section: "section_key_2",
@@ -343,6 +358,20 @@ describe("<CardSections />", () => {
         from: CONTENT_MESSAGE_TYPE,
         to: MAIN_MESSAGE_TYPE,
         skipLocal: true,
+      },
+    });
+    expect(dispatch).toHaveBeenNthCalledWith(6, {
+      type: at.SHOW_TOAST_MESSAGE,
+      data: {
+        toastId: "unfollowSectionToast",
+        showNotifications: true,
+        toastData: { l10nId: "newtab-section-toast-unfollow", topic: "title" },
+      },
+      meta: {
+        from: MAIN_MESSAGE_TYPE,
+        skipMain: true,
+        to: "ActivityStream:Content",
+        toTarget: "ActivityStream:Content",
       },
     });
   });

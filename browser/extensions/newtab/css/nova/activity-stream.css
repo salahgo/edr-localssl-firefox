@@ -1846,6 +1846,10 @@ main section {
   pointer-events: none;
 }
 
+.nova-enabled ~ .confirmation-dialog {
+  border-radius: var(--border-radius-large);
+}
+
 .confirmation-dialog {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-small);
@@ -1868,6 +1872,9 @@ main section {
 .confirmation-dialog .modal-message p {
   margin: 0;
   margin-block-end: var(--space-large);
+}
+.confirmation-dialog .modal-message p:first-child {
+  font-weight: var(--font-weight-semibold);
 }
 .confirmation-dialog .button-group {
   border: 0;
@@ -4341,6 +4348,11 @@ dialog:dir(rtl)::after {
 .notification-feed-item {
   position: relative;
   animation: toastSlideInSlideOut 4s ease-in-out forwards;
+}
+
+.nova-enabled ~ .notification-wrapper .newtab-toast-success {
+  --message-bar-background-color: var(--background-color-box);
+  --message-bar-icon-color: var(--icon-color-success);
 }
 
 @keyframes toastSlideInSlideOut {
@@ -11771,4 +11783,31 @@ hr {
   padding: 0;
   /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
   width: var(--col-width);
+}
+
+.section-title-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-large);
+}
+.section-title-wrapper .section-subtitle {
+  flex-basis: 100%;
+}
+
+.lightWallpaper .ds-section .section-follow,
+.lightWallpaper .ds-section .section-context-menu {
+  color-scheme: light;
+}
+.darkWallpaper .ds-section .section-follow,
+.darkWallpaper .ds-section .section-context-menu {
+  color-scheme: dark;
+}
+
+.ds-section .section-follow moz-button::part(moz-button-label) {
+  display: none;
+}
+.ds-section .section-follow moz-button:hover::part(moz-button-label),
+.ds-section .section-follow moz-button:focus-within::part(moz-button-label) {
+  display: revert;
 }

@@ -240,6 +240,17 @@ module.exports = function (config) {
                 functions: 0,
                 branches: 0,
               },
+            /**
+             * SectionFollowButton.jsx manages hover/focus state for the follow button UI.
+             * The follow/unfollow callbacks it invokes are covered by CardSections.test.jsx.
+             */
+            "content-src/components/DiscoveryStreamComponents/SectionFollowButton/SectionFollowButton.jsx":
+              {
+                statements: 0,
+                lines: 0,
+                functions: 0,
+                branches: 0,
+              },
             "content-src/components/DiscoveryStreamComponents/AdBanner/AdBanner.jsx":
               {
                 statements: 94.12,

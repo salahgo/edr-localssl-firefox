@@ -343,10 +343,25 @@ describe("<CardSections />", () => {
       },
     });
 
+    assert.calledWith(dispatch.getCall(2), {
+      type: "SHOW_TOAST_MESSAGE",
+      data: {
+        toastId: "followSectionToast",
+        showNotifications: true,
+        toastData: { l10nId: "newtab-section-toast-follow", topic: "title" },
+      },
+      meta: {
+        from: "ActivityStream:Main",
+        to: "ActivityStream:Content",
+        toTarget: "ActivityStream:Content",
+        skipMain: true,
+      },
+    });
+
     button = wrapper.find(".section-follow.following moz-button");
     button.simulate("click", {});
 
-    assert.calledWith(dispatch.getCall(2), {
+    assert.calledWith(dispatch.getCall(3), {
       type: "SECTION_PERSONALIZATION_SET",
       data: {},
       meta: {
@@ -355,7 +370,7 @@ describe("<CardSections />", () => {
       },
     });
 
-    assert.calledWith(dispatch.getCall(3), {
+    assert.calledWith(dispatch.getCall(4), {
       type: "UNFOLLOW_SECTION",
       data: {
         section: "section_key_2",
@@ -366,6 +381,24 @@ describe("<CardSections />", () => {
         from: "ActivityStream:Content",
         to: "ActivityStream:Main",
         skipLocal: true,
+      },
+    });
+
+    assert.calledWith(dispatch.getCall(5), {
+      type: "SHOW_TOAST_MESSAGE",
+      data: {
+        toastId: "unfollowSectionToast",
+        showNotifications: true,
+        toastData: {
+          l10nId: "newtab-section-toast-unfollow",
+          topic: "title",
+        },
+      },
+      meta: {
+        from: "ActivityStream:Main",
+        to: "ActivityStream:Content",
+        toTarget: "ActivityStream:Content",
+        skipMain: true,
       },
     });
   });

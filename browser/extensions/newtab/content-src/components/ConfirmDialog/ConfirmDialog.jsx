@@ -108,11 +108,12 @@ export class _ConfirmDialog extends React.PureComponent {
           <section className="button-group">
             <moz-button-group>
               <moz-button
+                type="ghost"
                 onClick={this._handleCancelBtn}
                 data-l10n-id={this.props.data.cancel_button_string_id}
               ></moz-button>
               <moz-button
-                type="primary"
+                type="destructive"
                 onClick={this._handleConfirmBtn}
                 data-l10n-id={this.props.data.confirm_button_string_id}
                 data-l10n-args={JSON.stringify(

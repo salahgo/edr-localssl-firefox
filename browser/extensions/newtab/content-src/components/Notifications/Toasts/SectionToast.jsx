@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef } from "react";
 
-function ReportContentToast({ onDismissClick, onAnimationEnd }) {
+function SectionToast({ onDismissClick, onAnimationEnd, toastData }) {
   const mozMessageBarRef = useRef(null);
 
   useEffect(() => {
@@ -31,11 +31,12 @@ function ReportContentToast({ onDismissClick, onAnimationEnd }) {
       type="success"
       class="notification-feed-item newtab-toast-success"
       dismissable={true}
-      data-l10n-id="newtab-toast-thanks-for-reporting"
+      data-l10n-id={toastData.l10nId}
+      data-l10n-args={JSON.stringify({ topic: toastData.topic })}
       ref={mozMessageBarRef}
       onAnimationEnd={onAnimationEnd}
     ></moz-message-bar>
   );
 }
 
-export { ReportContentToast };
+export { SectionToast };

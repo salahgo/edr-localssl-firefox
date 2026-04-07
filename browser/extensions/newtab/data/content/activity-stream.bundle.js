@@ -1505,10 +1505,11 @@ class _ConfirmDialog extends (external_React_default()).PureComponent {
     }), this._renderModalMessage()), /*#__PURE__*/external_React_default().createElement("section", {
       className: "button-group"
     }, /*#__PURE__*/external_React_default().createElement("moz-button-group", null, /*#__PURE__*/external_React_default().createElement("moz-button", {
+      type: "ghost",
       onClick: this._handleCancelBtn,
       "data-l10n-id": this.props.data.cancel_button_string_id
     }), /*#__PURE__*/external_React_default().createElement("moz-button", {
-      type: "primary",
+      type: "destructive",
       onClick: this._handleConfirmBtn,
       "data-l10n-id": this.props.data.confirm_button_string_id,
       "data-l10n-args": JSON.stringify(this.props.data.confirm_button_string_args)
@@ -2283,6 +2284,20 @@ const LinkMenuOptions = {
           actionCreators.AlsoToMain({
             type: actionTypes.DIALOG_CLOSE,
           }),
+          actionCreators.OnlyToOneContent(
+            {
+              type: actionTypes.SHOW_TOAST_MESSAGE,
+              data: {
+                toastId: "blockSectionToast",
+                showNotifications: true,
+                toastData: {
+                  l10nId: "newtab-section-toast-block",
+                  topic: title,
+                },
+              },
+            },
+            "ActivityStream:Content"
+          ),
         ],
         // Pass Fluent strings to ConfirmDialog component for the copy
         // of the prompt to block sections.
@@ -2292,7 +2307,7 @@ const LinkMenuOptions = {
         ],
         confirm_button_string_id: "newtab-section-block-topic-button",
         confirm_button_string_args: { topic: title },
-        cancel_button_string_id: "newtab-section-cancel-button",
+        cancel_button_string_id: "newtab-section-block-cancel-button",
       },
     },
     userEvent: "DIALOG_OPEN",
@@ -2301,8 +2316,9 @@ const LinkMenuOptions = {
     sectionPersonalization,
     sectionKey,
     sectionPosition,
+    title,
   }) => ({
-    id: "newtab-menu-section-unfollow",
+    id: "newtab-menu-section-unfollow-topic",
     action: actionCreators.AlsoToMain({
       type: actionTypes.SECTION_PERSONALIZATION_SET,
       data: (({ [sectionKey]: _sectionKey, ...remaining }) => remaining)(
@@ -2317,6 +2333,17 @@ const LinkMenuOptions = {
         event_source: "CONTEXT_MENU",
       },
     }),
+    toast: actionCreators.OnlyToOneContent(
+      {
+        type: actionTypes.SHOW_TOAST_MESSAGE,
+        data: {
+          toastId: "unfollowSectionToast",
+          showNotifications: true,
+          toastData: { l10nId: "newtab-section-toast-unfollow", topic: title },
+        },
+      },
+      "ActivityStream:Content"
+    ),
     userEvent: "SECTION_UNFOLLOW",
   }),
   ManageSponsoredContent: () => ({
@@ -2414,6 +2441,7 @@ class _LinkMenu extends (external_React_default()).PureComponent {
       const {
         action,
         impression,
+        toast,
         id,
         type,
         userEvent: eventName
@@ -2438,6 +2466,9 @@ class _LinkMenu extends (external_React_default()).PureComponent {
             }, action.data);
           }
           dispatch(action);
+          if (toast) {
+            dispatch(toast);
+          }
           if (eventName) {
             let value;
             // Bug 1958135: Pass additional info to ac.OPEN_NEW_WINDOW event
@@ -6600,6 +6631,7 @@ const INITIAL_STATE = {
     showNotifications: false,
     toastCounter: 0,
     toastId: "",
+    toastData: {},
     // This queue is reset each time SHOW_TOAST_MESSAGE is ran.
     // For can be a queue in the future, but for now is one item
     toastQueue: [],
@@ -7498,6 +7530,7 @@ function Notifications(prevState = INITIAL_STATE.Notifications, action) {
         showNotifications: action.data.showNotifications,
         toastCounter: prevState.toastCounter + 1,
         toastId: action.data.toastId,
+        toastData: action.data.toastData ?? {},
         toastQueue: [action.data.toastId],
       };
     case actionTypes.HIDE_TOAST_MESSAGE: {
@@ -10419,6 +10452,7 @@ const selectLayoutRender = ({ state = {}, prefs = {} }) => {
  */
 function SectionContextMenu({
   type = "DISCOVERY_STREAM",
+  buttonType = "icon",
   title,
   source,
   index,
@@ -10428,12 +10462,12 @@ function SectionContextMenu({
   sectionPersonalization,
   sectionPosition
 }) {
-  // Initial context menu options: block this section only.
-  const SECTIONS_CONTEXT_MENU_OPTIONS = ["SectionBlock"];
-  const [showContextMenu, setShowContextMenu] = (0,external_React_namespaceObject.useState)(false);
+  const SECTIONS_CONTEXT_MENU_OPTIONS = [];
   if (following) {
     SECTIONS_CONTEXT_MENU_OPTIONS.push("SectionUnfollow");
   }
+  SECTIONS_CONTEXT_MENU_OPTIONS.push("SectionBlock");
+  const [showContextMenu, setShowContextMenu] = (0,external_React_namespaceObject.useState)(false);
   const onClick = e => {
     e.preventDefault();
     setShowContextMenu(!showContextMenu);
@@ -10444,7 +10478,7 @@ function SectionContextMenu({
   return /*#__PURE__*/external_React_default().createElement("div", {
     className: "section-context-menu"
   }, /*#__PURE__*/external_React_default().createElement("moz-button", {
-    type: "icon",
+    type: buttonType,
     size: "default",
     iconsrc: "chrome://global/skin/icons/more.svg",
     title: title || source,
@@ -10462,6 +10496,72 @@ function SectionContextMenu({
       sectionPosition,
       title
     }
+  }));
+}
+;// CONCATENATED MODULE: ./content-src/components/DiscoveryStreamComponents/SectionFollowButton/SectionFollowButton.jsx
+function SectionFollowButton_extends() { return SectionFollowButton_extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, SectionFollowButton_extends.apply(null, arguments); }
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+
+const ADD_ICON = "chrome://global/skin/icons/plus.svg";
+const CHECK_ICON = "chrome://global/skin/icons/check.svg";
+const CLOSE_ICON = "chrome://global/skin/icons/close.svg";
+function SectionFollowButton({
+  following,
+  onFollowClick,
+  onUnfollowClick
+}) {
+  const [isHovered, setIsHovered] = (0,external_React_namespaceObject.useState)(false);
+  const [justFollowed, setJustFollowed] = (0,external_React_namespaceObject.useState)(false);
+  // This key is incremented on mouse leave / blur to remount moz-button and
+  // restore it to its icon-only state.
+  const [remountKey, setRemountKey] = (0,external_React_namespaceObject.useState)(0);
+  const isJustFollowed = following && isHovered && justFollowed;
+  const isUnfollowing = following && isHovered && !justFollowed;
+  let followButtonL10nId = "newtab-section-follow-button";
+  let icon = ADD_ICON;
+  let buttonType = "default";
+  if (isJustFollowed) {
+    followButtonL10nId = "newtab-section-following-button";
+    icon = CHECK_ICON;
+    buttonType = "primary";
+  } else if (isUnfollowing) {
+    followButtonL10nId = "newtab-section-unfollow-button";
+    icon = CLOSE_ICON;
+    buttonType = "destructive";
+  } else if (isHovered) {
+    buttonType = "primary";
+  } else if (following) {
+    icon = CHECK_ICON;
+  }
+  const handleFollowClick = () => {
+    setJustFollowed(true);
+    onFollowClick();
+  };
+  const hoverHandlers = {
+    onMouseEnter: () => setIsHovered(true),
+    onMouseLeave: () => {
+      setIsHovered(false);
+      setJustFollowed(false);
+      setRemountKey(k => k + 1);
+    },
+    onFocus: () => setIsHovered(true),
+    onBlur: () => {
+      setIsHovered(false);
+      setJustFollowed(false);
+      setRemountKey(k => k + 1);
+    }
+  };
+  return /*#__PURE__*/external_React_default().createElement("div", SectionFollowButton_extends({
+    className: `section-follow${following ? " following" : ""}`
+  }, hoverHandlers), /*#__PURE__*/external_React_default().createElement("moz-button", {
+    key: remountKey,
+    type: buttonType,
+    iconsrc: icon,
+    onClick: following ? onUnfollowClick : handleFollowClick,
+    "data-l10n-id": isHovered ? followButtonL10nId : null
   }));
 }
 ;// CONCATENATED MODULE: ./content-src/components/DiscoveryStreamComponents/InterestPicker/InterestPicker.jsx
@@ -10930,6 +11030,7 @@ const BriefingCard = ({
 
 
 
+
 // Prefs
 const CardSections_PREF_SECTIONS_CARDS_ENABLED = "discoverystream.sections.cards.enabled";
 const PREF_SECTIONS_PERSONALIZATION_ENABLED = "discoverystream.sections.personalization.enabled";
@@ -10946,6 +11047,8 @@ const PREF_INFERRED_PERSONALIZATION_USER = "discoverystream.sections.personaliza
 const PREF_DAILY_BRIEF_SECTIONID = "discoverystream.dailyBrief.sectionId";
 const PREF_DAILY_BRIEF_ENABLED = "discoverystream.dailyBrief.enabled";
 const CardSections_PREF_SPOCS_STARTUPCACHE_ENABLED = "discoverystream.spocs.startupCache.enabled";
+// @nova-cleanup(remove-pref): Remove after Nova ships
+const CardSections_PREF_NOVA_ENABLED = "nova.enabled";
 
 // Feed URL
 const CURATED_RECOMMENDATIONS_FEED_URL = "https://merino.services.mozilla.com/api/v1/curated-recommendations";
@@ -11092,6 +11195,8 @@ function CardSection({
   const dailyBriefEnabled = prefs.trainhopConfig?.dailyBriefing?.enabled || prefs[PREF_DAILY_BRIEF_ENABLED];
   const dailyBriefSectionId = prefs.trainhopConfig?.dailyBriefing?.sectionId || prefs[PREF_DAILY_BRIEF_SECTIONID];
   const mayHaveSectionsPersonalization = prefs[PREF_SECTIONS_PERSONALIZATION_ENABLED];
+  // @nova-cleanup(remove-conditional): Remove novaEnabled, always use Nova layout
+  const novaEnabled = prefs[CardSections_PREF_NOVA_ENABLED];
   const {
     sectionKey,
     title,
@@ -11139,7 +11244,18 @@ function CardSection({
         event_source: "MOZ_BUTTON"
       }
     }));
-  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition]);
+    dispatch(actionCreators.OnlyToOneContent({
+      type: actionTypes.SHOW_TOAST_MESSAGE,
+      data: {
+        toastId: "followSectionToast",
+        showNotifications: true,
+        toastData: {
+          l10nId: "newtab-section-toast-follow",
+          topic: title
+        }
+      }
+    }, "ActivityStream:Content"));
+  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition, title]);
   const onUnfollowClick = (0,external_React_namespaceObject.useCallback)(() => {
     const updatedSectionData = {
       ...sectionPersonalization
@@ -11159,7 +11275,18 @@ function CardSection({
         event_source: "MOZ_BUTTON"
       }
     }));
-  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition]);
+    dispatch(actionCreators.OnlyToOneContent({
+      type: actionTypes.SHOW_TOAST_MESSAGE,
+      data: {
+        toastId: "unfollowSectionToast",
+        showNotifications: true,
+        toastData: {
+          l10nId: "newtab-section-toast-unfollow",
+          topic: title
+        }
+      }
+    }, "ActivityStream:Content"));
+  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition, title]);
   let {
     maxTile
   } = getMaxTiles(responsiveLayouts);
@@ -11376,9 +11503,23 @@ function CardSection({
     className: "section-title-wrapper"
   }, /*#__PURE__*/external_React_default().createElement("h2", {
     className: "section-title"
-  }, title), subtitle && /*#__PURE__*/external_React_default().createElement("p", {
+  }, title), mayHaveSectionsPersonalization && novaEnabled && followable !== false && /*#__PURE__*/external_React_default().createElement(SectionFollowButton, {
+    following: following,
+    onFollowClick: onFollowClick,
+    onUnfollowClick: onUnfollowClick
+  }), subtitle && /*#__PURE__*/external_React_default().createElement("p", {
     className: "section-subtitle"
-  }, subtitle)), mayHaveSectionsPersonalization ? sectionContextWrapper : null), /*#__PURE__*/external_React_default().createElement("div", {
+  }, subtitle)), mayHaveSectionsPersonalization && (novaEnabled ? /*#__PURE__*/external_React_default().createElement(SectionContextMenu, {
+    dispatch: dispatch,
+    index: sectionPosition,
+    following: following,
+    sectionPersonalization: sectionPersonalization,
+    sectionKey: sectionKey,
+    title: title,
+    type: type,
+    sectionPosition: sectionPosition,
+    buttonType: "ghost"
+  }) : sectionContextWrapper)), /*#__PURE__*/external_React_default().createElement("div", {
     className: `ds-section-grid ds-card-grid`,
     onFocusCapture: syncLayoutOnFocus,
     onKeyDown: handleCardKeyDown
@@ -16960,6 +17101,42 @@ function DownloadModalToggle({
   }));
 }
 
+;// CONCATENATED MODULE: ./content-src/components/Notifications/Toasts/SectionToast.jsx
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function SectionToast({
+  onDismissClick,
+  onAnimationEnd,
+  toastData
+}) {
+  const mozMessageBarRef = (0,external_React_namespaceObject.useRef)(null);
+  (0,external_React_namespaceObject.useEffect)(() => {
+    const {
+      current: mozMessageBarElement
+    } = mozMessageBarRef;
+    mozMessageBarElement.addEventListener("message-bar:user-dismissed", onDismissClick, {
+      once: true
+    });
+    return () => {
+      mozMessageBarElement.removeEventListener("message-bar:user-dismissed", onDismissClick);
+    };
+  }, [onDismissClick]);
+  return /*#__PURE__*/external_React_default().createElement("moz-message-bar", {
+    type: "success",
+    class: "notification-feed-item newtab-toast-success",
+    dismissable: true,
+    "data-l10n-id": toastData.l10nId,
+    "data-l10n-args": JSON.stringify({
+      topic: toastData.topic
+    }),
+    ref: mozMessageBarRef,
+    onAnimationEnd: onAnimationEnd
+  });
+}
+
 ;// CONCATENATED MODULE: ./content-src/components/Notifications/Toasts/HideWidgetsToast.jsx
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
@@ -17016,7 +17193,7 @@ function ReportContentToast({
   }, [onDismissClick]);
   return /*#__PURE__*/external_React_default().createElement("moz-message-bar", {
     type: "success",
-    class: "notification-feed-item",
+    class: "notification-feed-item newtab-toast-success",
     dismissable: true,
     "data-l10n-id": "newtab-toast-thanks-for-reporting",
     ref: mozMessageBarRef,
@@ -17034,11 +17211,13 @@ function ReportContentToast({
 
 
 
+
 function Notifications_Notifications({
   dispatch
 }) {
   const toastQueue = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Notifications.toastQueue);
   const toastCounter = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Notifications.toastCounter);
+  const toastData = (0,external_ReactRedux_namespaceObject.useSelector)(state => state.Notifications.toastData);
 
   /**
    * Syncs {@link toastQueue} array so it can be used to
@@ -17065,6 +17244,15 @@ function Notifications_Notifications({
       throw new Error("No toast found");
     }
     switch (latestToastItem) {
+      case "blockSectionToast":
+      case "followSectionToast":
+      case "unfollowSectionToast":
+        return /*#__PURE__*/external_React_default().createElement(SectionToast, {
+          onDismissClick: syncHiddenToastData,
+          onAnimationEnd: syncHiddenToastData,
+          toastData: toastData,
+          key: toastCounter
+        });
       case "reportSuccessToast":
         return /*#__PURE__*/external_React_default().createElement(ReportContentToast, {
           onDismissClick: syncHiddenToastData,
@@ -17080,7 +17268,7 @@ function Notifications_Notifications({
       default:
         throw new Error(`Unexpected toast type: ${latestToastItem}`);
     }
-  }, [syncHiddenToastData, toastCounter, toastQueue]);
+  }, [syncHiddenToastData, toastCounter, toastData, toastQueue]);
   (0,external_React_namespaceObject.useEffect)(() => {
     getToast();
   }, [toastQueue, getToast]);
@@ -18348,7 +18536,9 @@ class BaseContent extends (external_React_default()).PureComponent {
         showWidgetsManagementPanel: this.state.showWidgetsManagementPanel,
         toggleWidgetsManagementPanel: this.toggleWidgetsManagementPanel,
         widgetsEnabled: prefs["widgets.enabled"]
-      })), /*#__PURE__*/external_React_default().createElement(ConfirmDialog, null));
+      })), /*#__PURE__*/external_React_default().createElement(ConfirmDialog, null), this.props.Notifications?.showNotifications && /*#__PURE__*/external_React_default().createElement(ErrorBoundary, null, /*#__PURE__*/external_React_default().createElement(Notifications_Notifications, {
+        dispatch: this.props.dispatch
+      })));
     }
 
     // @nova-cleanup(remove-conditional): Delete this entire classic return block along with all variables only used here

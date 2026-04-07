@@ -12,6 +12,7 @@ import {
   getActiveColumnLayout,
 } from "../../../lib/utils";
 import { SectionContextMenu } from "../SectionContextMenu/SectionContextMenu";
+import { SectionFollowButton } from "../SectionFollowButton/SectionFollowButton";
 import { InterestPicker } from "../InterestPicker/InterestPicker";
 import { AdBanner } from "../AdBanner/AdBanner.jsx";
 import { PersonalizedCard } from "../PersonalizedCard/PersonalizedCard";
@@ -40,6 +41,8 @@ const PREF_DAILY_BRIEF_SECTIONID = "discoverystream.dailyBrief.sectionId";
 const PREF_DAILY_BRIEF_ENABLED = "discoverystream.dailyBrief.enabled";
 const PREF_SPOCS_STARTUPCACHE_ENABLED =
   "discoverystream.spocs.startupCache.enabled";
+// @nova-cleanup(remove-pref): Remove after Nova ships
+const PREF_NOVA_ENABLED = "nova.enabled";
 
 // Feed URL
 const CURATED_RECOMMENDATIONS_FEED_URL =
@@ -222,6 +225,8 @@ function CardSection({
 
   const mayHaveSectionsPersonalization =
     prefs[PREF_SECTIONS_PERSONALIZATION_ENABLED];
+  // @nova-cleanup(remove-conditional): Remove novaEnabled, always use Nova layout
+  const novaEnabled = prefs[PREF_NOVA_ENABLED];
 
   const { sectionKey, title, subtitle, followable } = section;
   const { responsiveLayouts, name: layoutName } = section.layout;
@@ -271,7 +276,20 @@ function CardSection({
         },
       })
     );
-  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition]);
+    dispatch(
+      ac.OnlyToOneContent(
+        {
+          type: at.SHOW_TOAST_MESSAGE,
+          data: {
+            toastId: "followSectionToast",
+            showNotifications: true,
+            toastData: { l10nId: "newtab-section-toast-follow", topic: title },
+          },
+        },
+        "ActivityStream:Content"
+      )
+    );
+  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition, title]);
 
   const onUnfollowClick = useCallback(() => {
     const updatedSectionData = { ...sectionPersonalization };
@@ -294,7 +312,23 @@ function CardSection({
         },
       })
     );
-  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition]);
+    dispatch(
+      ac.OnlyToOneContent(
+        {
+          type: at.SHOW_TOAST_MESSAGE,
+          data: {
+            toastId: "unfollowSectionToast",
+            showNotifications: true,
+            toastData: {
+              l10nId: "newtab-section-toast-unfollow",
+              topic: title,
+            },
+          },
+        },
+        "ActivityStream:Content"
+      )
+    );
+  }, [dispatch, sectionPersonalization, sectionKey, sectionPosition, title]);
 
   let { maxTile } = getMaxTiles(responsiveLayouts);
   if (placeholder) {
@@ -563,9 +597,33 @@ function CardSection({
       <div className="section-heading">
         <div className="section-title-wrapper">
           <h2 className="section-title">{title}</h2>
+          {mayHaveSectionsPersonalization &&
+            novaEnabled &&
+            followable !== false && (
+              <SectionFollowButton
+                following={following}
+                onFollowClick={onFollowClick}
+                onUnfollowClick={onUnfollowClick}
+              />
+            )}
           {subtitle && <p className="section-subtitle">{subtitle}</p>}
         </div>
-        {mayHaveSectionsPersonalization ? sectionContextWrapper : null}
+        {mayHaveSectionsPersonalization &&
+          (novaEnabled ? (
+            <SectionContextMenu
+              dispatch={dispatch}
+              index={sectionPosition}
+              following={following}
+              sectionPersonalization={sectionPersonalization}
+              sectionKey={sectionKey}
+              title={title}
+              type={type}
+              sectionPosition={sectionPosition}
+              buttonType="ghost"
+            />
+          ) : (
+            sectionContextWrapper
+          ))}
       </div>
       <div
         className={`ds-section-grid ds-card-grid`}

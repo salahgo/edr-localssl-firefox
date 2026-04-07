@@ -969,6 +969,11 @@ export class BaseContent extends React.PureComponent {
             />
           </menu>
           <ConfirmDialog />
+          {this.props.Notifications?.showNotifications && (
+            <ErrorBoundary>
+              <Notifications dispatch={this.props.dispatch} />
+            </ErrorBoundary>
+          )}
         </div>
       );
     }

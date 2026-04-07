@@ -1846,6 +1846,10 @@ main section {
   pointer-events: none;
 }
 
+.nova-enabled ~ .confirmation-dialog {
+  border-radius: var(--border-radius-large);
+}
+
 .confirmation-dialog {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-small);
@@ -1868,6 +1872,9 @@ main section {
 .confirmation-dialog .modal-message p {
   margin: 0;
   margin-block-end: var(--space-large);
+}
+.confirmation-dialog .modal-message p:first-child {
+  font-weight: var(--font-weight-semibold);
 }
 .confirmation-dialog .button-group {
   border: 0;
@@ -4341,6 +4348,11 @@ dialog:dir(rtl)::after {
 .notification-feed-item {
   position: relative;
   animation: toastSlideInSlideOut 4s ease-in-out forwards;
+}
+
+.nova-enabled ~ .notification-wrapper .newtab-toast-success {
+  --message-bar-background-color: var(--background-color-box);
+  --message-bar-icon-color: var(--icon-color-success);
 }
 
 @keyframes toastSlideInSlideOut {

@@ -361,6 +361,20 @@ export const LinkMenuOptions = {
           ac.AlsoToMain({
             type: at.DIALOG_CLOSE,
           }),
+          ac.OnlyToOneContent(
+            {
+              type: at.SHOW_TOAST_MESSAGE,
+              data: {
+                toastId: "blockSectionToast",
+                showNotifications: true,
+                toastData: {
+                  l10nId: "newtab-section-toast-block",
+                  topic: title,
+                },
+              },
+            },
+            "ActivityStream:Content"
+          ),
         ],
         // Pass Fluent strings to ConfirmDialog component for the copy
         // of the prompt to block sections.
@@ -370,7 +384,7 @@ export const LinkMenuOptions = {
         ],
         confirm_button_string_id: "newtab-section-block-topic-button",
         confirm_button_string_args: { topic: title },
-        cancel_button_string_id: "newtab-section-cancel-button",
+        cancel_button_string_id: "newtab-section-block-cancel-button",
       },
     },
     userEvent: "DIALOG_OPEN",
@@ -379,8 +393,9 @@ export const LinkMenuOptions = {
     sectionPersonalization,
     sectionKey,
     sectionPosition,
+    title,
   }) => ({
-    id: "newtab-menu-section-unfollow",
+    id: "newtab-menu-section-unfollow-topic",
     action: ac.AlsoToMain({
       type: at.SECTION_PERSONALIZATION_SET,
       data: (({ [sectionKey]: _sectionKey, ...remaining }) => remaining)(
@@ -395,6 +410,17 @@ export const LinkMenuOptions = {
         event_source: "CONTEXT_MENU",
       },
     }),
+    toast: ac.OnlyToOneContent(
+      {
+        type: at.SHOW_TOAST_MESSAGE,
+        data: {
+          toastId: "unfollowSectionToast",
+          showNotifications: true,
+          toastData: { l10nId: "newtab-section-toast-unfollow", topic: title },
+        },
+      },
+      "ActivityStream:Content"
+    ),
     userEvent: "SECTION_UNFOLLOW",
   }),
   ManageSponsoredContent: () => ({
