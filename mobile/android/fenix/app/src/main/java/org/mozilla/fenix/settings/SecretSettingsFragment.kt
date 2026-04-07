@@ -157,77 +157,6 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
 
-        requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_composable_toolbar).apply {
-            isChecked = context.settings().shouldUseComposableToolbar
-            onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
-                (newValue as? Boolean)?.let { newOption ->
-                    context.settings().shouldUseComposableToolbar = newOption
-                    requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_toolbar_redesign).apply {
-                        isEnabled = newOption
-                        when (newOption) {
-                            true -> {
-                                summary = null
-                            }
-
-                            false -> {
-                                isChecked = false
-                                summary = getString(R.string.preferences_debug_settings_toolbar_redesign_summary)
-                                context.settings().toolbarRedesignEnabled = false
-                                context.settings().shouldUseExpandedToolbar = false
-                            }
-                        }
-                    }
-                    requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_toolbar_customization).apply {
-                        val newOption = context.settings().toolbarRedesignEnabled
-                        isEnabled = newOption
-                        summary = when (newOption) {
-                            true -> null
-                            false -> getString(R.string.preferences_debug_settings_toolbar_customization_summary)
-                        }
-                        if (!newOption && isChecked) {
-                            isChecked = false
-                            context.settings().shouldShowToolbarCustomization = false
-                        }
-                    }
-                    requirePreference<SwitchPreferenceCompat>(
-                        R.string.pref_key_should_show_custom_tab_extensions,
-                    ).apply {
-                        val shouldEnableCustomTabExtensions = newOption
-                        isEnabled = shouldEnableCustomTabExtensions
-                        when (shouldEnableCustomTabExtensions) {
-                            true -> {
-                                summary = null
-                            }
-
-                            false -> {
-                                isChecked = false
-                                summary = getString(R.string.preferences_debug_settings_custom_tab_extensions_summary)
-                                context.settings().shouldShowCustomTabExtensions = false
-                            }
-                        }
-                    }
-                    requirePreference<SwitchPreferenceCompat>(
-                        R.string.pref_key_use_minimal_bottom_toolbar_while_entering_text,
-                    ).apply {
-                        isEnabled = newOption
-                        when (newOption) {
-                            true -> {
-                                summary = null
-                            }
-
-                            false -> {
-                                isEnabled = context.settings().shouldUseComposableToolbar
-                                summary = when (context.settings().shouldUseComposableToolbar) {
-                                    true -> null
-                                    false -> getString(R.string.preferences_debug_settings_toolbar_redesign_summary)
-                                }
-                            }
-                        }
-                    }
-                }
-                true
-            }
-        }
         requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_toolbar_customization).apply {
             isChecked = context.settings().shouldShowToolbarCustomization
             val newOption = context.settings().toolbarRedesignEnabled
@@ -240,11 +169,6 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
         }
 
         requirePreference<SwitchPreferenceCompat>(R.string.pref_key_enable_toolbar_redesign).apply {
-            isEnabled = context.settings().shouldUseComposableToolbar
-            summary = when (context.settings().shouldUseComposableToolbar) {
-                true -> null
-                false -> getString(R.string.preferences_debug_settings_toolbar_redesign_summary)
-            }
             isChecked = context.settings().toolbarRedesignEnabled
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                 (newValue as? Boolean)?.let { newOption ->
@@ -276,12 +200,7 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
             R.string.pref_key_use_minimal_bottom_toolbar_while_entering_text,
         ).apply {
             isVisible = false // disabled temporarily based on https://bugzilla.mozilla.org/show_bug.cgi?id=1943053#c31
-            isEnabled = context.settings().shouldUseComposableToolbar
             isChecked = context.settings().shouldUseMinimalBottomToolbarWhenEnteringText
-            summary = when (context.settings().shouldUseComposableToolbar) {
-                true -> null
-                false -> getString(R.string.preferences_debug_settings_toolbar_redesign_summary)
-            }
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
 
@@ -300,12 +219,6 @@ class SecretSettingsFragment : PreferenceFragmentCompat(), SystemInsetsPaddedFra
         requirePreference<SwitchPreferenceCompat>(R.string.pref_key_should_show_custom_tab_extensions).apply {
             isVisible = Config.channel.isDebug
             isChecked = context.settings().shouldShowCustomTabExtensions
-            val newOption = context.settings().shouldUseComposableToolbar
-            isEnabled = newOption
-            summary = when (newOption) {
-                true -> null
-                false -> getString(R.string.preferences_debug_settings_custom_tab_extensions_summary)
-            }
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
 
