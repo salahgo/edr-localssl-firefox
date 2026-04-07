@@ -33,7 +33,7 @@ Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#468
  4 files changed, 28 insertions(+)
 
 diff --git a/pc/BUILD.gn b/pc/BUILD.gn
-index 3b692fcdc3..9680e6e113 100644
+index 3c2aee65c5..28070070a6 100644
 --- a/pc/BUILD.gn
 +++ b/pc/BUILD.gn
 @@ -1453,6 +1453,7 @@ rtc_library("legacy_stats_collector") {
