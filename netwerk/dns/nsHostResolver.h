@@ -295,7 +295,8 @@ class nsHostResolver : public nsISupports, public AHostResolver {
   mozilla::Atomic<uint32_t> mActiveAnyThreadCount{0};
 
   // Set the expiration time stamps appropriately.
-  void PrepareRecordExpirationAddrRecord(AddrHostRecord* rec) const;
+  void PrepareRecordExpirationAddrRecord(AddrHostRecord* rec) const
+      MOZ_REQUIRES(rec->addr_info_lock);
 
  public:
   /*
