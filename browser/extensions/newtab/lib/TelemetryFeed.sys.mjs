@@ -1109,8 +1109,6 @@ export class TelemetryFeed {
           corpus_item_id,
           event_source,
           feature,
-          fetchTimestamp,
-          firstVisibleTimestamp,
           format,
           is_section_followed,
           layout_name,
@@ -1194,17 +1192,6 @@ export class TelemetryFeed {
                 url: shim,
                 position: action.data.action_position,
               });
-            } else {
-              Glean.pocket.shim.set(shim);
-              if (fetchTimestamp) {
-                Glean.pocket.fetchTimestamp.set(fetchTimestamp * 1000);
-              }
-              if (firstVisibleTimestamp) {
-                Glean.pocket.newtabCreationTimestamp.set(
-                  firstVisibleTimestamp * 1000
-                );
-              }
-              GleanPings.spoc.submit("click");
             }
           }
         }
@@ -2293,17 +2280,6 @@ export class TelemetryFeed {
             url: tile.shim,
             position: tile.pos,
           });
-        } else {
-          Glean.pocket.shim.set(tile.shim);
-          if (tile.fetchTimestamp) {
-            Glean.pocket.fetchTimestamp.set(tile.fetchTimestamp * 1000);
-          }
-          if (data.firstVisibleTimestamp) {
-            Glean.pocket.newtabCreationTimestamp.set(
-              data.firstVisibleTimestamp * 1000
-            );
-          }
-          GleanPings.spoc.submit("impression");
         }
       }
     });
