@@ -48,6 +48,12 @@ impl Test {
     }
 }
 
+pub(crate) struct TestOutcome {
+    pub(crate) label: String,
+    pub(crate) result: TestResult,
+    pub(crate) output: String,
+}
+
 #[derive(Debug, PartialEq)]
 pub enum TestResult {
     Pass,
@@ -87,7 +93,7 @@ pub(crate) fn run_tests(
     let mut results: Vec<TestResult> = vec![];
     let mut prepared_updaters: HashMap<PathBuf, PathBuf> = HashMap::new();
     for test in tests {
-        let result = run_test(
+        let outcome = run_test(
             &test,
             &mut prepared_updaters,
             check_updates,
@@ -102,14 +108,15 @@ pub(crate) fn run_tests(
             artifact_dir,
             runner,
         );
-        match result {
-            Ok(r) => {
-                if r == TestResult::Pass {
-                    info!("TEST-PASS: {}", test);
+        match outcome {
+            Ok(o) => {
+                if o.result == TestResult::Pass {
+                    info!("TEST-PASS: {}", o.label);
                 } else {
-                    info!("TEST-UNEXPECTED-FAIL: {}", test);
+                    error!("{}", o.output);
+                    info!("TEST-UNEXPECTED-FAIL: {}", o.label);
                 }
-                results.push(r);
+                results.push(o.result);
             }
             Err(e) => {
                 info!("TEST-UNEXPECTED-FAIL: {}", test);
@@ -134,7 +141,7 @@ fn run_test(
     tmpdir: &Path,
     artifact_dir: &Path,
     runner: &dyn CommandRunner,
-) -> Result<TestResult, Box<dyn std::error::Error>> {
+) -> Result<TestOutcome, Box<dyn std::error::Error>> {
     let updater = match prepared_updaters.get(&test.from_installer) {
         Some(path) => path.clone(),
         None => {
@@ -206,12 +213,11 @@ fn run_test(
     let mut f = File::create(output_file)?;
     f.write_all(command_result.output.as_bytes())?;
 
-    // only echo it out on failure
-    if result != TestResult::Pass {
-        error!("{}", command_result.output);
-    }
-
-    return Ok(result);
+    return Ok(TestOutcome {
+        label: test.full_id(),
+        result: result,
+        output: command_result.output,
+    });
 }
 
 /// Setup the test directory in a way that is compatible with the expectations
