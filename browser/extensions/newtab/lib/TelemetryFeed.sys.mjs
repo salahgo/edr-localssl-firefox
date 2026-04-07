@@ -800,15 +800,9 @@ export class TelemetryFeed {
     // Legacy telemetry expects 1-based tile positions.
     const legacyTelemetryPosition = position + 1;
 
-    const unifiedAdsTilesEnabled = this._prefs.get(
-      PREF_UNIFIED_ADS_TILES_ENABLED
-    );
-
-    let pingType;
     const session = this.sessions.get(au.getPortIdOfSender(action));
 
     if (type === "impression") {
-      pingType = "topsites-impression";
       Glean.contextualServicesTopsites.impression[
         `${source}_${legacyTelemetryPosition}`
       ].add(1);
@@ -836,7 +830,6 @@ export class TelemetryFeed {
         }
       }
     } else if (type === "click") {
-      pingType = "topsites-click";
       Glean.contextualServicesTopsites.click[
         `${source}_${legacyTelemetryPosition}`
       ].add(1);
@@ -866,19 +859,6 @@ export class TelemetryFeed {
     } else {
       console.error("Unknown ping type for sponsored TopSites impression");
       return;
-    }
-
-    if (!this.sovEnabled()) {
-      Glean.topSites.pingType.set(pingType);
-      Glean.topSites.position.set(legacyTelemetryPosition);
-      Glean.topSites.source.set(source);
-      Glean.topSites.tileId.set(tile_id);
-      if (data.reporting_url && !unifiedAdsTilesEnabled) {
-        Glean.topSites.reportingUrl.set(data.reporting_url);
-      }
-      Glean.topSites.advertiser.set(advertiser_name);
-      Glean.topSites.contextId.set(await lazy.ContextId.request());
-      GleanPings.topSites.submit();
     }
 
     if (data.reporting_url && this.canSendUnifiedAdsTilesCallbacks) {
