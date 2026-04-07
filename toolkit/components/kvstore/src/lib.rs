@@ -73,6 +73,17 @@ pub unsafe extern "C" fn nsKeyValueServiceConstructor(
     service.QueryInterface(iid, result)
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn nsSQLiteKeyValueServiceConstructor(
+    iid: &nsIID,
+    result: *mut *mut libc::c_void,
+) -> nsresult {
+    *result = ptr::null_mut();
+
+    let service = skv::interface::KeyValueService::new();
+    service.QueryInterface(iid, result)
+}
+
 // For each public XPCOM method in the nsIKeyValue* interfaces, we implement
 // a pair of Rust methods:
 //

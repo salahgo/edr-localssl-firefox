@@ -7,11 +7,6 @@
 //! This module implements a key-value storage interface that's
 //! backed by SQLite.
 
-use std::ptr;
-
-use nserror::nsresult;
-use xpcom::nsIID;
-
 mod abort;
 pub mod checker;
 pub mod connection;
@@ -19,7 +14,7 @@ mod coordinator;
 pub mod database;
 mod functions;
 mod importer;
-mod interface;
+pub mod interface;
 pub mod key;
 mod maintenance;
 mod schema;
@@ -30,16 +25,3 @@ pub mod value;
 pub use database::{Database, DatabaseError, GetOptions};
 pub use key::Key;
 pub use value::Value;
-
-use interface::KeyValueService;
-
-#[no_mangle]
-pub unsafe extern "C" fn nsSQLiteKeyValueServiceConstructor(
-    iid: &nsIID,
-    result: *mut *mut libc::c_void,
-) -> nsresult {
-    *result = ptr::null_mut();
-
-    let service = KeyValueService::new();
-    service.QueryInterface(iid, result)
-}
