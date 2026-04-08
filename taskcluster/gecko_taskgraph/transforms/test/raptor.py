@@ -16,6 +16,13 @@ from gecko_taskgraph.util.perftest import is_external_browser
 transforms = TransformSequence()
 task_transforms = TransformSequence()
 
+SP3_CRITICAL_TESTS = [
+    "test-windows11-64-24h2-shippable/opt-browsertime-benchmark-firefox-speedometer3",
+    "test-linux2404-64-shippable/opt-browsertime-benchmark-firefox-speedometer3",
+    "test-macosx1500-aarch64-shippable/opt-browsertime-benchmark-firefox-speedometer3",
+    "test-android-hw-a55-14-0-aarch64-shippable/opt-browsertime-benchmark-speedometer3-mobile-fenix",
+]
+
 
 class RaptorSchema(Schema, kw_only=True):
     activity: Optional[optionally_keyed_by("app", str, use_msgspec=True)] = None  # type: ignore
@@ -487,10 +494,7 @@ def setup_lull_schedule(config, tasks):
 def setup_autoland_retriggers(config, tasks):
 
     def _allow_task_duplicates(label):
-        if (
-            "test-windows11-64-24h2-shippable/opt-browsertime-benchmark-firefox-speedometer3"
-            in label
-        ):
+        if any(sp3_test in label for sp3_test in SP3_CRITICAL_TESTS):
             return True
         return False
 
@@ -499,7 +503,7 @@ def setup_autoland_retriggers(config, tasks):
         if config.params["project"] == "autoland" and _allow_task_duplicates(
             task["label"]
         ):
-            attrs["task_duplicates"] = 4
+            attrs["task_duplicates"] = 12
         yield task
 
 
