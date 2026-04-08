@@ -163,9 +163,12 @@ const PREF_SYSTEM_SHORTCUTS_PERSONALIZATION =
   "discoverystream.shortcuts.personalization.enabled";
 
 function smartshortcutsEnabled(values) {
-  const systemPref = values[PREF_SYSTEM_SHORTCUTS_PERSONALIZATION];
+  // if nimbus pref is valid we use it, otherwise fall back to local pref
   const experimentVariable = values.trainhopConfig?.smartShortcuts?.enabled;
-  return systemPref || experimentVariable;
+  if (typeof experimentVariable === "boolean") {
+    return experimentVariable;
+  }
+  return !!values[PREF_SYSTEM_SHORTCUTS_PERSONALIZATION];
 }
 const OVERSAMPLE_MULTIPLIER = 2;
 
@@ -879,6 +882,8 @@ export class TopSitesFeed {
     this._telemetryUtility = new TopSitesTelemetry();
     this._contile = new ContileIntegration(this);
     this._tippyTopProvider = new TippyTopProvider();
+    this._refreshGeneration = 0;
+    this._latestRefreshPromise = Promise.resolve();
     ChromeUtils.defineLazyGetter(
       this,
       "_currentSearchHostname",
@@ -1514,7 +1519,7 @@ export class TopSitesFeed {
   }
 
   // eslint-disable-next-line max-statements
-  async getLinksWithDefaults(isStartup = false) {
+  async getLinksWithDefaults(isStartup = false, refreshId = null) {
     const prefValues = this.store.getState().Prefs.values;
     // switch on top_sites thompson sampling experiment
     const overSampleMultiplier =
@@ -1784,9 +1789,10 @@ export class TopSitesFeed {
       }
     }
 
-    this._linksWithDefaults = withPinned;
-
-    this._telemetryUtility.finalizeNewtabPingFields(dedupedSponsored);
+    if (refreshId === null || refreshId === this._refreshGeneration) {
+      this._linksWithDefaults = withPinned;
+      this._telemetryUtility.finalizeNewtabPingFields(dedupedSponsored);
+    }
     return withPinned;
   }
 
@@ -1913,28 +1919,41 @@ export class TopSitesFeed {
     }
     this._startedUp = true;
 
-    if (!this._tippyTopProvider.initialized) {
-      await this._tippyTopProvider.init();
-    }
+    const refreshId = ++this._refreshGeneration;
+    const refreshPromise = (async () => {
+      if (!this._tippyTopProvider.initialized) {
+        await this._tippyTopProvider.init();
+      }
 
-    const links = await this.getLinksWithDefaults({
-      isStartup: options.isStartup,
-    });
-    const newAction = { type: at.TOP_SITES_UPDATED, data: { links } };
+      const links = await this.getLinksWithDefaults(
+        {
+          isStartup: options.isStartup,
+        },
+        refreshId
+      );
+      if (refreshId !== this._refreshGeneration) {
+        return;
+      }
 
-    if (options.isStartup) {
-      newAction.meta = {
-        isStartup: true,
-      };
-    }
+      const newAction = { type: at.TOP_SITES_UPDATED, data: { links } };
 
-    if (options.broadcast) {
-      // Broadcast an update to all open content pages
-      this.store.dispatch(ac.BroadcastToContent(newAction));
-    } else {
-      // Don't broadcast only update the state and update the preloaded tab.
-      this.store.dispatch(ac.AlsoToPreloaded(newAction));
-    }
+      if (options.isStartup) {
+        newAction.meta = {
+          isStartup: true,
+        };
+      }
+
+      if (options.broadcast) {
+        // Broadcast an update to all open content pages
+        this.store.dispatch(ac.BroadcastToContent(newAction));
+      } else {
+        // Don't broadcast only update the state and update the preloaded tab.
+        this.store.dispatch(ac.AlsoToPreloaded(newAction));
+      }
+    })();
+
+    this._latestRefreshPromise = refreshPromise.catch(() => {});
+    await refreshPromise;
   }
 
   // Allocate ad positions to partners based on SOV via stable randomization.
