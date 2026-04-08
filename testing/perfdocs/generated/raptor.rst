@@ -16322,7 +16322,7 @@ Browsertime tests that use a custom pageload test script. These use the pageload
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: null.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test script**: None
    * **test url**: `<None>`__
@@ -28283,7 +28283,7 @@ Browsertime tests that use a custom pageload test script. These use the pageload
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm5-linux-firefox-welcome.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test script**: welcome.js
    * **test url**: `<about:welcome>`__
@@ -28515,7 +28515,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-amazon.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-amazon.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.amazon.com/Acer-A515-46-R14K-Quad-Core-Processor-Backlit/dp/B08VKNVDDR/ref=sr_1_3?dchild=1&keywords=laptop&qid=1627047187&sr=8-3>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.amazon.com/s?k=laptop&ref=nb_sb_noss_1>`__
@@ -29048,7 +29048,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-darwin-firefox-bing-search.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.bing.com/search?q=barack+obama>`__
    * **type**: pageload
@@ -29496,7 +29496,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-buzzfeed.manifest
    * **playback pageset manifest backup**: mitm7-linux-firefox-buzzfeed.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.buzzfeed.com/quizzes>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.buzzfeed.com/>`__
@@ -29785,7 +29785,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-cnn.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-cnn.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.cnn.com/weather>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.cnn.com/2021/03/22/weather/climate-change-warm-waters-lake-michigan/index.html>`__
@@ -30213,7 +30213,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-docomo.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.docomo.ne.jp/iphone/?icid=CRP_menu_to_CRP_IPH>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.docomo.ne.jp/>`__
@@ -30460,7 +30460,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-ebay.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-ebay.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.ebay.com/deals>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.ebay.com/>`__
@@ -30839,7 +30839,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-espn.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-espn.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.espn.com/nba/draft/news>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.espn.com/nba/story/_/page/allstarweekend25788027/the-comparison-lebron-james-michael-jordan-their-own-words>`__
@@ -31127,7 +31127,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-darwin-firefox-expedia.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://groups.expedia.com/Group-Rate/?locale=en_US&ol=1>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://expedia.com/Hotel-Search?destination=New+York%2C+New+York&latLong=40.756680%2C-73.986470&regionId=178293&startDate=&endDate=&rooms=1&_xpid=11905%7C1&adults=2>`__
@@ -31416,7 +31416,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-facebook.manifest
    * **playback pageset manifest backup**: mitm6-linux-firefox-facebook.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.facebook.com/marketplace/?ref=bookmark>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.facebook.com>`__
@@ -31790,7 +31790,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-fandom.manifest
    * **playback pageset manifest backup**: mitm5-linux-firefox-fandom.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.fandom.com/articles/fallout-76-will-live-and-die-on-the-creativity-of-its-playerbase>`__
    * **type**: pageload
@@ -32239,7 +32239,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-google-docs.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-google-docs.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://docs.google.com/document/d/1vUnn0ePU-ynArE1OdxyEHXR2G0sl74ja_st_4OOzlgE/preview>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://docs.google.com/document/d/1US-07msg12slQtI_xchzYxcKlTs6Fp7WqIc6W5GK5M8/edit?usp=sharing>`__
@@ -32617,7 +32617,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm5-linux-firefox-google-mail.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://mail.google.com/>`__
    * **type**: pageload
@@ -32995,7 +32995,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-google-search.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-google-search.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.google.com/search?hl=en&q=barack+obama&cad=h>`__
    * **type**: pageload
@@ -33372,7 +33372,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-google-slides.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://docs.google.com/presentation/d/e/2PACX-1vRWwPQQFMDkSR4RtYc7HSAGm-hoprespfemIk5SatJxd2o8yrFfrMeAAUkjdfalC5PpjJ9ZKgfsuQ1T/pub?start=false&loop=false&delayms=3000>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://docs.google.com/presentation/d/1Ici0ceWwpFvmIb3EmKeWSq_vAQdmmdFcWqaiLqUkJng/edit?usp=sharing>`__
@@ -33821,7 +33821,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-imdb.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-imdb.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.imdb.com/title/tt0084967/episodes/?ref_=tt_ov_epl>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.imdb.com/title/tt0084967/?ref_=nv_sr_2>`__
@@ -34200,7 +34200,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-imgur.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-imgur.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **preferences**: media.autoplay.default=5 media.autoplay.ask-permission=true media.autoplay.blocking_policy=1 media.allowed-to-play.enabled=false media.block-autoplay-until-in-foreground=true
    * **secondary url**: `<https://imgur.com/gallery/firefox-logo-w8fgXyY>`__
    * **support class**: browsertime_pageload.py
@@ -34564,7 +34564,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-darwin-firefox-instagram.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.instagram.com/nobelprize_org/>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.instagram.com/>`__
@@ -35385,7 +35385,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-microsoft.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://support.microsoft.com/en-us>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.microsoft.com/en-us/>`__
@@ -36136,7 +36136,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-nytimes.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.nytimes.com/section/opinion/columnists>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.nytimes.com/2020/02/19/opinion/surprise-medical-bill.html>`__
@@ -36424,7 +36424,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-office.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.office.com/>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.office.com/launch/powerpoint?auth=1>`__
@@ -36712,7 +36712,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-openai.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://openai.com/blog>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://openai.com/>`__
@@ -36958,7 +36958,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm5-linux-firefox-live.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://outlook.live.com/mail/inbox>`__
    * **type**: pageload
@@ -37330,7 +37330,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm5-linux-firefox-paypal.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.paypal.com/myaccount/summary/>`__
    * **type**: pageload
@@ -38086,7 +38086,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-reddit.manifest
    * **playback pageset manifest backup**: mitm8-linux-firefox-reddit.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.reddit.com/r/technology/>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.reddit.com/r/technology/comments/9sqwyh/we_posed_as_100_senators_to_run_ads_on_facebook/>`__
@@ -38464,7 +38464,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-samsung.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.samsung.com/us/mobile>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.samsung.com/us>`__
@@ -38710,7 +38710,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-tiktok.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.tiktok.com/explore>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.tiktok.com/en>`__
@@ -39335,7 +39335,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-twitch.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **preferences**: media.autoplay.default=5 media.autoplay.ask-permission=true media.autoplay.blocking_policy=1 media.allowed-to-play.enabled=false media.block-autoplay-until-in-foreground=true
    * **secondary url**: `<https://www.twitch.tv/gmashley>`__
    * **support class**: browsertime_pageload.py
@@ -39714,7 +39714,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm5-linux-firefox-twitter.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://twitter.com/BarackObama>`__
    * **type**: pageload
@@ -40156,7 +40156,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm8-linux-firefox-weather.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://weather.com/en-CA/weather/monthly/l/43.67%2C-79.42>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://weather.com/en-CA/weather/today/l/43.67%2C-79.42>`__
@@ -40402,7 +40402,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-wikia.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://marvel.fandom.com/wiki/Celestials>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://marvel.fandom.com/wiki/Black_Panther>`__
@@ -40691,7 +40691,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-wikipedia.manifest
    * **playback pageset manifest backup**: mitm7-linux-firefox-wikipedia.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://en.wikipedia.org/wiki/Joe_Biden>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://en.wikipedia.org/wiki/Barack_Obama>`__
@@ -41139,7 +41139,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm5-linux-firefox-yahoo-mail.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://mail.yahoo.com/>`__
    * **type**: pageload
@@ -41587,7 +41587,7 @@ Tests for page-load performance. The links direct to the actual websites that ar
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-youtube.manifest
    * **playback pageset manifest backup**: mitm7-linux-firefox-youtube.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **secondary url**: `<https://www.youtube.com/watch?v=JrdEMERq8MA>`__
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.youtube.com>`__
@@ -41973,7 +41973,7 @@ Browsertime tests that interact with the webpage. Includes responsiveness tests 
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-cnn-nav.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test cmds**: ['measure.start', 'landing'] ['navigate', 'https://www.cnn.com'] ['wait.byTime', '4000'] ['measure.stop', ''] ['measure.start', 'world'] ['click.byXpathAndWait', '/html/body/div[5]/div/div/header/div/div[1]/div/div[2]/nav/ul/li[2]/a'] ['wait.byTime', '1000'] ['measure.stop', '']
    * **test url**: `<https://www.cnn.com/>`__
@@ -42255,7 +42255,7 @@ Browsertime tests that interact with the webpage. Includes responsiveness tests 
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm11-windows-firefox-facebook-nav.manifest
    * **playback pageset manifest backup**: mitm6-windows-firefox-facebook-nav.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test cmds**: ['measure.start', 'landing'] ['navigate', 'https://www.facebook.com/'] ['wait.byTime', '5000'] ['measure.stop', ''] ['measure.start', 'marketplace'] ['navigate', 'https://www.facebook.com/marketplace'] ['wait.byTime', '5000'] ['measure.stop', ''] ['measure.start', 'groups'] ['navigate', 'https://www.facebook.com/groups/discover/'] ['wait.byTime', '5000'] ['measure.stop', ''] ['measure.start', 'friends'] ['navigate', 'https://www.facebook.com/friends/'] ['wait.byTime', '5000'] ['measure.stop', '']
    * **test url**: `<https://www.facebook.com>`__
@@ -44525,7 +44525,7 @@ Page-load performance test suite on Android. The links direct to the actual webs
    * **page timeout**: 60000
    * **playback**: mitmproxy-android
    * **playback pageset manifest**: mitm8-android-gve-allrecipes.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.allrecipes.com/>`__
    * **type**: pageload
@@ -45022,7 +45022,7 @@ Page-load performance test suite on Android. The links direct to the actual webs
    * **page timeout**: 60000
    * **playback**: mitmproxy-android
    * **playback pageset manifest**: mitm8-android-fenix-bild-de.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.bild.de/sport/american-football/nfl/super-bowl-rekordquote-fuer-die-nfl-87139668.bild.html>`__
    * **type**: pageload
@@ -47510,7 +47510,7 @@ Page-load performance test suite on Android. The links direct to the actual webs
    * **page timeout**: 60000
    * **playback**: mitmproxy-android
    * **playback pageset manifest**: mitm8-android-gve-instagram.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.instagram.com>`__
    * **type**: pageload
@@ -47987,7 +47987,7 @@ Page-load performance test suite on Android. The links direct to the actual webs
    * **page timeout**: 60000
    * **playback**: mitmproxy-android
    * **playback pageset manifest**: mitm8-android-fenix-sina.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **support class**: browsertime_pageload.py
    * **test url**: `<https://www.sina.com.cn/>`__
    * **type**: pageload
@@ -48798,7 +48798,7 @@ These tests aren't used in standard testing, they are only used in the Raptor un
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-test-page-1.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **test url**: `<https://www.amazon.com/s?k=laptop&ref=nb_sb_noss_1>`__
    * **type**: pageload
    * **unit**: ms
@@ -48826,7 +48826,7 @@ These tests aren't used in standard testing, they are only used in the Raptor un
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-test-page-2.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **test url**: `<https://www.facebook.com>`__
    * **type**: pageload
    * **unit**: ms
@@ -48854,7 +48854,7 @@ These tests aren't used in standard testing, they are only used in the Raptor un
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-test-page-3.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **test url**: `<https://www.google.com/search?hl=en&q=barack+obama&cad=h>`__
    * **type**: pageload
    * **unit**: ms
@@ -48882,7 +48882,7 @@ These tests aren't used in standard testing, they are only used in the Raptor un
    * **page timeout**: 60000
    * **playback**: mitmproxy
    * **playback pageset manifest**: mitm7-linux-firefox-test-page-4.manifest
-   * **playback version**: 11.0.0
+   * **playback version**: 12.2.1
    * **test url**: `<https://www.youtube.com>`__
    * **type**: pageload
    * **unit**: ms
