@@ -602,7 +602,7 @@ index 28070070a6..688a8f78a1 100644
  
  if (rtc_build_libsrtp) {
 diff --git a/rtc_base/BUILD.gn b/rtc_base/BUILD.gn
-index 1d37f4f464..79a1eaec5f 100644
+index 8dc83e9ee9..f03ddb0bdc 100644
 --- a/rtc_base/BUILD.gn
 +++ b/rtc_base/BUILD.gn
 @@ -9,8 +9,8 @@
