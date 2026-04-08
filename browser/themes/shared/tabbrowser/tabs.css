@@ -1176,16 +1176,13 @@ tab-group > tab-split-view-wrapper {
       }
     }
 
-    &[last-tab-or-split-view] > .tabbrowser-tab .tab-group-line {
-      inset-block-start: calc(var(--space-xsmall) * -2);
-    }
-
     > .tabbrowser-tab {
       overflow: visible;
 
       .tab-group-line {
         inset-inline-start: calc(var(--space-medium) * -1) !important;
-        inset-block: calc(var(--space-xsmall) * -1);
+        inset-block-start: calc(var(--space-xsmall) * -2);
+        inset-block-end: calc(var(--space-xsmall) * -1);
       }
 
       &:last-child {
