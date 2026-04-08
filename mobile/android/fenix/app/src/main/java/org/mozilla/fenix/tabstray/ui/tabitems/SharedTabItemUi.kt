@@ -154,12 +154,14 @@ val gridItemAspectRatio: Float
  * @param modifier: The Modifier parameter
  * @param includeCloseOption: Whether to include the "Close" dropdown item in the menu item list.
  * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
+ * @param editTabGroupClick Invoked when the user clicks to edit the selected tab group.
  */
 @Composable
 fun TabGroupMenuButton(
     modifier: Modifier = Modifier,
     includeCloseOption: Boolean = false,
     onDeleteTabGroup: () -> Unit,
+    editTabGroupClick: () -> Unit,
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
     IconButton(
@@ -181,7 +183,7 @@ fun TabGroupMenuButton(
             expanded = showDropdownMenu,
             onDismissRequest = { showDropdownMenu = false },
             menuItems = generateTabGroupMenuItems(
-                editTabGroup = {}, // handle edit
+                editTabGroup = editTabGroupClick,
                 closeTabGroup = {}, // handle close
                 deleteTabGroup = onDeleteTabGroup,
                 includeCloseOption = includeCloseOption,
@@ -201,7 +203,7 @@ private fun generateTabGroupMenuItems(
         drawableRes = iconsR.drawable.mozac_ic_edit_24,
         testTag = TabsTrayTestTag.EDIT_TAB_GROUP,
         onClick = editTabGroup,
-        enabled = false,
+        enabled = true,
     )
     val closeItem = MenuItem.IconItem(
         text = Text.String(PLACEHOLDER_CLOSE),

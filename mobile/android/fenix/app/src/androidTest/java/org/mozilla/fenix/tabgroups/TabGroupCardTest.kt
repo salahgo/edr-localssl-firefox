@@ -20,6 +20,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import mozilla.components.concept.engine.utils.ABOUT_HOME_URL
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,6 +29,7 @@ import org.mozilla.fenix.tabstray.browser.compose.TabItemInteractionState
 import org.mozilla.fenix.tabstray.data.TabGroupTheme
 import org.mozilla.fenix.tabstray.data.TabsTrayItem
 import org.mozilla.fenix.tabstray.data.createTab
+import org.mozilla.fenix.tabstray.data.createTabGroup
 import org.mozilla.fenix.tabstray.ui.tabitems.AlphaKey
 import org.mozilla.fenix.tabstray.ui.tabitems.ScaleKey
 import org.mozilla.fenix.tabstray.ui.tabitems.TabsTrayItemClickHandler
@@ -191,6 +193,30 @@ class TabGroupCardTest {
         verifyThumbnailSizesSimilar()
     }
 
+    @Test
+    fun verifyEditTabGroupClick() {
+        val group = createTabGroup()
+        var editClicked = false
+        var clickedGroup: TabsTrayItem.TabGroup? = null
+
+        composeTestRule.setContent {
+            FirefoxTheme {
+                ComposableUnderTest(
+                    group = group,
+                    editTabGroupClick = { arg ->
+                        editClicked = true
+                        clickedGroup = arg
+                    },
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.TAB_GROUP_THREE_DOT_BUTTON).performClick()
+        composeTestRule.onNodeWithTag(TabsTrayTestTag.EDIT_TAB_GROUP).performClick()
+
+        assertTrue(editClicked)
+        assertEquals(group, clickedGroup)
+    }
+
     private fun verifyThumbnailSizesSimilar() {
         val first = composeTestRule.onNodeWithTag(
             testTag = TabsTrayTestTag.TAB_GROUP_THUMBNAIL_FIRST,
@@ -277,21 +303,19 @@ class TabGroupCardTest {
     @Composable
     private fun ComposableUnderTest(
         modifier: Modifier = Modifier,
+        group: TabsTrayItem.TabGroup = TabsTrayItem.TabGroup(
+            title = "Group 1",
+            theme = TabGroupTheme.Yellow,
+            tabs = mutableListOf(createTab(url = ABOUT_HOME_URL)),
+        ),
         onClick: (String) -> Unit = {},
         onLongClick: (String) -> Unit = {},
         interactionState: TabItemInteractionState = TabItemInteractionState(),
         onDeleteTabGroup: (String) -> Unit = {},
+        editTabGroupClick: (TabsTrayItem.TabGroup) -> Unit = {},
     ) {
         TabGroupCard(
-            group = TabsTrayItem.TabGroup(
-                title = "Group 1",
-                theme = TabGroupTheme.Yellow,
-                tabs = mutableListOf(
-                    createTab(
-                        url = ABOUT_HOME_URL,
-                    ),
-                ),
-            ),
+            group = group,
             selectionState = TabsTrayItemSelectionState(),
             clickHandler = TabsTrayItemClickHandler(
                 onClick = { onClick("Test") },
@@ -301,6 +325,7 @@ class TabGroupCardTest {
             interactionState = interactionState,
             modifier = modifier,
             onDeleteTabGroup = { onDeleteTabGroup("Test") },
+            editTabGroupClick = { editTabGroupClick(group) },
         )
     }
 }

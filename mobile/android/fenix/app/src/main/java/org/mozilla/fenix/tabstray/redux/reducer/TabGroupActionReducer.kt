@@ -9,8 +9,10 @@ import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.DeleteTabGroupConfirmationDialog
 import org.mozilla.fenix.tabstray.navigation.TabManagerNavDestination.ExpandedTabGroup
 import org.mozilla.fenix.tabstray.redux.action.TabGroupAction
+import org.mozilla.fenix.tabstray.redux.state.TabGroupFormState
 import org.mozilla.fenix.tabstray.redux.state.TabsTrayState
 import org.mozilla.fenix.tabstray.redux.state.initializeTabGroupForm
+import kotlin.collections.plus
 
 /**
  * Reducer for [TabGroupAction] dispatched from the Tabs Tray store.
@@ -29,12 +31,12 @@ object TabGroupActionReducer {
     ): TabsTrayState {
         return when (action) {
             is TabGroupAction.AddToTabGroup -> if (state.tabGroups.isEmpty()) {
-                state.navigateToEditTabGroup()
+                state.navigateToCreateTabGroup()
             } else {
                 state.copy(backStack = state.backStack + TabManagerNavDestination.AddToTabGroup)
             }
 
-            is TabGroupAction.AddToNewTabGroup -> state.navigateToEditTabGroup()
+            is TabGroupAction.AddToNewTabGroup -> state.navigateToCreateTabGroup()
 
             is TabGroupAction.NameChanged -> {
                 val form = requireNotNull(state.tabGroupFormState) {
@@ -92,12 +94,21 @@ object TabGroupActionReducer {
             is TabGroupAction.DeleteConfirmed -> state.copy(
                 backStack = state.backStack.popDeleteTabGroupFlow(action.group),
             )
+
+            is TabGroupAction.EditTabGroupClicked -> state.copy(
+                tabGroupFormState = TabGroupFormState(
+                    tabGroupId = action.group.id,
+                    name = action.group.title,
+                    theme = action.group.theme,
+                ),
+                backStack = state.navigateToEditTabGroup(),
+            )
         }
     }
 
-    private fun TabsTrayState.navigateToEditTabGroup() = copy(
+    private fun TabsTrayState.navigateToCreateTabGroup() = copy(
         tabGroupFormState = initializeTabGroupForm(),
-        backStack = backStack + TabManagerNavDestination.EditTabGroup,
+        backStack = navigateToEditTabGroup(),
     )
 
     private fun List<TabManagerNavDestination>.popTabGroupFlow(): List<TabManagerNavDestination> {
@@ -129,4 +140,7 @@ object TabGroupActionReducer {
 
         return stack
     }
+
+    private fun TabsTrayState.navigateToEditTabGroup(): List<TabManagerNavDestination> =
+        backStack + TabManagerNavDestination.EditTabGroup
 }

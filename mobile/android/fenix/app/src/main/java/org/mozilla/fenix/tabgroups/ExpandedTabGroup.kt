@@ -55,6 +55,7 @@ private const val PLACEHOLDER_SHARE_TAB_GROUP_CONTENT_DESCRIPTION = "Share tab g
  * @param onItemClick Invoked when the user clicks on a [TabsTrayItem] in the group.
  * @param onTabClose Invoked when the user clicks to close a [TabsTrayItem.Tab] in the group.
  * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
+ * @param editTabGroupClick Invoked when the user clicks to edit the [group].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +65,7 @@ fun ExpandedTabGroup(
     onItemClick: (TabsTrayItem) -> Unit,
     onTabClose: (TabsTrayItem.Tab) -> Unit,
     onDeleteTabGroup: () -> Unit,
+    editTabGroupClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -74,11 +76,14 @@ fun ExpandedTabGroup(
             ),
     ) {
         Spacer(modifier = Modifier.height(FirefoxTheme.layout.space.static150))
+
         ViewTabGroupHeader(
             title = group.title,
             groupTheme = group.theme,
             onDeleteTabGroup = onDeleteTabGroup,
+            editTabGroupClick = editTabGroupClick,
         )
+
         TabLayout(
             tabs = group.tabs.toList(),
             displayTabsInGrid = true,
@@ -91,6 +96,7 @@ fun ExpandedTabGroup(
             onMove = { _, _, _ -> }, // Ignore moves
             onTabDragStart = { }, // Ignore drags
             onDeleteTabGroup = { }, // Ignore tab group deletes
+            editTabGroupClick = { editTabGroupClick() },
             contentPadding = PaddingValues(0.dp), // TabLayout should not have its own content padding inside this view
         )
     }
@@ -101,6 +107,7 @@ private fun ViewTabGroupHeader(
     title: String,
     groupTheme: TabGroupTheme,
     onDeleteTabGroup: () -> Unit,
+    editTabGroupClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -151,6 +158,7 @@ private fun ViewTabGroupHeader(
         TabGroupMenuButton(
             includeCloseOption = true,
             onDeleteTabGroup = onDeleteTabGroup,
+            editTabGroupClick = editTabGroupClick,
         )
     }
 }
@@ -182,6 +190,7 @@ private fun ExpandedTabGroupPreview(
                     onTabClose = {},
                     onItemClick = {},
                     onDeleteTabGroup = {},
+                    editTabGroupClick = {},
                 )
             }
         }

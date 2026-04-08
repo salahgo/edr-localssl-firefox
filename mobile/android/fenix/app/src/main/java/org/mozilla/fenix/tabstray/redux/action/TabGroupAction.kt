@@ -82,4 +82,11 @@ sealed interface TabGroupAction : TabsTrayAction {
      * @property groupId The ID of the group the tab is being added into.
      */
     data class TabAddedToGroup(val tabId: String, val groupId: String) : TabGroupAction, TabsStorageAction
+
+    /**
+     * Invoked when the user clicks to edit a tab group.
+     *
+     * @property group The [TabsTrayItem.TabGroup] to be edited.
+     */
+    data class EditTabGroupClicked(val group: TabsTrayItem.TabGroup) : TabGroupAction
 }

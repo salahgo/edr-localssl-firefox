@@ -84,6 +84,7 @@ internal fun PrivateTabsPage(
                 },
                 onDeleteTabGroup = {},
                 onMove = onMove,
+                editTabGroupClick = {},
             )
         }
     }

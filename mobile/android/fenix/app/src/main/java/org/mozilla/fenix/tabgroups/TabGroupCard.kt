@@ -83,6 +83,7 @@ const val BOTTOM_END_THUMBNAIL_INDEX = 3
  * @param modifier: The Modifier
  * @param interactionState The tab item's interaction state (hover, drag, etc)
  * @param onDeleteTabGroup Invoked when the user clicks on delete tab group.
+ * @param editTabGroupClick Invoked when the user clicks to edit the tab group.
  */
 @Composable
 fun TabGroupCard(
@@ -92,6 +93,7 @@ fun TabGroupCard(
     modifier: Modifier = Modifier,
     interactionState: TabItemInteractionState,
     onDeleteTabGroup: (TabsTrayItem.TabGroup) -> Unit,
+    editTabGroupClick: () -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -143,6 +145,7 @@ fun TabGroupCard(
                         TabGroupOptionButton(
                             selectionState = selectionState,
                             onDeleteTabGroup = { onDeleteTabGroup(group) },
+                            editTabGroupClick = editTabGroupClick,
                         )
                     }
                 }
@@ -180,6 +183,7 @@ fun TabGroupCard(
 private fun TabGroupOptionButton(
     selectionState: TabsTrayItemSelectionState,
     onDeleteTabGroup: () -> Unit,
+    editTabGroupClick: () -> Unit,
 ) {
     if (selectionState.multiSelectEnabled) {
         MultiSelectTabButton(
@@ -191,6 +195,7 @@ private fun TabGroupOptionButton(
             modifier = Modifier.size(TabHeaderIconTouchTargetSize),
             includeCloseOption = true,
             onDeleteTabGroup = onDeleteTabGroup,
+            editTabGroupClick = editTabGroupClick,
         )
     }
 }
@@ -513,6 +518,7 @@ private fun TabGroupCardPreview(
                 modifier = Modifier.weight(1f),
                 interactionState = tabGroupCardState.interactionState,
                 onDeleteTabGroup = {},
+                editTabGroupClick = {},
             )
         }
     }

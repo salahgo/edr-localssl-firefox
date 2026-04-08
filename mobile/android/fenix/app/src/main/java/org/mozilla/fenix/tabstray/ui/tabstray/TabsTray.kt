@@ -290,6 +290,9 @@ fun TabsTray(
                             onDeleteTabGroup = { group ->
                                 tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(group))
                             },
+                            editTabGroupClick = { group ->
+                                tabsTrayStore.dispatch(TabGroupAction.EditTabGroupClicked(group = group))
+                            },
                         )
                     }
 

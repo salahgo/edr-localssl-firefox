@@ -424,6 +424,11 @@ class TabManagementFragment : DialogFragment() {
                                     onDeleteTabGroup = {
                                         tabsTrayStore.dispatch(TabGroupAction.DeleteClicked(expandedGroup))
                                     },
+                                    editTabGroupClick = {
+                                        tabsTrayStore.dispatch(
+                                            action = TabGroupAction.EditTabGroupClicked(group = expandedGroup),
+                                        )
+                                    },
                                 )
                             }
 
