@@ -44,7 +44,7 @@ index 9948e5fa99..2b98fdab97 100644
  
  ArrayView<uint8_t> RtpPacket::AllocateRawExtension(int id, size_t length) {
 diff --git a/modules/rtp_rtcp/source/rtp_packet.h b/modules/rtp_rtcp/source/rtp_packet.h
-index 3d27520b10..e9288a4f5d 100644
+index 9abdbc6591..84f1c3f200 100644
 --- a/modules/rtp_rtcp/source/rtp_packet.h
 +++ b/modules/rtp_rtcp/source/rtp_packet.h
 @@ -14,6 +14,7 @@
@@ -68,7 +68,7 @@ index 3d27520b10..e9288a4f5d 100644
    // `extensions` required for SetExtension/ReserveExtension functions during
    // packet creating and used if available in Parse function.
    // Adding and getting extensions will fail until `extensions` is
-@@ -118,7 +125,7 @@ class RtpPacket {
+@@ -119,7 +126,7 @@ class RtpPacket {
    // Writes csrc list. Assumes:
    // a) There is enough room left in buffer.
    // b) Extension headers, payload or padding data has not already been added.
