@@ -5,15 +5,12 @@
 package org.mozilla.fenix.components.metrics
 
 import android.content.Context
-import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.adjust.sdk.Adjust
-import com.adjust.sdk.AdjustEvent
 import mozilla.components.support.utils.ext.packageManagerCompatHelper
-import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.metrics
 import org.mozilla.fenix.ext.settings
 import java.util.concurrent.TimeUnit
@@ -24,9 +21,9 @@ import java.util.concurrent.TimeUnit
 class GrowthDataWorker(
     context: Context,
     workerParameters: WorkerParameters,
-) : CoroutineWorker(context, workerParameters) {
+) : Worker(context, workerParameters) {
 
-    override suspend fun doWork(): Result {
+    override fun doWork(): Result {
         val settings = applicationContext.settings()
 
         if (!System.currentTimeMillis().isAfterFirstWeekFromInstall(applicationContext) ||
@@ -36,16 +33,6 @@ class GrowthDataWorker(
         }
 
         applicationContext.metrics.track(Event.GrowthData.ConversionEvent7(fromSearch = false))
-        val storage = applicationContext.components.analytics.metricsStorage
-        // We call Adjust.trackEvent and updateSentState directly rather than going through
-        // applicationContext.metrics.track because MetricController.track delegates to
-        // AdjustMetricsService.track, which launches a fire-and-forget coroutine. That coroutine
-        // is detached from WorkManager's scope, so doWork() would return Result.success() before
-        // the tracking actually ran, allowing the process to be killed before the event was sent.
-        if (storage.shouldTrack(event)) {
-            Adjust.trackEvent(AdjustEvent(event.tokenName))
-            storage.updateSentState(event)
-        }
 
         return Result.success()
     }
