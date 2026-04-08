@@ -80,8 +80,13 @@ class BaseAlloc {
 
   static unsigned get_list_index_for_size(base_alloc_size_t aSize);
 
+  BaseAllocCell* alloc_cell(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
+
   // Allocate from a free list.
-  void* alloc_from_list(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
+  BaseAllocCell* alloc_from_list(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
+
+  // Allocate from the oversize tree.
+  BaseAllocCell* oversize_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
 
   // Remove the cell from its free list.
   void Unlink(BaseAllocCell* cell) MOZ_REQUIRES(mMutex);
@@ -95,11 +100,6 @@ class BaseAlloc {
       MOZ_GUARDED_BY(mMutex);
 
   // Attempt an allocation within the "wilderness" of already mapped chunks.
-  BaseAllocCell* wilderness_alloc_inplace(base_alloc_size_t aSize)
-      MOZ_REQUIRES(mMutex);
-
-  // Attempt an allocation from "wilderness", first from already mapped
-  // chunks and failing that allow new chunks to be mapped.
   BaseAllocCell* wilderness_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
 
   // Allocate fresh pages to satsify at least aSize.
