@@ -38,10 +38,10 @@ Cr-Branched-From: d1972add2a63b2a528a6471d447f82e0010b5215-refs/heads/main@{#468
  2 files changed, 54 insertions(+), 3 deletions(-)
 
 diff --git a/media/engine/webrtc_voice_engine.cc b/media/engine/webrtc_voice_engine.cc
-index 766205203a..45ea79df3f 100644
+index dd04d4ec7a..2591da23ba 100644
 --- a/media/engine/webrtc_voice_engine.cc
 +++ b/media/engine/webrtc_voice_engine.cc
-@@ -2661,9 +2661,14 @@ bool WebRtcVoiceReceiveChannel::MaybeCreateDefaultReceiveStream(
+@@ -2668,9 +2668,14 @@ bool WebRtcVoiceReceiveChannel::MaybeCreateDefaultReceiveStream(
    // it up to the *latest* unsignaled stream we've seen, in order to support
    // the case where the SSRC of one unsignaled stream changes.
    if (default_sink_) {
@@ -59,7 +59,7 @@ index 766205203a..45ea79df3f 100644
      }
      std::unique_ptr<AudioSinkInterface> proxy_sink(
          new ProxySink(default_sink_.get()));
-@@ -2870,7 +2875,22 @@ bool WebRtcVoiceReceiveChannel::MaybeDeregisterUnsignaledRecvStream(
+@@ -2877,7 +2882,22 @@ bool WebRtcVoiceReceiveChannel::MaybeDeregisterUnsignaledRecvStream(
    RTC_DCHECK_RUN_ON(worker_thread_);
    auto it = absl::c_find(unsignaled_recv_ssrcs_, ssrc);
    if (it != unsignaled_recv_ssrcs_.end()) {
@@ -83,10 +83,10 @@ index 766205203a..45ea79df3f 100644
    }
    return false;
 diff --git a/media/engine/webrtc_voice_engine_unittest.cc b/media/engine/webrtc_voice_engine_unittest.cc
-index 78e4f2ae78..3d0a627ee2 100644
+index 8329713ca1..773a65662a 100644
 --- a/media/engine/webrtc_voice_engine_unittest.cc
 +++ b/media/engine/webrtc_voice_engine_unittest.cc
-@@ -3707,6 +3707,37 @@ TEST_P(WebRtcVoiceEngineTestFake, OnReadyToSendSignalsNetworkState) {
+@@ -3708,6 +3708,37 @@ TEST_P(WebRtcVoiceEngineTestFake, OnReadyToSendSignalsNetworkState) {
    EXPECT_EQ(kNetworkUp, call_.GetNetworkState(MediaType::VIDEO));
  }
  
