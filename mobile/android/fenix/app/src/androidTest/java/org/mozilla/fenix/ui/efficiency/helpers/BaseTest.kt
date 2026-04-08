@@ -23,6 +23,8 @@ import org.mozilla.fenix.helpers.TestHelper.appContext
 import org.mozilla.fenix.helpers.TestHelper.exitMenu
 import org.mozilla.fenix.ui.efficiency.logging.LoggingBridge
 import org.mozilla.fenix.ui.efficiency.logging.TestLogging
+import org.mozilla.fenix.ui.efficiency.navigation.NavigationRegistry
+import org.mozilla.fenix.ui.efficiency.navigation.planning.PageCatalog
 
 /**
  * BaseTest
@@ -68,7 +70,7 @@ abstract class BaseTest(
     val retryWithCompose: TestRule = TestRule { base, description ->
         object : Statement() {
             override fun evaluate() {
-                repeat(3) { attempt ->
+                repeat(1) { attempt ->
                     _composeRule = AndroidComposeTestRule(
                         HomeActivityIntentTestRule(
                             skipOnboarding = skipOnboarding,
@@ -113,6 +115,23 @@ abstract class BaseTest(
             TestLogging.reporter = LoggingBridge.createReporter()
         }
         TestLogging.reporter?.reset()
+        if (java.lang.Boolean.getBoolean("logNavigationSummary")) {
+            NavigationRegistry.logPathSummary()
+        }
+        if (java.lang.Boolean.getBoolean("logPageCatalog")) {
+            val pages = PageCatalog.discoverPages()
+
+            Log.i("PageCatalog", "📚 Discovered ${pages.size} pages from PageContext")
+
+            pages.forEachIndexed { index, pageRef ->
+                val page = pageRef.getter(on)
+
+                Log.i(
+                    "PageCatalog",
+                    "   ${index + 1}. ${page.pageName} (property=${pageRef.propertyName})",
+                )
+            }
+        }
 
         // State tracker is a lightweight breadcrumb used by navigation helpers.
         // Source-of-truth remains selector-based verification (mozIsOnPageNow / mozWaitForPageToLoad).

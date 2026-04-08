@@ -129,7 +129,7 @@ abstract class BasePage(
     // Page readiness verification (CMD + LOC)
     // ------------------------------------------------------------
 
-    private fun mozWaitForPageToLoad(timeout: Long = 10_000, interval: Long = 500): Boolean {
+    private fun mozWaitForPageToLoad(timeout: Long = 10_000, interval: Long = 100): Boolean {
         val rep = rep()
         val requiredSelectors = mozGetSelectorsByGroup("requiredForPage")
         val deadline = System.currentTimeMillis() + timeout
