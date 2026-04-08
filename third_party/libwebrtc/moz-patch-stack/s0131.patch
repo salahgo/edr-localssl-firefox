@@ -9,10 +9,10 @@ Mercurial Revision: https://hg.mozilla.org/mozilla-central/rev/fb61f91d422c3d775
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/api/rtp_parameters.h b/api/rtp_parameters.h
-index ab268104f4..039a41150c 100644
+index ef57479371..de82b3484d 100644
 --- a/api/rtp_parameters.h
 +++ b/api/rtp_parameters.h
-@@ -23,13 +23,13 @@
+@@ -24,7 +24,6 @@
  #include "absl/strings/string_view.h"
  #include "api/media_types.h"
  #include "api/priority.h"
@@ -20,6 +20,7 @@ index ab268104f4..039a41150c 100644
  #include "api/rtp_transceiver_direction.h"
  #include "api/video/resolution.h"
  #include "api/video_codecs/scalability_mode.h"
+@@ -32,6 +31,7 @@
  #include "rtc_base/system/rtc_export.h"
  
  namespace webrtc {
