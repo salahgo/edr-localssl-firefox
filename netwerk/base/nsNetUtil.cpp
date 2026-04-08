@@ -1992,6 +1992,9 @@ nsresult NS_NewURI(nsIURI** aURI, const nsACString& aSpec,
   }
 
   if (scheme.EqualsLiteral("moz-newtab-wallpaper")) {
+    if (!NS_IsMainThread()) {
+      return NS_ERROR_NOT_AVAILABLE;
+    }
     RefPtr<mozilla::net::MozNewTabWallpaperProtocolHandler> handler =
         mozilla::net::MozNewTabWallpaperProtocolHandler::GetSingleton();
     if (!handler) {
