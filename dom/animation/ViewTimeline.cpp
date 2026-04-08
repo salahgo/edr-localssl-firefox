@@ -303,8 +303,11 @@ std::pair<nscoord, nscoord> ViewTimeline::IntervalForTimelineRangeName(
       return {alignedSubjectStartViewStart, alignedSubjectEndViewStart};
 
     case StyleTimelineRangeName::Scroll:
-      // TODO: Bug 2015131. Implement scroll keyword.
-      return {0, 0};
+      // Represents the full range of the scroll container on which the view
+      // progress timeline is defined.
+      //
+      // So this is equivalent to scroll timeline's full range.
+      return {0, mCachedCurrentTime->mScrollData.mMaxScrollOffset};
   }
 }
 
