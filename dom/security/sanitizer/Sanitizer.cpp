@@ -9,6 +9,7 @@
 #include "mozilla/StaticPtr.h"
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/dom/BindingUtils.h"
+#include "mozilla/dom/CustomElementRegistry.h"
 #include "mozilla/dom/DocumentFragment.h"
 #include "mozilla/dom/HTMLTemplateElement.h"
 #include "mozilla/dom/SanitizerBinding.h"
@@ -1731,6 +1732,15 @@ void Sanitizer::SanitizeChildren(nsINode* aNode, bool aSafe) {
     // shadow root with configuration and handleJavascriptNavigationUrls.
     if (RefPtr<ShadowRoot> shadow = child->GetShadowRoot()) {
       SanitizeChildren<IsDefaultConfig>(shadow, aSafe);
+    }
+
+    if constexpr (IsDefaultConfig) {
+      if (CustomElementData* data = child->AsElement()->GetCustomElementData())
+          [[unlikely]] {
+        MOZ_ASSERT(data->GetIs(child->AsElement()),
+                   "Non is= custom elements should have already been removed");
+        child->AsElement()->ClearCustomElementData();
+      }
     }
 
     // Step 1.5.7-9.
