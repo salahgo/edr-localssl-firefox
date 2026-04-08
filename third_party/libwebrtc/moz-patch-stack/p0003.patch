@@ -83,7 +83,7 @@ index 766205203a..45ea79df3f 100644
    }
    return false;
 diff --git a/media/engine/webrtc_voice_engine_unittest.cc b/media/engine/webrtc_voice_engine_unittest.cc
-index 1361eb6afe..72a18052d9 100644
+index 78e4f2ae78..3d0a627ee2 100644
 --- a/media/engine/webrtc_voice_engine_unittest.cc
 +++ b/media/engine/webrtc_voice_engine_unittest.cc
 @@ -3707,6 +3707,37 @@ TEST_P(WebRtcVoiceEngineTestFake, OnReadyToSendSignalsNetworkState) {
