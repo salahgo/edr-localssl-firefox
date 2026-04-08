@@ -37,6 +37,8 @@ class BaseAlloc {
 
   MFBT_API void free(void* aPtr) MOZ_EXCLUDES(mMutex);
 
+  MFBT_API void* realloc(void* aPtr, size_t aNewSize) MOZ_EXCLUDES(mMutex);
+
   Mutex mMutex;
 
   struct Stats {
