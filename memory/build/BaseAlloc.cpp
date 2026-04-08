@@ -168,44 +168,69 @@ void* BaseAlloc::alloc(size_t aSize) {
 
   MutexAutoLock lock(mMutex);
 
-  void* ret = alloc_from_list(aSize);
-  if (ret) {
-    Log("alloc(%u) = %p (from free list)\n", aSize, ret);
-    return ret;
+  BaseAllocCell* cell = alloc_cell(aSize);
+  if (cell) {
+    MOZ_ASSERT(cell->Size() >= aSize);
+    cell->SetAllocated();
+    return cell->Ptr();
   }
 
-  ret = wilderness_alloc(aSize);
-  if (ret) {
-    Log("alloc(%u) = %p (from wilderness)\n", aSize, ret);
-    return ret;
+  return nullptr;
+}
+
+BaseAllocCell* BaseAlloc::alloc_cell(base_alloc_size_t aSize) {
+  BaseAllocCell* cell = alloc_from_list(aSize);
+  if (cell) {
+    Log("alloc(%u) = %p (from free list)\n", aSize, cell);
+    return cell;
+  }
+
+  cell = oversize_alloc(aSize);
+  if (cell) {
+    Log("alloc(%u) = %p (from oversize)\n", aSize, cell);
+    return cell;
+  }
+
+  cell = wilderness_alloc(aSize);
+  if (cell) {
+    Log("alloc(%u) = %p (from wilderness)\n", aSize, cell);
+    return cell;
+  }
+
+  if (!pages_alloc(aSize)) {
+    return nullptr;
+  }
+  cell = wilderness_alloc(aSize);
+  if (cell) {
+    Log("alloc(%u) = %p (from wilderness after pages_alloc)\n", aSize, cell);
+    return cell;
   }
   Log("alloc(%u) failed\n", aSize);
   return nullptr;
 }
 
-void* BaseAlloc::alloc_from_list(base_alloc_size_t aSize) {
+BaseAllocCell* BaseAlloc::alloc_from_list(base_alloc_size_t aSize) {
   unsigned start_index = get_list_index_for_size(aSize);
   for (unsigned i = start_index; i < kNumFreeLists; i++) {
     if (!mFreeLists[i].isEmpty()) {
       BaseAllocCell* cell = mFreeLists[i].popFront();
       MaybeTrim(cell, aSize);
 
-      MOZ_ASSERT(cell->Size() >= aSize);
-      cell->SetAllocated();
-      return cell->Ptr();
+      return cell;
     }
   }
+  return nullptr;
+}
 
+BaseAllocCell* BaseAlloc::oversize_alloc(base_alloc_size_t aSize) {
   // Search for the best fit in the oversize tree.
   BaseAllocCell* cell = mFreeListOversize.SearchOrNext(aSize);
   if (cell) {
-    MOZ_ASSERT(cell->Size() >= aSize);
     mFreeListOversize.Remove(cell);
 
     MaybeTrim(cell, aSize);
-    cell->SetAllocated();
 
-    return cell->Ptr();
+    return cell;
   }
 
   return nullptr;
@@ -271,7 +296,7 @@ bool BaseAlloc::pages_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex) {
   return true;
 }
 
-BaseAllocCell* BaseAlloc::wilderness_alloc_inplace(base_alloc_size_t aSize) {
+BaseAllocCell* BaseAlloc::wilderness_alloc(base_alloc_size_t aSize) {
   if (mNextAddr == 0) {
     return nullptr;
   }
@@ -308,20 +333,7 @@ BaseAllocCell* BaseAlloc::wilderness_alloc_inplace(base_alloc_size_t aSize) {
   // mNextAddr points to where the next allocation's payload can begin, the
   // size of the metadata is already accounted for.
   mNextAddr = next_cell;
-  cell->SetAllocated();
   return cell;
-}
-
-BaseAllocCell* BaseAlloc::wilderness_alloc(base_alloc_size_t aSize) {
-  BaseAllocCell* cell = wilderness_alloc_inplace(aSize);
-  if (cell) {
-    return cell;
-  }
-
-  if (!pages_alloc(aSize)) {
-    return nullptr;
-  }
-  return wilderness_alloc_inplace(aSize);
 }
 
 void* BaseAlloc::calloc(size_t aNumber, size_t aSize) {
