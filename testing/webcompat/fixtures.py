@@ -469,11 +469,14 @@ def only_platforms(bug_number, platform, request, session):
         pytest.skip(
             f"Bug #{bug_number} skipped; needs to be run on the actual platform, won't work while overriding"
         )
+    is_desktop = platform in ["linux", "mac", "windows"]
     if request.node.get_closest_marker("only_platforms"):
         plats = request.node.get_closest_marker("only_platforms").args
         for only in plats:
             if (
                 only == platform
+                or (only == "android" and not is_desktop)
+                or (only == "desktop" and is_desktop)
                 or (only == "fenix" and is_fenix)
                 or (only == "gve" and is_gve)
             ):
@@ -490,11 +493,14 @@ def skip_platforms(bug_number, platform, request, session):
     is_gve = "org.mozilla.geckoview_example" in session.capabilities.get(
         "moz:profile", ""
     )
+    is_desktop = platform in ["linux", "mac", "windows"]
     if request.node.get_closest_marker("skip_platforms"):
         plats = request.node.get_closest_marker("skip_platforms").args
         for skipped in plats:
             if (
                 skipped == platform
+                or (skipped == "android" and not is_desktop)
+                or (skipped == "desktop" and is_desktop)
                 or (skipped == "fenix" and is_fenix)
                 or (skipped == "gve" and is_gve)
             ):
