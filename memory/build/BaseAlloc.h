@@ -99,23 +99,10 @@ class BaseAlloc {
   RedBlackTree<BaseAllocCell, BaseAllocCellRBTrait> mFreeListOversize
       MOZ_GUARDED_BY(mMutex);
 
-  // Attempt an allocation within the "wilderness" of already mapped chunks.
-  BaseAllocCell* wilderness_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
-
-  // Allocate fresh pages to satsify at least aSize.
-  bool pages_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
-
-  // BaseAlloc's wilderness uses bump-pointer allocation from mNextAddr.  In
-  // general mNextAddr <= mNextDecommitted <= mPastAddr.
-  //
-  // If an allocation would cause mNextAddr > mPastAddr then a new chunk is
-  // required (from pages_alloc()).  Else-if an allocation would case
-  // mNextAddr > mNextDecommitted then some of the memory is decommitted and
-  // pages_committ() is needed before the memory can be used.
-  uintptr_t mNextAddr MOZ_GUARDED_BY(mMutex) = 0;
-  uintptr_t mNextDecommitted MOZ_GUARDED_BY(mMutex) = 0;
-  // Address immediately past the current chunk of pages.
-  uintptr_t mPastAddr MOZ_GUARDED_BY(mMutex) = 0;
+  // Allocate a new chunk and attempt to split it to return a cell at least
+  // minsize.  The other half of the split is added to the appropriate free
+  // list.
+  BaseAllocCell* chunk_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
 
   void MaybeTrim(BaseAllocCell* aCell, base_alloc_size_t aSizeRequest)
       MOZ_REQUIRES(mMutex);

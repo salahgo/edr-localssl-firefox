@@ -191,20 +191,12 @@ BaseAllocCell* BaseAlloc::alloc_cell(base_alloc_size_t aSize) {
     return cell;
   }
 
-  cell = wilderness_alloc(aSize);
+  cell = chunk_alloc(aSize);
   if (cell) {
-    Log("alloc(%u) = %p (from wilderness)\n", aSize, cell);
+    Log("alloc(%u) = %p (from new chunk)\n", aSize, cell);
     return cell;
   }
 
-  if (!pages_alloc(aSize)) {
-    return nullptr;
-  }
-  cell = wilderness_alloc(aSize);
-  if (cell) {
-    Log("alloc(%u) = %p (from wilderness after pages_alloc)\n", aSize, cell);
-    return cell;
-  }
   Log("alloc(%u) failed\n", aSize);
   return nullptr;
 }
@@ -261,78 +253,31 @@ void BaseAlloc::Link(BaseAllocCell* cell) {
   }
 }
 
-bool BaseAlloc::pages_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex) {
+BaseAllocCell* BaseAlloc::chunk_alloc(base_alloc_size_t aSize)
+    MOZ_REQUIRES(mMutex) {
   // aSize should be non-zero and aligned already.
   MOZ_ASSERT(aSize != 0);
   MOZ_ASSERT(aSize == size_round_up(aSize));
 
-  // Make room for the metadata on either side of this cell.
-  base_alloc_size_t gross_size = kBaseQuantum * 2 + aSize;
+  // Make room for the metadata on either side of this cell and round up to
+  // the chunk size.
+  size_t csize = CHUNK_CEILING(kBaseQuantum * 2 + aSize);
+  // Find the largest cell that fits within the chunk.
+  base_alloc_size_t net_size = csize - kBaseQuantum * 2;
+  MOZ_ASSERT(net_size >= aSize);
 
-  size_t csize = CHUNK_CEILING(gross_size);
-  uintptr_t base_pages =
-      reinterpret_cast<uintptr_t>(chunk_alloc(csize, kChunkSize, true));
+  void* base_pages = ::chunk_alloc(csize, kChunkSize, true);
   if (base_pages == 0) {
-    return false;
+    return nullptr;
   }
-  mPastAddr = base_pages + csize;
-
-  // Set mNext so that there's enough space for the first cell's metadata.
-  mNextAddr = base_pages + kBaseQuantum;
-  MOZ_ASSERT(mNextAddr <= mPastAddr);
-  // It's already correctly aligned
-  MOZ_ASSERT(mNextAddr == BaseAllocCell::Align(mNextAddr));
-
-  // Leave enough pages committed, otherwise they would have to be
-  // immediately recommitted.
-  mNextDecommitted = REAL_PAGE_CEILING(mNextAddr + aSize);
-  if (mNextDecommitted < mPastAddr) {
-    pages_decommit(reinterpret_cast<void*>(mNextDecommitted),
-                   mPastAddr - mNextDecommitted);
-  }
+  mStats.mCommitted += csize;
   mStats.mMapped += csize;
-  mStats.mCommitted += mNextDecommitted - base_pages;
-
-  return true;
-}
-
-BaseAllocCell* BaseAlloc::wilderness_alloc(base_alloc_size_t aSize) {
-  if (mNextAddr == 0) {
-    return nullptr;
-  }
-
-  // The first byte in the next cell, skip over the metadata between cells.
-  uintptr_t next_cell =
-      BaseAllocCell::Align(mNextAddr + aSize + sizeof(BaseAllocMetadata));
-
-  // Recalculate size.
-  aSize = next_cell - kBaseQuantum - mNextAddr;
-  MOZ_ASSERT(aSize == size_round_up(aSize));
-
-  // Make sure there's enough space for the allocation.
-  if (next_cell > mPastAddr) {
-    return nullptr;
-  }
-
-  // Make sure enough pages are committed for the new allocation.
-  if (next_cell > mNextDecommitted) {
-    uintptr_t new_next_decommitted = REAL_PAGE_CEILING(next_cell);
-
-    uintptr_t size_to_commit = new_next_decommitted - mNextDecommitted;
-    if (!pages_commit(reinterpret_cast<void*>(mNextDecommitted),
-                      size_to_commit)) {
-      return nullptr;
-    }
-
-    mStats.mCommitted += size_to_commit;
-    mNextDecommitted = new_next_decommitted;
-  }
 
   BaseAllocCell* cell =
-      new (reinterpret_cast<BaseAllocCell*>(mNextAddr)) BaseAllocCell(aSize);
-  // mNextAddr points to where the next allocation's payload can begin, the
-  // size of the metadata is already accounted for.
-  mNextAddr = next_cell;
+      new (reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(base_pages) +
+                                   kBaseQuantum)) BaseAllocCell(net_size);
+  MaybeTrim(cell, aSize);
+
   return cell;
 }
 
