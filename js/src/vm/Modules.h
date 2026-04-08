@@ -47,7 +47,9 @@ ModuleNamespaceObject* GetOrCreateModuleNamespace(JSContext* cx,
 
 void AsyncModuleExecutionFulfilled(JSContext* cx, Handle<ModuleObject*> module);
 
-void AsyncModuleExecutionRejected(JSContext* cx, Handle<ModuleObject*> module,
+// This function recusively calls AsyncModuleExecutionRejected on async parent
+// modules. It returns false if the stack recusion limit is exceeded.
+bool AsyncModuleExecutionRejected(JSContext* cx, Handle<ModuleObject*> module,
                                   HandleValue error);
 
 bool OnModuleEvaluationFailure(JSContext* cx, HandleObject evaluationPromise,
