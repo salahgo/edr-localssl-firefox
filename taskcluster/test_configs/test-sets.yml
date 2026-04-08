@@ -528,6 +528,7 @@ macosx64-talos:
 
 macosx1500-64-perftests:
     - browsertime-benchmark
+    - browsertime-tp6-essential
 
 # Android
 
