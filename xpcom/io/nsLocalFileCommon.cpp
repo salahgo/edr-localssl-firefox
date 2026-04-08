@@ -51,6 +51,7 @@ const char* const sExecutableExts[] = {
   ".chm",
   ".cmd",
   ".com",
+  ".command",     // Mac script
   ".cpl",
   ".crt",
   ".der",
