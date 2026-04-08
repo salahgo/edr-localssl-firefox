@@ -5,8 +5,6 @@
 #ifndef BASEALLOCINTERNALS_H
 #define BASEALLOCINTERNALS_H
 
-#include <algorithm>
-
 #include "mozilla/DoublyLinkedList.h"
 
 #include "BaseAlloc.h"
@@ -24,11 +22,12 @@ constexpr static base_alloc_size_t BASE_ALLOC_SIZE_MAX = UINT32_MAX >> 1;
 //
 // The layout of a cell is:
 //
-// +-------------------+---------------+-------------------
-// | BaseAllocMetadata | BaseAllocCell | BaseAllocMetadata
-// +-------------------+---------------+-------------------
-//                     ^
-//                     Pointer, 16-byte aligned.
+// +-------------------+---------------+---------+-------------------+------
+// | BaseAllocMetadata | BaseAllocCell | Padding | BaseAllocMetadata | Next
+// +-------------------+---------------+---------+-------------------+------
+//                     ^                                             ^
+//                     Pointer, 16-byte aligned.                     16-byte
+//                                                                   aligned
 //
 // All cells track their size in the `sizeof(base_alloc_size_t)` bytes
 // immediately before their payload,
@@ -42,13 +41,16 @@ constexpr static base_alloc_size_t BASE_ALLOC_SIZE_MAX = UINT32_MAX >> 1;
 // that allocations and frees in the base allocator are rare and this false
 // sharing of the metadata acceptable.
 //
+// Padding is necessary when sizeof(BaseAllocMetadata) < kBaseQuantum to keep
+// the next cell aligned and payloads in different cache lines.
+//
 // Unallocated cell layout replaces the payload with pointers to manage a
 // free list.  This is not a security risk since these allocations are never
 // used outside of mozjemalloc.
 //
-// +--------------+-------------------+-------------------
-// | Size / Alloc | Free list ptr     | Next Size / Alloc
-// +--------------+-------------------+-------------------
+// +--------------+-------------------+---------+-------------
+// | Size / Alloc | Free list ptr     | padding | Next Size / Alloc
+// +--------------+-------------------+---------+-------------
 //
 
 struct BaseAllocMetadata {
@@ -87,10 +89,7 @@ class BaseAllocCell {
   }
 
  public:
-  static constexpr uintptr_t RoundUp(uintptr_t aValue) {
-    const size_t align = std::max(alignof(BaseAllocCell), size_t(16));
-    return ALIGNMENT_CEILING(aValue, align);
-  }
+  static uintptr_t Align(uintptr_t aPtr);
 
   explicit BaseAllocCell(base_alloc_size_t aSize) {
     new (Metadata()) BaseAllocMetadata(aSize);

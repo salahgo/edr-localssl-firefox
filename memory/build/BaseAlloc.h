@@ -5,6 +5,8 @@
 #ifndef BASEALLOC_H
 #define BASEALLOC_H
 
+#include <algorithm>
+
 #include "Constants.h"
 #include "Mutex.h"
 #include "RedBlackTree.h"
@@ -49,21 +51,31 @@ class BaseAlloc {
   }
 
  private:
-  // Return the free list for the smallest size at least this big.
-  unsigned get_list_index_for_size_at_least(base_alloc_size_t aSize);
-  // Return the free list for the largest size at most this big.
-  unsigned get_list_index_for_size_at_most(base_alloc_size_t aSize);
+  // A power-of-two that's at least 16 bytes and no more than the size of
+  // the cell or metadata, so probably 16 bytes. This "quantum" is
+  // used for the object size plus metadata.
+  constexpr static base_alloc_size_t kBaseQuantum = mozilla::RoundUpPow2(
+      std::max({size_t(16), sizeof(BaseAllocCell), sizeof(BaseAllocMetadata)}));
+  constexpr static unsigned kBaseQuantumMask = kBaseQuantum - 1;
+  constexpr static unsigned kBaseQuantumLog2 =
+      mozilla::CeilingLog2(kBaseQuantum);
+
+  // The maximum object size handled by the regular free lists (before
+  // deferring to the oversize rbtree).  This should fit arena_t.
+  constexpr static base_alloc_size_t kMaxSizeForLists = 4096;
+  static_assert(std::has_single_bit(kMaxSizeForLists));
+
+  constexpr static unsigned kNumFreeLists = kMaxSizeForLists / kBaseQuantum;
+
+  static base_alloc_size_t size_round_up(base_alloc_size_t aSize);
+
+  static unsigned get_list_index_for_size(base_alloc_size_t aSize);
 
   // Allocate from a free list.
   void* alloc_from_list(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex);
 
-  // The largest allocation made with base alloc is currently arena_t.
-  // Ensure there are enough size classes to cover allocations that big.
-  // It is currently 2608 bytes, but we can't use sizeof(arena_t) here
-  // because it creates a circular reference.
-  constexpr static base_alloc_size_t NUM_LIST_SIZES = 2608 / kCacheLineSize + 1;
   mozilla::DoublyLinkedList<BaseAllocCell>
-      mFreeLists[NUM_LIST_SIZES] MOZ_GUARDED_BY(mMutex);
+      mFreeLists[kNumFreeLists] MOZ_GUARDED_BY(mMutex);
   RedBlackTree<BaseAllocCell, BaseAllocCellRBTrait> mFreeListOversize
       MOZ_GUARDED_BY(mMutex);
 
@@ -91,6 +103,8 @@ class BaseAlloc {
   uintptr_t mPastAddr MOZ_GUARDED_BY(mMutex) = 0;
 
   Stats mStats MOZ_GUARDED_BY(mMutex);
+
+  friend BaseAllocCell;
 };
 
 MFBT_API extern BaseAlloc sBaseAlloc;

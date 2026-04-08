@@ -890,7 +890,10 @@ void TestBaseAlloc(size_t size) {
 
 TEST(Jemalloc, BaseAlloc)
 {
-  for (size_t size = 16; size < 1024; size += 16) {
+  // Try varying sizes to hit each size class.  The base allocator's size
+  // classes depend on cache line and C++ structure sizes, they'll be at least
+  // 16 from each-other.
+  for (size_t size = 8; size < 1024; size += 8) {
     TestBaseAlloc(size);
   }
   for (size_t size = 1024; size < 8192; size += 128) {

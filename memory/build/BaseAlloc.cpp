@@ -12,19 +12,60 @@ using namespace mozilla;
 
 constinit BaseAlloc sBaseAlloc;
 
+uintptr_t BaseAllocCell::Align(uintptr_t aPtr) {
+  // In addition to assuming that kBaseQuantum, the cache line size and page
+  // size are all powers of two.  We also assume that the quantum, cache
+  // line size, and page size are each greater than the previous one.
+  // Together these assumptions imply that each is a multiple of the
+  // previous one.
+  static_assert(BaseAlloc::kBaseQuantum <= kCacheLineSize);
+  MOZ_ASSERT(kCacheLineSize <= gPageSize);
+
+  uintptr_t address =
+      ALIGNMENT_CEILING(aPtr, uintptr_t(BaseAlloc::kBaseQuantum));
+
+  uintptr_t cache_line = address & ~uintptr_t(kCacheLineMask);
+
+  if (cache_line + BaseAlloc::kBaseQuantum < address) {
+    // This address would result in cells that share a cache line, move it
+    // forward to the next cache line.
+    address = cache_line + kCacheLineSize;
+  }
+
+  MOZ_ASSERT(aPtr <= address);
+  MOZ_ASSERT((address % alignof(BaseAllocCell)) == 0);
+
+  return address;
+}
+
 // Initialize base allocation data structures.
 void BaseAlloc::Init() MOZ_REQUIRES(gInitLock) { mMutex.Init(); }
 
-// We round requests for cell up to the next bin, and freeing a cell
-// and putting it back in a bin will round it down.  This means that a cell
-// that is not an even cacheline size will not be used by the next
-// allocation of the same size.  We'll address this in a later patch.
-unsigned BaseAlloc::get_list_index_for_size_at_least(base_alloc_size_t aSize) {
-  return CACHELINE_CEILING(aSize) / kCacheLineSize;
+base_alloc_size_t BaseAlloc::size_round_up(base_alloc_size_t aSize) {
+  return ALIGNMENT_CEILING(aSize, kBaseQuantum);
 }
 
-unsigned BaseAlloc::get_list_index_for_size_at_most(base_alloc_size_t aSize) {
-  return aSize / kCacheLineSize;
+unsigned BaseAlloc::get_list_index_for_size(base_alloc_size_t aSize) {
+  // Because the base allocator will allocate all objects on their own cache
+  // line, 1-in-4 free lists will never be used (x86_64) because no object
+  // will be created that size.  On x86_64 systems this wastes 1KiB of
+  // mFreeLists, this could be avoided by using a second lookup to turn the
+  // address into the free list index.
+
+  // Note that this division rounds down.  That's intentional because
+  // "kBaseQuantum" is inclusive of the metadata.  The smallest object
+  // is kBaseQuantum - sizeof(BaseAllocMetadata) and dividing it by
+  // kBaseQuantum will round down to 0 and therefore this maps to the
+  // first free list.
+  unsigned index = aSize / kBaseQuantum;
+
+  // Unless kBaseQuantum is the same size as BaseAllocMetadata, then we have
+  // to subtract 1.
+  if (kBaseQuantum == sizeof(BaseAllocMetadata)) {
+    index--;
+  }
+
+  return index;
 }
 
 void BaseAlloc::free(void* aPtr) MOZ_EXCLUDES(mMutex) {
@@ -44,8 +85,8 @@ void BaseAlloc::free(void* aPtr) MOZ_EXCLUDES(mMutex) {
 
   // TODO attempt coalesce.
 
-  unsigned index = get_list_index_for_size_at_most(cell->Size());
-  if (index < NUM_LIST_SIZES) {
+  unsigned index = get_list_index_for_size(cell->Size());
+  if (index < kNumFreeLists) {
     mFreeLists[index].pushFront(cell);
   } else {
     mFreeListOversize.Insert(cell);
@@ -53,7 +94,7 @@ void BaseAlloc::free(void* aPtr) MOZ_EXCLUDES(mMutex) {
 }
 
 void* BaseAlloc::alloc(size_t aSize) {
-  aSize = BaseAllocCell::RoundUp(std::max(aSize, sizeof(BaseAllocCell)));
+  aSize = size_round_up(aSize);
 
   // Allocations cannot exceed sizes greater than BASE_ALLOC_SIZE_MAX which
   // is required by BaseAlloc's heap structure.  We assert but also return
@@ -74,8 +115,8 @@ void* BaseAlloc::alloc(size_t aSize) {
 }
 
 void* BaseAlloc::alloc_from_list(base_alloc_size_t aSize) {
-  unsigned start_index = get_list_index_for_size_at_least(aSize);
-  for (unsigned i = start_index; i < NUM_LIST_SIZES; i++) {
+  unsigned start_index = get_list_index_for_size(aSize);
+  for (unsigned i = start_index; i < kNumFreeLists; i++) {
     if (!mFreeLists[i].isEmpty()) {
       BaseAllocCell* cell = mFreeLists[i].popFront();
       cell->SetAllocated();
@@ -101,11 +142,10 @@ void* BaseAlloc::alloc_from_list(base_alloc_size_t aSize) {
 bool BaseAlloc::pages_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex) {
   // aSize should be non-zero and aligned already.
   MOZ_ASSERT(aSize != 0);
-  MOZ_ASSERT(aSize == BaseAllocCell::RoundUp(aSize));
+  MOZ_ASSERT(aSize == size_round_up(aSize));
 
-  // Make room for the metadata.
-  base_alloc_size_t gross_size =
-      BaseAllocCell::RoundUp(sizeof(BaseAllocMetadata)) + aSize;
+  // Make room for the preceeding metadata.
+  base_alloc_size_t gross_size = kBaseQuantum + aSize;
 
   size_t csize = CHUNK_CEILING(gross_size);
   uintptr_t base_pages =
@@ -116,8 +156,10 @@ bool BaseAlloc::pages_alloc(base_alloc_size_t aSize) MOZ_REQUIRES(mMutex) {
   mPastAddr = base_pages + csize;
 
   // Set mNext so that there's enough space for the first cell's metadata.
-  mNextAddr = BaseAllocCell::RoundUp(base_pages + sizeof(BaseAllocMetadata));
+  mNextAddr = base_pages + kBaseQuantum;
   MOZ_ASSERT(mNextAddr <= mPastAddr);
+  // It's already correctly aligned
+  MOZ_ASSERT(mNextAddr == BaseAllocCell::Align(mNextAddr));
 
   // Leave enough pages committed, otherwise they would have to be
   // immediately recommitted.
@@ -137,20 +179,15 @@ BaseAllocCell* BaseAlloc::wilderness_alloc_inplace(base_alloc_size_t aSize) {
     return nullptr;
   }
 
-  // The last byte in the cell.
-  uintptr_t end_of_cell = mNextAddr + aSize - 1;
-
+  // The first byte in the next cell, skip over the metadata between cells.
   uintptr_t next_cell =
-      BaseAllocCell::RoundUp(mNextAddr + aSize + sizeof(BaseAllocMetadata));
+      BaseAllocCell::Align(mNextAddr + aSize + sizeof(BaseAllocMetadata));
+  // The last byte in the current cell.
+  uintptr_t end_of_cell = next_cell - kBaseQuantum - 1;
 
-  // If end_of_cell and next_cell are in the same cache line then round up
-  // next_cell.
-  if ((end_of_cell & ~kCacheLineMask) == (next_cell & ~kCacheLineMask)) {
-    next_cell = CACHELINE_CEILING(next_cell);
-  }
-  MOZ_ASSERT((next_cell % alignof(BaseAllocCell)) == 0);
   // Recalculate size.
-  aSize = next_cell - sizeof(BaseAllocMetadata) - mNextAddr;
+  aSize = next_cell - kBaseQuantum - mNextAddr;
+  MOZ_ASSERT(aSize == size_round_up(aSize));
 
   // Make sure there's enough space for the allocation.
   if (end_of_cell + 1 > mPastAddr) {
