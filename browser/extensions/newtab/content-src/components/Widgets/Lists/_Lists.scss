@@ -27,6 +27,14 @@
   display: flex;
   flex-direction: column;
 
+  &.medium-widget {
+    grid-row: span 2;
+  }
+
+  &.large-widget {
+    grid-row: span 4;
+  }
+
   .confetti-canvas {
     position: absolute;
     inset-block-start: 0;

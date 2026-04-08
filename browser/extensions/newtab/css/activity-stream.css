@@ -4383,6 +4383,7 @@ dialog:dir(rtl)::after {
   grid-column: 1/-1;
   display: grid;
   grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
 }
 
 .classic-enabled .widgets-section-container {
@@ -4440,6 +4441,7 @@ dialog:dir(rtl)::after {
   grid-column: 1/-1;
   display: grid;
   grid-template-columns: subgrid;
+  grid-auto-rows: var(--row-height);
   gap: var(--space-medium);
 }
 .classic-enabled .widgets-container {
@@ -4464,7 +4466,7 @@ dialog:dir(rtl)::after {
     --widgets-grid-gap: var(--space-xlarge);
   }
 }
-.classic-enabled .widgets-container .small-widget {
+.classic-enabled .widgets-container .is-small {
   height: var(--widgets-small-card-height);
 }
 
@@ -4547,6 +4549,12 @@ dialog:dir(rtl)::after {
 }
 .has-sections-grid .classic-enabled .lists {
   width: var(--newtab-card-width-medium);
+}
+.lists.medium-widget {
+  grid-row: span 2;
+}
+.lists.large-widget {
+  grid-row: span 4;
 }
 .lists .confetti-canvas {
   position: absolute;
@@ -4778,6 +4786,12 @@ dialog:dir(rtl)::after {
 }
 .has-sections-grid .classic-enabled .focus-timer {
   width: var(--newtab-card-width-medium);
+}
+.focus-timer.medium-widget {
+  grid-row: span 2;
+}
+.focus-timer.large-widget {
+  grid-row: span 4;
 }
 
 .focus-timer-tabs {
@@ -5014,19 +5028,19 @@ dialog:dir(rtl)::after {
   border-radius: var(--border-radius-medium);
   width: 100%;
 }
-.weather-forecast-widget .current-weather-wrapper:has(.iconId1, .iconId2, .iconId3, .iconId4, .iconId5, .iconId6, .iconId33), .weather-forecast-widget.small-widget .forecast-row-items > li:first-of-type:has(.iconId1, .iconId2, .iconId3, .iconId4, .iconId5, .iconId6, .iconId33) {
+.weather-forecast-widget .current-weather-wrapper:has(.iconId1, .iconId2, .iconId3, .iconId4, .iconId5, .iconId6, .iconId33), .weather-forecast-widget.is-small .forecast-row-items > li:first-of-type:has(.iconId1, .iconId2, .iconId3, .iconId4, .iconId5, .iconId6, .iconId33) {
   background-color: var(--weather-sunny-background-color);
 }
-.weather-forecast-widget .current-weather-wrapper:has(.iconId7, .iconId8, .iconId11, .iconId32, .iconId34, .iconId35, .iconId36, .iconId37, .iconId38), .weather-forecast-widget.small-widget .forecast-row-items > li:first-of-type:has(.iconId7, .iconId8, .iconId11, .iconId32, .iconId34, .iconId35, .iconId36, .iconId37, .iconId38) {
+.weather-forecast-widget .current-weather-wrapper:has(.iconId7, .iconId8, .iconId11, .iconId32, .iconId34, .iconId35, .iconId36, .iconId37, .iconId38), .weather-forecast-widget.is-small .forecast-row-items > li:first-of-type:has(.iconId7, .iconId8, .iconId11, .iconId32, .iconId34, .iconId35, .iconId36, .iconId37, .iconId38) {
   background-color: var(--weather-cloudy-background-color);
 }
-.weather-forecast-widget .current-weather-wrapper:has(.iconId12, .iconId13, .iconId14, .iconId15, .iconId16, .iconId17, .iconId18, .iconId39, .iconId40, .iconId41, .iconId42), .weather-forecast-widget.small-widget .forecast-row-items > li:first-of-type:has(.iconId12, .iconId13, .iconId14, .iconId15, .iconId16, .iconId17, .iconId18, .iconId39, .iconId40, .iconId41, .iconId42) {
+.weather-forecast-widget .current-weather-wrapper:has(.iconId12, .iconId13, .iconId14, .iconId15, .iconId16, .iconId17, .iconId18, .iconId39, .iconId40, .iconId41, .iconId42), .weather-forecast-widget.is-small .forecast-row-items > li:first-of-type:has(.iconId12, .iconId13, .iconId14, .iconId15, .iconId16, .iconId17, .iconId18, .iconId39, .iconId40, .iconId41, .iconId42) {
   background-color: var(--weather-rainy-background-color);
 }
-.weather-forecast-widget .current-weather-wrapper:has(.iconId19, .iconId20, .iconId21, .iconId22, .iconId23, .iconId24, .iconId25, .iconId26, .iconId29, .iconId31, .iconId43, .iconId44), .weather-forecast-widget.small-widget .forecast-row-items > li:first-of-type:has(.iconId19, .iconId20, .iconId21, .iconId22, .iconId23, .iconId24, .iconId25, .iconId26, .iconId29, .iconId31, .iconId43, .iconId44) {
+.weather-forecast-widget .current-weather-wrapper:has(.iconId19, .iconId20, .iconId21, .iconId22, .iconId23, .iconId24, .iconId25, .iconId26, .iconId29, .iconId31, .iconId43, .iconId44), .weather-forecast-widget.is-small .forecast-row-items > li:first-of-type:has(.iconId19, .iconId20, .iconId21, .iconId22, .iconId23, .iconId24, .iconId25, .iconId26, .iconId29, .iconId31, .iconId43, .iconId44) {
   background-color: var(--weather-snowy-background-color);
 }
-.weather-forecast-widget .current-weather-wrapper:has(.iconId30), .weather-forecast-widget.small-widget .forecast-row-items > li:first-of-type:has(.iconId30) {
+.weather-forecast-widget .current-weather-wrapper:has(.iconId30), .weather-forecast-widget.is-small .forecast-row-items > li:first-of-type:has(.iconId30) {
   background-color: var(--weather-hot-background-color);
 }
 .weather-forecast-widget.forecast-error-state .full-forecast {
@@ -5234,27 +5248,27 @@ hr {
   color: inherit;
 }
 
-.small-widget {
+.weather-forecast-widget.is-small {
   height: 100%;
   padding: var(--space-small);
 }
-.small-widget .forecast-error {
+.weather-forecast-widget.is-small .forecast-error {
   flex-direction: row;
   justify-content: flex-start;
 }
-.small-widget .forecast-error span {
+.weather-forecast-widget.is-small .forecast-error span {
   margin-inline-end: var(--space-small);
 }
-.small-widget .forecast-row-items li {
+.weather-forecast-widget.is-small .forecast-row-items li {
   padding: var(--space-xsmall) var(--space-medium);
 }
-.small-widget .forecast-footer {
+.weather-forecast-widget.is-small .forecast-footer {
   margin-block-start: auto;
 }
-.small-widget .forecast-footer .full-forecast {
+.weather-forecast-widget.is-small .forecast-footer .full-forecast {
   display: none;
 }
-.small-widget:has(.location-search) .forecast-row-items {
+.weather-forecast-widget.is-small:has(.location-search) .forecast-row-items {
   display: none;
 }
 

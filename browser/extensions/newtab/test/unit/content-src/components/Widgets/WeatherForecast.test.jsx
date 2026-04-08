@@ -828,10 +828,10 @@ describe("<WeatherForecast>", () => {
         </WrapWithProvider>
       );
 
-      assert.ok(wrapper.find(".small-widget").exists());
+      assert.ok(wrapper.find(".is-small").exists());
     });
 
-    it("nova=on, size=medium renders compact layout (.small-widget present)", () => {
+    it("nova=on, size=medium renders compact layout (.is-small present)", () => {
       const mediumNovaState = {
         ...novaState,
         Prefs: {
@@ -849,10 +849,10 @@ describe("<WeatherForecast>", () => {
         </WrapWithProvider>
       );
 
-      assert.ok(wrapper.find(".small-widget").exists());
+      assert.ok(wrapper.find(".is-small").exists());
     });
 
-    it("nova=on, size=large renders full layout (.small-widget absent)", () => {
+    it("nova=on, size=large renders full layout (.is-small absent)", () => {
       const largeNovaState = {
         ...novaState,
         Prefs: {
@@ -870,7 +870,7 @@ describe("<WeatherForecast>", () => {
         </WrapWithProvider>
       );
 
-      assert.isFalse(wrapper.find(".small-widget").exists());
+      assert.isFalse(wrapper.find(".is-small").exists());
     });
   });
 

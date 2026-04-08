@@ -12313,7 +12313,8 @@ function Lists({
   const badgeEnabled = (nimbusBadgeEnabled || nimbusBadgeTrainhopEnabled) ?? prefs[PREF_WIDGETS_LISTS_BADGE_ENABLED] ?? false;
   const badgeLabel = (nimbusBadgeLabel || nimbusBadgeTrainhopLabel) ?? prefs[PREF_WIDGETS_LISTS_BADGE_LABEL] ?? "";
   return /*#__PURE__*/external_React_default().createElement("article", {
-    className: `lists widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""}`,
+    // @nova-cleanup(remove-conditional): Remove novaEnabled check; always apply col-4 and size class after Nova ships
+    className: `lists widget ${novaEnabled ? `col-4 ${widgetSize}-widget` : ""} ${isSmallSize ? "is-small" : ""} ${isMaximized ? "is-maximized" : ""}`,
     ref: el => {
       listsRef.current = [el];
     }
@@ -13248,7 +13249,8 @@ const FocusTimer = ({
     return () => el.removeEventListener("click", listener);
   }, [handleChangeSize]);
   return timerData ? /*#__PURE__*/external_React_default().createElement("article", {
-    className: `focus-timer widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""}`,
+    // @nova-cleanup(remove-conditional): Remove novaEnabled check; always apply col-4 and size class after Nova ships
+    className: `focus-timer widget ${novaEnabled ? `col-4 ${widgetSize}-widget` : ""} ${isSmallSize ? "is-small" : ""} ${isMaximized ? "is-maximized" : ""}`,
     ref: el => {
       timerRef.current = [el];
     }
@@ -13843,7 +13845,7 @@ function WeatherForecast({
     })));
   }
   return /*#__PURE__*/external_React_default().createElement("article", {
-    className: `weather-forecast-widget widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""} ${isSmallSize ? " small-widget" : ""} ${hasError ? "forecast-error-state" : ""}`,
+    className: `weather-forecast-widget widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""} ${isSmallSize ? " is-small" : ""} ${hasError ? "forecast-error-state" : ""}`,
     ref: el => {
       forecastRef.current = [el];
     }
@@ -14037,16 +14039,12 @@ function Weather_Weather({
   const weatherOptIn = prefs["system.showWeatherOptIn"];
   const nimbusWeatherOptInEnabled = prefs.trainhopConfig?.weather?.weatherOptInEnabled;
   const isOptInEnabled = weatherOptIn || nimbusWeatherOptInEnabled;
-  const reverseOptInButtons = prefs.trainhopConfig?.weather?.reverseOptInButtons;
   const optInDisplayed = prefs["weather.optInDisplayed"];
   const optInUserChoice = prefs["weather.optInAccepted"];
-  const shouldShowOptInDialog = isOptInEnabled && optInDisplayed && !optInUserChoice;
-  const staticWeather = prefs["weather.staticData.enabled"];
-  const showStaticData = isOptInEnabled && staticWeather;
+  const showOptInState = isOptInEnabled && optInDisplayed && !optInUserChoice;
   const {
     searchActive
   } = weatherData;
-  const showConditions = size === "small" || size === "large";
   function handleChangeLocation() {
     (0,external_ReactRedux_namespaceObject.batch)(() => {
       dispatch(actionCreators.BroadcastToContent({
@@ -14151,6 +14149,9 @@ function Weather_Weather({
       }
     }));
   }
+
+  // Bug 2029823 - Opt-in UI to be implemented
+  // eslint-disable-next-line no-unused-vars
   function handleAcceptOptIn() {
     (0,external_ReactRedux_namespaceObject.batch)(() => {
       dispatch(actionCreators.AlsoToMain({
@@ -14172,6 +14173,9 @@ function Weather_Weather({
       }));
     });
   }
+
+  // Bug 2029823 - Opt-in UI to be implemented
+  // eslint-disable-next-line no-unused-vars
   function handleRejectOptIn() {
     (0,external_ReactRedux_namespaceObject.batch)(() => {
       dispatch(actionCreators.SetPref("weather.optInAccepted", false));
@@ -14204,19 +14208,19 @@ function Weather_Weather({
       size: "small"
     }), /*#__PURE__*/external_React_default().createElement("panel-list", {
       id: "weather-widget-context-menu"
-    }, prefs["weather.locationSearchEnabled"] && /*#__PURE__*/external_React_default().createElement("panel-item", {
-      "data-l10n-id": "newtab-weather-menu-change-location",
-      onClick: handleChangeLocation
-    }), isOptInEnabled && /*#__PURE__*/external_React_default().createElement("panel-item", {
-      "data-l10n-id": "newtab-weather-menu-detect-my-location",
-      onClick: handleDetectLocation
-    }), !isOptInEnabled && (prefs["weather.temperatureUnits"] === "f" ? /*#__PURE__*/external_React_default().createElement("panel-item", {
+    }, !isOptInEnabled && (prefs["weather.temperatureUnits"] === "f" ? /*#__PURE__*/external_React_default().createElement("panel-item", {
       "data-l10n-id": "newtab-weather-menu-change-temperature-units-celsius",
       onClick: () => handleChangeTempUnit("c")
     }) : /*#__PURE__*/external_React_default().createElement("panel-item", {
       "data-l10n-id": "newtab-weather-menu-change-temperature-units-fahrenheit",
       onClick: () => handleChangeTempUnit("f")
-    })), prefs["widgets.system.enabled"] && prefs["widgets.enabled"] && /*#__PURE__*/external_React_default().createElement("panel-item", {
+    })), prefs["weather.locationSearchEnabled"] && /*#__PURE__*/external_React_default().createElement("panel-item", {
+      "data-l10n-id": "newtab-weather-menu-change-location",
+      onClick: handleChangeLocation
+    }), isOptInEnabled && /*#__PURE__*/external_React_default().createElement("panel-item", {
+      "data-l10n-id": "newtab-weather-menu-detect-my-location",
+      onClick: handleDetectLocation
+    }), prefs["widgets.system.enabled"] && prefs["widgets.enabled"] && /*#__PURE__*/external_React_default().createElement("panel-item", {
       submenu: "weather-widget-size-submenu",
       "data-l10n-id": "newtab-widget-menu-change-size"
     }, /*#__PURE__*/external_React_default().createElement("panel-list", {
@@ -14238,19 +14242,19 @@ function Weather_Weather({
     })));
   }
   return /*#__PURE__*/external_React_default().createElement("article", {
-    className: `weather-widget col-4${hasError ? " weather-error-state" : ""}`,
+    className: `weather-widget col-4 ${size}-widget${hasError ? " weather-error-state" : ""}`,
     ref: el => {
       weatherRef.current = [el];
     }
-  }, !hasError && showForecast && /*#__PURE__*/external_React_default().createElement("a", {
-    className: "forecast-anchor",
-    href: HOURLY_FORECASTS[0].url || "#",
+  }, !hasError && /*#__PURE__*/external_React_default().createElement("a", {
+    className: "weather-anchor",
+    href: showForecast ? HOURLY_FORECASTS[0].url || "#" : WEATHER_SUGGESTION.forecast.url || "#",
     "aria-label": weatherData.locationData.city,
     onClick: handleProviderLinkClick
   }), /*#__PURE__*/external_React_default().createElement("div", {
-    className: "city-wrapper"
+    className: "widget-title-bar"
   }, /*#__PURE__*/external_React_default().createElement("div", {
-    className: "city-name"
+    className: "widget-title"
   }, searchActive ? /*#__PURE__*/external_React_default().createElement(LocationSearch, {
     outerClassName: ""
   }) : /*#__PURE__*/external_React_default().createElement("h3", null, weatherData.locationData.city)), renderContextMenu()), hasError && /*#__PURE__*/external_React_default().createElement("div", {
@@ -14260,15 +14264,16 @@ function Weather_Weather({
     className: "icon icon-info-warning"
   }), " ", /*#__PURE__*/external_React_default().createElement("p", {
     "data-l10n-id": "newtab-weather-error-not-available"
-  })), !hasError && showConditions && /*#__PURE__*/external_React_default().createElement("div", {
+  })), showOptInState ?
+  /*#__PURE__*/
+  // Bug 2029823 - Opt-in UI placeholder
+  external_React_default().createElement("div", {
+    className: "weather-opt-in-container"
+  }) : /*#__PURE__*/external_React_default().createElement((external_React_default()).Fragment, null, /*#__PURE__*/external_React_default().createElement("div", {
+    className: "weather-container"
+  }, !hasError && /*#__PURE__*/external_React_default().createElement("div", {
     className: "weather-conditions-view"
-  }, showStaticData ? /*#__PURE__*/external_React_default().createElement("div", {
-    className: "weather-info-link"
-  }, /*#__PURE__*/external_React_default().createElement("span", {
-    className: "weather-icon iconId3"
-  }), /*#__PURE__*/external_React_default().createElement("span", {
-    className: "weather-temperature"
-  }, "22\xB0", prefs["weather.temperatureUnits"])) : /*#__PURE__*/external_React_default().createElement("a", {
+  }, /*#__PURE__*/external_React_default().createElement("a", {
     "data-l10n-id": "newtab-weather-see-forecast-description",
     "data-l10n-args": "{\"provider\": \"AccuWeather\xAE\"}",
     "data-l10n-attrs": "aria-description",
@@ -14281,12 +14286,12 @@ function Weather_Weather({
     className: `weather-icon iconId${WEATHER_SUGGESTION.current_conditions.icon_id}`
   })), /*#__PURE__*/external_React_default().createElement("div", {
     className: "weather-info-column"
-  }, /*#__PURE__*/external_React_default().createElement("span", {
+  }, /*#__PURE__*/external_React_default().createElement("div", {
+    className: "weather-info-row"
+  }, /*#__PURE__*/external_React_default().createElement("div", {
     className: "temperature-unit"
-  }, WEATHER_SUGGESTION.current_conditions.temperature[prefs["weather.temperatureUnits"]], "\xB0", prefs["weather.temperatureUnits"]), /*#__PURE__*/external_React_default().createElement("span", {
-    className: "temperature-description"
-  }, WEATHER_SUGGESTION.current_conditions.summary)), /*#__PURE__*/external_React_default().createElement("div", {
-    className: "high-low-column"
+  }, WEATHER_SUGGESTION.current_conditions.temperature[prefs["weather.temperatureUnits"]], "\xB0", prefs["weather.temperatureUnits"]), /*#__PURE__*/external_React_default().createElement("div", {
+    className: "high-low-row"
   }, /*#__PURE__*/external_React_default().createElement("span", {
     className: "high-temperature"
   }, /*#__PURE__*/external_React_default().createElement("span", {
@@ -14297,35 +14302,14 @@ function Weather_Weather({
   }, /*#__PURE__*/external_React_default().createElement("span", {
     className: "arrow-icon arrow-down",
     "data-l10n-id": "newtab-weather-low"
-  }), WEATHER_SUGGESTION.forecast.low[prefs["weather.temperatureUnits"]], "\xB0"))), shouldShowOptInDialog && /*#__PURE__*/external_React_default().createElement("div", {
-    className: "weather-opt-in"
-  }, /*#__PURE__*/external_React_default().createElement("dialog", {
-    open: true
-  }, /*#__PURE__*/external_React_default().createElement("span", {
-    className: "weather-opt-in-img"
-  }), /*#__PURE__*/external_React_default().createElement("div", {
-    className: "weather-opt-in-content"
-  }, /*#__PURE__*/external_React_default().createElement("h3", {
-    "data-l10n-id": "newtab-weather-opt-in-see-weather"
-  }), /*#__PURE__*/external_React_default().createElement("moz-button-group", {
-    className: "button-group"
-  }, /*#__PURE__*/external_React_default().createElement("moz-button", {
-    size: "small",
-    type: "default",
-    "data-l10n-id": "newtab-weather-opt-in-yes",
-    onClick: handleAcceptOptIn,
-    id: "accept-opt-in",
-    slot: reverseOptInButtons ? "" : "primary"
-  }), /*#__PURE__*/external_React_default().createElement("moz-button", {
-    size: "small",
-    type: "default",
-    "data-l10n-id": "newtab-weather-opt-in-not-now",
-    onClick: handleRejectOptIn,
-    id: "reject-opt-in",
-    slot: reverseOptInButtons ? "primary" : ""
-  })))))), !hasError && showForecast && /*#__PURE__*/external_React_default().createElement("div", {
+  }), WEATHER_SUGGESTION.forecast.low[prefs["weather.temperatureUnits"]], "\xB0"))), /*#__PURE__*/external_React_default().createElement("div", {
+    className: "weather-info-description"
+  }, WEATHER_SUGGESTION.current_conditions.summary)))), !hasError && showForecast && /*#__PURE__*/external_React_default().createElement("div", {
     className: "forecast-row"
-  }, /*#__PURE__*/external_React_default().createElement("ul", {
+  }, /*#__PURE__*/external_React_default().createElement("p", {
+    className: "today-forecast",
+    "data-l10n-id": "newtab-weather-todays-forecast"
+  }), /*#__PURE__*/external_React_default().createElement("ul", {
     className: "forecast-row-items"
   }, HOURLY_FORECASTS.map(slot => /*#__PURE__*/external_React_default().createElement("li", {
     key: slot.epoch_date_time
@@ -14337,19 +14321,19 @@ function Weather_Weather({
     const date = new Date(slot.date_time);
     const hours = date.getHours() % 12 || 12;
     return `${hours}:${String(date.getMinutes()).padStart(2, "0")}`;
-  })()))))), !hasError && showForecast && /*#__PURE__*/external_React_default().createElement("div", {
+  })())))))), !hasError && /*#__PURE__*/external_React_default().createElement("div", {
     className: "forecast-footer"
   }, /*#__PURE__*/external_React_default().createElement("span", {
     className: "sponsored-text",
     "aria-hidden": "true",
     "data-l10n-id": "newtab-weather-sponsored",
     "data-l10n-args": "{\"provider\": \"AccuWeather\xAE\"}"
-  }), /*#__PURE__*/external_React_default().createElement("a", {
+  }), showForecast && /*#__PURE__*/external_React_default().createElement("a", {
     className: "full-forecast",
     href: HOURLY_FORECASTS[0]?.url || "#",
     onClick: handleProviderLinkClick,
     "data-l10n-id": "newtab-weather-see-full-forecast"
-  })));
+  }))));
 }
 
 ;// CONCATENATED MODULE: ./content-src/components/DiscoveryStreamComponents/FeatureHighlight/WidgetsFeatureHighlight.jsx

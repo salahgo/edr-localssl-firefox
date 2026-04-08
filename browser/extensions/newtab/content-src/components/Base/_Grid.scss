@@ -4,11 +4,13 @@
  * Layout structure:
  * .container (full grid)
  *   ├── .sidebar-inline-start (148px - left sidebar for logo/navigation)
- *   ├── .content (flexible - fills remaining space with 74px columns)
+ *   ├── .content (flexible - fills remaining space with 75px columns)
  *   └── .sidebar-inline-end (148px - right sidebar for mini widgets)
  *
  * Column width:
  *   1 column = 1/4 of an IAB Medium Rectangle (MREC) = 300px ÷ 4 = 75px
+ * Row height:
+ *   1 row = 1/4 of an IAB Medium Rectangle (MREC) = 250px ÷ 4 = 62.5px
  */
 
 :root {
@@ -44,6 +46,7 @@
   gap: var(--space-medium);
   justify-content: center;
   margin-inline: auto;
+  padding-inline: var(--space-medium);
 }
 
 .content {
@@ -58,8 +61,10 @@
 }
 
 .sidebar-inline-end {
+  display: grid;
   grid-column: 3;
   grid-row: 2 / span 2;
+  grid-template-rows: subgrid;
 }
 
 .sidebar-inline-start {

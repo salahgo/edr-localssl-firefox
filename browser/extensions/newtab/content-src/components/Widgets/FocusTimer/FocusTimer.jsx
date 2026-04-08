@@ -752,7 +752,8 @@ export const FocusTimer = ({
 
   return timerData ? (
     <article
-      className={`focus-timer widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""}`}
+      // @nova-cleanup(remove-conditional): Remove novaEnabled check; always apply col-4 and size class after Nova ships
+      className={`focus-timer widget ${novaEnabled ? `col-4 ${widgetSize}-widget` : ""} ${isSmallSize ? "is-small" : ""} ${isMaximized ? "is-maximized" : ""}`}
       ref={el => {
         timerRef.current = [el];
       }}

@@ -145,17 +145,11 @@ function Weather({ dispatch, size }) {
   const nimbusWeatherOptInEnabled =
     prefs.trainhopConfig?.weather?.weatherOptInEnabled;
   const isOptInEnabled = weatherOptIn || nimbusWeatherOptInEnabled;
-  const reverseOptInButtons =
-    prefs.trainhopConfig?.weather?.reverseOptInButtons;
   const optInDisplayed = prefs["weather.optInDisplayed"];
   const optInUserChoice = prefs["weather.optInAccepted"];
-  const shouldShowOptInDialog =
-    isOptInEnabled && optInDisplayed && !optInUserChoice;
-  const staticWeather = prefs["weather.staticData.enabled"];
-  const showStaticData = isOptInEnabled && staticWeather;
+  const showOptInState = isOptInEnabled && optInDisplayed && !optInUserChoice;
 
   const { searchActive } = weatherData;
-  const showConditions = size === "small" || size === "large";
 
   function handleChangeLocation() {
     batch(() => {
@@ -289,6 +283,8 @@ function Weather({ dispatch, size }) {
     );
   }
 
+  // Bug 2029823 - Opt-in UI to be implemented
+  // eslint-disable-next-line no-unused-vars
   function handleAcceptOptIn() {
     batch(() => {
       dispatch(
@@ -317,6 +313,8 @@ function Weather({ dispatch, size }) {
     });
   }
 
+  // Bug 2029823 - Opt-in UI to be implemented
+  // eslint-disable-next-line no-unused-vars
   function handleRejectOptIn() {
     batch(() => {
       dispatch(ac.SetPref("weather.optInAccepted", false));
@@ -354,18 +352,6 @@ function Weather({ dispatch, size }) {
           size="small"
         />
         <panel-list id="weather-widget-context-menu">
-          {prefs["weather.locationSearchEnabled"] && (
-            <panel-item
-              data-l10n-id="newtab-weather-menu-change-location"
-              onClick={handleChangeLocation}
-            />
-          )}
-          {isOptInEnabled && (
-            <panel-item
-              data-l10n-id="newtab-weather-menu-detect-my-location"
-              onClick={handleDetectLocation}
-            />
-          )}
           {!isOptInEnabled &&
             (prefs["weather.temperatureUnits"] === "f" ? (
               <panel-item
@@ -378,6 +364,18 @@ function Weather({ dispatch, size }) {
                 onClick={() => handleChangeTempUnit("f")}
               />
             ))}
+          {prefs["weather.locationSearchEnabled"] && (
+            <panel-item
+              data-l10n-id="newtab-weather-menu-change-location"
+              onClick={handleChangeLocation}
+            />
+          )}
+          {isOptInEnabled && (
+            <panel-item
+              data-l10n-id="newtab-weather-menu-detect-my-location"
+              onClick={handleDetectLocation}
+            />
+          )}
           {/* Only show size options when both system and user prefs are enabled;
               medium/large sizes require the widgets row, which only renders when both are true. */}
           {prefs["widgets.system.enabled"] && prefs["widgets.enabled"] && (
@@ -417,21 +415,25 @@ function Weather({ dispatch, size }) {
 
   return (
     <article
-      className={`weather-widget col-4${hasError ? " weather-error-state" : ""}`}
+      className={`weather-widget col-4 ${size}-widget${hasError ? " weather-error-state" : ""}`}
       ref={el => {
         weatherRef.current = [el];
       }}
     >
-      {!hasError && showForecast && (
+      {!hasError && (
         <a
-          className="forecast-anchor"
-          href={HOURLY_FORECASTS[0].url || "#"}
+          className="weather-anchor"
+          href={
+            showForecast
+              ? HOURLY_FORECASTS[0].url || "#"
+              : WEATHER_SUGGESTION.forecast.url || "#"
+          }
           aria-label={weatherData.locationData.city}
           onClick={handleProviderLinkClick}
         />
       )}
-      <div className="city-wrapper">
-        <div className="city-name">
+      <div className="widget-title-bar">
+        <div className="widget-title">
           {searchActive ? (
             <LocationSearch outerClassName="" />
           ) : (
@@ -446,140 +448,122 @@ function Weather({ dispatch, size }) {
           <p data-l10n-id="newtab-weather-error-not-available"></p>
         </div>
       )}
-      {!hasError && showConditions && (
-        <div className="weather-conditions-view">
-          {showStaticData ? (
-            <div className="weather-info-link">
-              <span className="weather-icon iconId3" />
-              <span className="weather-temperature">
-                22&deg;{prefs["weather.temperatureUnits"]}
-              </span>
-            </div>
-          ) : (
-            <a
-              data-l10n-id="newtab-weather-see-forecast-description"
-              data-l10n-args='{"provider": "AccuWeather®"}'
-              data-l10n-attrs="aria-description"
-              href={WEATHER_SUGGESTION.forecast.url}
-              className="weather-info-link"
-              onClick={handleProviderLinkClick}
-            >
-              <div className="weather-icon-column">
-                <span
-                  className={`weather-icon iconId${WEATHER_SUGGESTION.current_conditions.icon_id}`}
-                />
-              </div>
-              <div className="weather-info-column">
-                <span className="temperature-unit">
-                  {
-                    WEATHER_SUGGESTION.current_conditions.temperature[
-                      prefs["weather.temperatureUnits"]
-                    ]
-                  }
-                  &deg;{prefs["weather.temperatureUnits"]}
-                </span>
-                <span className="temperature-description">
-                  {WEATHER_SUGGESTION.current_conditions.summary}
-                </span>
-              </div>
-              <div className="high-low-column">
-                <span className="high-temperature">
-                  <span
-                    className="arrow-icon arrow-up"
-                    data-l10n-id="newtab-weather-high"
-                  />
-                  {
-                    WEATHER_SUGGESTION.forecast.high[
-                      prefs["weather.temperatureUnits"]
-                    ]
-                  }
-                  &deg;
-                </span>
-                <span className="low-temperature">
-                  <span
-                    className="arrow-icon arrow-down"
-                    data-l10n-id="newtab-weather-low"
-                  />
-                  {
-                    WEATHER_SUGGESTION.forecast.low[
-                      prefs["weather.temperatureUnits"]
-                    ]
-                  }
-                  &deg;
-                </span>
-              </div>
-            </a>
-          )}
-          {shouldShowOptInDialog && (
-            <div className="weather-opt-in">
-              <dialog open={true}>
-                <span className="weather-opt-in-img"></span>
-                <div className="weather-opt-in-content">
-                  <h3 data-l10n-id="newtab-weather-opt-in-see-weather"></h3>
-                  <moz-button-group className="button-group">
-                    <moz-button
-                      size="small"
-                      type="default"
-                      data-l10n-id="newtab-weather-opt-in-yes"
-                      onClick={handleAcceptOptIn}
-                      id="accept-opt-in"
-                      slot={reverseOptInButtons ? "" : "primary"}
+      {showOptInState ? (
+        // Bug 2029823 - Opt-in UI placeholder
+        <div className="weather-opt-in-container" />
+      ) : (
+        <>
+          <div className="weather-container">
+            {!hasError && (
+              <div className="weather-conditions-view">
+                <a
+                  data-l10n-id="newtab-weather-see-forecast-description"
+                  data-l10n-args='{"provider": "AccuWeather®"}'
+                  data-l10n-attrs="aria-description"
+                  href={WEATHER_SUGGESTION.forecast.url}
+                  className="weather-info-link"
+                  onClick={handleProviderLinkClick}
+                >
+                  <div className="weather-icon-column">
+                    <span
+                      className={`weather-icon iconId${WEATHER_SUGGESTION.current_conditions.icon_id}`}
                     />
-                    <moz-button
-                      size="small"
-                      type="default"
-                      data-l10n-id="newtab-weather-opt-in-not-now"
-                      onClick={handleRejectOptIn}
-                      id="reject-opt-in"
-                      slot={reverseOptInButtons ? "primary" : ""}
-                    />
-                  </moz-button-group>
-                </div>
-              </dialog>
+                  </div>
+                  <div className="weather-info-column">
+                    <div className="weather-info-row">
+                      <div className="temperature-unit">
+                        {
+                          WEATHER_SUGGESTION.current_conditions.temperature[
+                            prefs["weather.temperatureUnits"]
+                          ]
+                        }
+                        &deg;{prefs["weather.temperatureUnits"]}
+                      </div>
+                      <div className="high-low-row">
+                        <span className="high-temperature">
+                          <span
+                            className="arrow-icon arrow-up"
+                            data-l10n-id="newtab-weather-high"
+                          />
+                          {
+                            WEATHER_SUGGESTION.forecast.high[
+                              prefs["weather.temperatureUnits"]
+                            ]
+                          }
+                          &deg;
+                        </span>
+                        <span className="low-temperature">
+                          <span
+                            className="arrow-icon arrow-down"
+                            data-l10n-id="newtab-weather-low"
+                          />
+                          {
+                            WEATHER_SUGGESTION.forecast.low[
+                              prefs["weather.temperatureUnits"]
+                            ]
+                          }
+                          &deg;
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="weather-info-description">
+                      {WEATHER_SUGGESTION.current_conditions.summary}
+                    </div>
+                  </div>
+                </a>
+              </div>
+            )}
+            {!hasError && showForecast && (
+              <div className="forecast-row">
+                <p
+                  className="today-forecast"
+                  data-l10n-id="newtab-weather-todays-forecast"
+                ></p>
+                <ul className="forecast-row-items">
+                  {HOURLY_FORECASTS.map(slot => (
+                    <li key={slot.epoch_date_time}>
+                      <span>
+                        {slot.temperature[prefs["weather.temperatureUnits"]]}
+                        &deg;
+                      </span>
+                      <span
+                        className={`weather-icon iconId${slot.icon_id}`}
+                        aria-label={slot.summary}
+                        role="img"
+                      ></span>
+                      <span>
+                        {(() => {
+                          const date = new Date(slot.date_time);
+                          const hours = date.getHours() % 12 || 12;
+                          return `${hours}:${String(date.getMinutes()).padStart(2, "0")}`;
+                        })()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          {!hasError && (
+            <div className="forecast-footer">
+              <span
+                className="sponsored-text"
+                aria-hidden="true"
+                data-l10n-id="newtab-weather-sponsored"
+                data-l10n-args='{"provider": "AccuWeather®"}'
+              ></span>
+              {showForecast && (
+                <a
+                  className="full-forecast"
+                  href={HOURLY_FORECASTS[0]?.url || "#"}
+                  onClick={handleProviderLinkClick}
+                  data-l10n-id="newtab-weather-see-full-forecast"
+                ></a>
+              )}
             </div>
           )}
-        </div>
-      )}
-      {!hasError && showForecast && (
-        <div className="forecast-row">
-          <ul className="forecast-row-items">
-            {HOURLY_FORECASTS.map(slot => (
-              <li key={slot.epoch_date_time}>
-                <span>
-                  {slot.temperature[prefs["weather.temperatureUnits"]]}&deg;
-                </span>
-                <span
-                  className={`weather-icon iconId${slot.icon_id}`}
-                  aria-label={slot.summary}
-                  role="img"
-                ></span>
-                <span>
-                  {(() => {
-                    const date = new Date(slot.date_time);
-                    const hours = date.getHours() % 12 || 12;
-                    return `${hours}:${String(date.getMinutes()).padStart(2, "0")}`;
-                  })()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {!hasError && showForecast && (
-        <div className="forecast-footer">
-          <span
-            className="sponsored-text"
-            aria-hidden="true"
-            data-l10n-id="newtab-weather-sponsored"
-            data-l10n-args='{"provider": "AccuWeather®"}'
-          ></span>
-          <a
-            className="full-forecast"
-            href={HOURLY_FORECASTS[0]?.url || "#"}
-            onClick={handleProviderLinkClick}
-            data-l10n-id="newtab-weather-see-full-forecast"
-          ></a>
-        </div>
+        </>
       )}
     </article>
   );

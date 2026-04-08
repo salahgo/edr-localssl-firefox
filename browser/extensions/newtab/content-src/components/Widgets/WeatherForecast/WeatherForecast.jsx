@@ -446,7 +446,7 @@ function WeatherForecast({ dispatch, isMaximized, widgetsMayBeMaximized }) {
 
   return (
     <article
-      className={`weather-forecast-widget widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""} ${isSmallSize ? " small-widget" : ""} ${hasError ? "forecast-error-state" : ""}`}
+      className={`weather-forecast-widget widget ${novaEnabled ? "col-4" : ""} ${isMaximized ? "is-maximized" : ""} ${isSmallSize ? " is-small" : ""} ${hasError ? "forecast-error-state" : ""}`}
       ref={el => {
         forecastRef.current = [el];
       }}

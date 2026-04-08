@@ -81,7 +81,6 @@ const optInMockState = {
       "system.showWeatherOptIn": true,
       "weather.optInDisplayed": true,
       "weather.optInAccepted": false,
-      "weather.staticData.enabled": true,
     },
   },
 };
@@ -168,11 +167,11 @@ describe("<Weather> (Widgets/Weather)", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("size=medium renders hourly forecast grid and no conditions view", () => {
+    it("size=medium renders hourly forecast grid and conditions view", () => {
       const { container } = renderWeather("medium");
       expect(
         container.querySelector(".weather-conditions-view")
-      ).not.toBeInTheDocument();
+      ).toBeInTheDocument();
       expect(
         container.querySelector(".forecast-row-items")
       ).toBeInTheDocument();
@@ -192,7 +191,7 @@ describe("<Weather> (Widgets/Weather)", () => {
   describe("city name", () => {
     it("displays city name when searchActive is false", () => {
       const { container } = renderWeather();
-      expect(container.querySelector(".city-name h3").textContent).toBe(
+      expect(container.querySelector(".widget-title h3").textContent).toBe(
         "Testville"
       );
     });
@@ -203,7 +202,9 @@ describe("<Weather> (Widgets/Weather)", () => {
         Weather: { ...mockState.Weather, searchActive: true },
       };
       const { container } = renderWeather("medium", state);
-      expect(container.querySelector(".city-name h3")).not.toBeInTheDocument();
+      expect(
+        container.querySelector(".widget-title h3")
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -632,30 +633,30 @@ describe("<Weather> (Widgets/Weather)", () => {
       ).toBeInTheDocument();
     });
 
-    it("does not render forecast-anchor on error", () => {
+    it("does not render weather-anchor on error", () => {
       const state = {
         ...mockState,
         Weather: { ...mockState.Weather, suggestions: [{}] },
       };
       const { container } = renderWeather("medium", state);
       expect(
-        container.querySelector(".forecast-anchor")
+        container.querySelector(".weather-anchor")
       ).not.toBeInTheDocument();
     });
   });
 
   describe("provider link / anchor", () => {
-    it("renders forecast-anchor as <a> with aria-label=city (medium)", () => {
+    it("renders weather-anchor as <a> with aria-label=city (medium)", () => {
       const { container } = renderWeather("medium");
-      const anchor = container.querySelector(".forecast-anchor");
+      const anchor = container.querySelector(".weather-anchor");
       expect(anchor).toBeInTheDocument();
       expect(anchor.tagName).toBe("A");
       expect(anchor.getAttribute("aria-label")).toBe("Testville");
     });
 
-    it("dispatches WIDGETS_USER_EVENT when forecast-anchor is clicked", () => {
+    it("dispatches WIDGETS_USER_EVENT when weather-anchor is clicked", () => {
       const { container, dispatch } = renderWeather("medium");
-      fireEvent.click(container.querySelector(".forecast-anchor"));
+      fireEvent.click(container.querySelector(".weather-anchor"));
 
       expect(dispatch).toHaveBeenCalledTimes(1);
       expect(dispatch.mock.calls[0][0]).toMatchObject({
@@ -686,82 +687,72 @@ describe("<Weather> (Widgets/Weather)", () => {
       });
     });
 
-    it("does not render forecast-anchor for size=small", () => {
+    it("renders weather-anchor linking to conditions URL for size=small", () => {
       const { container } = renderWeather("small");
+      const anchor = container.querySelector(".weather-anchor");
+      expect(anchor).toBeInTheDocument();
+      expect(anchor.getAttribute("href")).toBe(weatherSuggestion.forecast.url);
+    });
+  });
+
+  describe("opt-in state", () => {
+    it("renders weather-opt-in-container when opt-in is enabled and user has not accepted", () => {
+      const { container } = renderWeather("medium", optInMockState);
       expect(
-        container.querySelector(".forecast-anchor")
+        container.querySelector(".weather-opt-in-container")
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector(".weather-container")
+      ).not.toBeInTheDocument();
+    });
+
+    it("renders weather-container when opt-in is enabled and user has accepted", () => {
+      const state = {
+        ...optInMockState,
+        Prefs: {
+          ...optInMockState.Prefs,
+          values: {
+            ...optInMockState.Prefs.values,
+            "weather.optInAccepted": true,
+          },
+        },
+      };
+      const { container } = renderWeather("medium", state);
+      expect(container.querySelector(".weather-container")).toBeInTheDocument();
+      expect(
+        container.querySelector(".weather-opt-in-container")
+      ).not.toBeInTheDocument();
+    });
+
+    it("renders weather-container when opt-in is rejected", () => {
+      const state = {
+        ...optInMockState,
+        Prefs: {
+          ...optInMockState.Prefs,
+          values: {
+            ...optInMockState.Prefs.values,
+            "weather.optInDisplayed": false,
+            "weather.optInAccepted": false,
+          },
+        },
+      };
+      const { container } = renderWeather("medium", state);
+      expect(container.querySelector(".weather-container")).toBeInTheDocument();
+      expect(
+        container.querySelector(".weather-opt-in-container")
       ).not.toBeInTheDocument();
     });
   });
 
-  describe("opt-in dialog", () => {
-    it("dispatches correct actions when user accepts opt-in", () => {
-      const dispatch = jest.fn();
-      const { container } = render(
-        <WrapWithProvider state={optInMockState}>
-          <Weather dispatch={dispatch} size="small" />
-        </WrapWithProvider>
-      );
-
-      fireEvent.click(container.querySelector("#accept-opt-in"));
-
-      const actions = dispatch.mock.calls.map(c => c[0]);
-      expect(
-        actions.some(a => a.type === at.WEATHER_USER_OPT_IN_LOCATION)
-      ).toBe(true);
-      expect(
-        actions.some(
-          a =>
-            a.type === at.WEATHER_OPT_IN_PROMPT_SELECTION &&
-            a.data === "accepted opt-in"
-        )
-      ).toBe(true);
-      const unified = actions.find(a => a.type === at.WIDGETS_USER_EVENT);
-      expect(unified).toBeDefined();
-      expect(unified.data).toMatchObject({
-        widget_name: "weather",
-        user_action: "opt_in_accepted",
-        action_value: true,
-      });
-    });
-
-    it("dispatches correct actions when user rejects opt-in", () => {
-      const dispatch = jest.fn();
-      const { container } = render(
-        <WrapWithProvider state={optInMockState}>
-          <Weather dispatch={dispatch} size="small" />
-        </WrapWithProvider>
-      );
-
-      fireEvent.click(container.querySelector("#reject-opt-in"));
-
-      const actions = dispatch.mock.calls.map(c => c[0]);
-      expect(
-        actions.some(
-          a =>
-            a.type === at.WEATHER_OPT_IN_PROMPT_SELECTION &&
-            a.data === "rejected opt-in"
-        )
-      ).toBe(true);
-      const unified = actions.find(a => a.type === at.WIDGETS_USER_EVENT);
-      expect(unified).toBeDefined();
-      expect(unified.data).toMatchObject({
-        user_action: "opt_in_accepted",
-        action_value: false,
-      });
-    });
-  });
-
   describe("size=small (sidebar view)", () => {
-    it("renders widget with conditions view and no forecast footer", () => {
+    it("renders widget with conditions view and forecast footer without full-forecast link", () => {
       const { container } = renderWeather("small");
       expect(container.querySelector(".weather-widget")).toBeInTheDocument();
       expect(
         container.querySelector(".weather-conditions-view")
       ).toBeInTheDocument();
-      expect(
-        container.querySelector(".forecast-footer")
-      ).not.toBeInTheDocument();
+      expect(container.querySelector(".forecast-footer")).toBeInTheDocument();
+      expect(container.querySelector(".full-forecast")).not.toBeInTheDocument();
     });
   });
 });
