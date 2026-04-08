@@ -66,7 +66,7 @@ def main(output, file):
         appdata["App:sourcerevision"] = "NULL"
 
     output.write(
-        """#include "mozilla/XREAppData.h"
+        """#include "mozilla/StaticXREAppData.h"
              static const mozilla::StaticXREAppData sAppData = {
                  %(App:vendor)s,
                  "%(App:name)s",
