@@ -742,7 +742,7 @@ index 12a5a828f8..ebc7da741a 100644
  import("../webrtc.gni")
  
 diff --git a/test/BUILD.gn b/test/BUILD.gn
-index 6c0a6b01fe..ee177c87bf 100644
+index e2eb310233..9c3651fc62 100644
 --- a/test/BUILD.gn
 +++ b/test/BUILD.gn
 @@ -6,10 +6,10 @@
@@ -758,7 +758,7 @@ index 6c0a6b01fe..ee177c87bf 100644
    import("//third_party/jni_zero/jni_zero.gni")
  }
  
-@@ -432,7 +432,7 @@ if (is_ios && !build_with_chromium) {
+@@ -429,7 +429,7 @@ if (is_ios && !build_with_chromium) {
      testonly = true
      visibility = [ "*" ]
      sources = [ "ios/google_test_runner.mm" ]
@@ -768,7 +768,7 @@ index 6c0a6b01fe..ee177c87bf 100644
      deps = [ ":google_test_runner_delegate" ]
    }
 diff --git a/test/fuzzers/BUILD.gn b/test/fuzzers/BUILD.gn
-index 2a78afab87..9b7bd22838 100644
+index e690727fd8..4de896cc6e 100644
 --- a/test/fuzzers/BUILD.gn
 +++ b/test/fuzzers/BUILD.gn
 @@ -6,7 +6,7 @@
@@ -780,7 +780,7 @@ index 2a78afab87..9b7bd22838 100644
  import("//testing/libfuzzer/fuzzer_test.gni")
  import("../../webrtc.gni")
  
-@@ -82,7 +82,7 @@ template("webrtc_fuzzer_test") {
+@@ -81,7 +81,7 @@ template("webrtc_fuzzer_test") {
      }
  
      if (!build_with_chromium && is_clang) {
