@@ -2283,9 +2283,6 @@ class nsINode : public mozilla::dom::EventTarget {
   bool HasCustomElementData() const {
     return GetBoolFlag(ElementHasCustomElementData);
   }
-  void ClearHasCustomElementData() {
-    ClearBoolFlag(ElementHasCustomElementData);
-  }
 
   void SetElementCreatedFromPrototypeAndHasUnmodifiedL10n() {
     SetBoolFlag(ElementCreatedFromPrototypeAndHasUnmodifiedL10n);

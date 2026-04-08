@@ -683,8 +683,6 @@ class Element : public FragmentOrElement {
    */
   void SetCustomElementData(UniquePtr<CustomElementData> aData);
 
-  void ClearCustomElementData();
-
   nsTArray<RefPtr<nsAtom>>& EnsureCustomStates();
 
   /**
