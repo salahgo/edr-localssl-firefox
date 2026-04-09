@@ -1022,7 +1022,7 @@ nsresult nsHTTPCompressConv::do_OnDataAvailable(nsIRequest* request,
 #define COMMENT 0x10     /* bit 4 set: file comment present */
 #define RESERVED 0xE0    /* bits 5..7: reserved */
 
-static unsigned gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
+static unsigned gz_magic[2] = {GZIP_MAGIC_0, GZIP_MAGIC_1}; /* gzip magic header */
 
 uint32_t nsHTTPCompressConv::check_header(nsIInputStream* iStr,
                                           uint32_t streamLen, nsresult* rs) {

@@ -122,6 +122,7 @@ class DictionaryCacheEntry final : public nsICacheEntryOpenCallback,
   // Accumulate a hash while saving a file being received to the cache
   void AccumulateHash(const char* aBuf, int32_t aCount);
   void FinishHash();
+  void FinishHashOnMainThread();
 
   // return a pointer to the data and length
   uint8_t* DictionaryData(size_t* aLength) const;
@@ -228,6 +229,11 @@ class DictionaryCacheEntry final : public nsICacheEntryOpenCallback,
 
   // We're blocked from taking over for the old entry for now
   bool mBlocked{false};
+
+  // Set during Prefetch in OnCacheEntryAvailable if the stored response
+  // headers still contain Content-Encoding. Non-empty means data on disk
+  // is likely still compressed (decompressor wasn't applied before save).
+  nsCString mStoredContentEncoding;
 };
 
 // XXX Do we want to pre-read dictionaries into RAM at startup (lazily)?
