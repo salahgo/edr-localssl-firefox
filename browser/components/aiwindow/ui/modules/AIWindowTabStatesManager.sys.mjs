@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { XPCOMUtils } from "resource://gre/modules/XPCOMUtils.sys.mjs";
+import { getKeepSidebarOpenState } from "moz-src:///browser/components/aiwindow/ui/modules/ChatUtils.sys.mjs";
 
 const lazy = {};
 ChromeUtils.defineESModuleGetters(lazy, {
@@ -19,8 +20,9 @@ ChromeUtils.defineESModuleGetters(lazy, {
 
 XPCOMUtils.defineLazyPreferenceGetter(
   lazy,
-  "hasFirstrunCompleted",
-  "browser.smartwindow.firstrun.hasCompleted"
+  "sidebarOpenByDefault",
+  "browser.smartwindow.sidebar.openByDefault",
+  false
 );
 
 const SESSION_STORE_KEY = "ai-window-tab-state";
@@ -111,7 +113,8 @@ export class AIWindowTabStatesManager {
     if (!this.#window) {
       return;
     }
-    const tabUrl = this.#window.gBrowser.selectedBrowser.currentURI?.spec ?? "";
+    const tab = this.#window.gBrowser.selectedTab;
+    const tabUrl = tab.linkedBrowser?.currentURI?.spec ?? "";
     // AIWINDOW_URL tabs are fullpage and don't use the sidebar.
     if (
       tabUrl === lazy.AIWINDOW_URL ||
@@ -119,7 +122,14 @@ export class AIWindowTabStatesManager {
     ) {
       return;
     }
-    lazy.AIWindowUI.openSidebar(this.#window);
+    if (
+      getKeepSidebarOpenState(
+        this.#getTabState(tab)?.state,
+        lazy.sidebarOpenByDefault
+      )
+    ) {
+      lazy.AIWindowUI.openSidebar(this.#window);
+    }
   }
 
   /**
@@ -311,12 +321,13 @@ export class AIWindowTabStatesManager {
     const tab = event.target;
 
     const tabState = this.#getTabState(tab);
-    const keepSidebarOpen =
-      tabState?.state?.keepSidebarOpen ?? lazy.hasFirstrunCompleted;
     const convId = tabState?.state?.conversationId;
     const tabUrl = tab.linkedBrowser?.currentURI?.spec ?? "";
     const isAIWindowTab = tabUrl === lazy.AIWINDOW_URL;
-    const shouldKeepSidebar = keepSidebarOpen !== false;
+    const shouldKeepSidebar = getKeepSidebarOpenState(
+      tabState?.state,
+      lazy.sidebarOpenByDefault
+    );
 
     // AI Window tab doesn't need sidebar
     if (isAIWindowTab) {
@@ -515,7 +526,10 @@ export class AIWindowTabStatesManager {
 
     const { conversationId, keepSidebarOpen } = restoredState ?? {};
 
-    if (!conversationId || keepSidebarOpen === false) {
+    if (
+      !conversationId ||
+      !getKeepSidebarOpenState(restoredState, lazy.sidebarOpenByDefault)
+    ) {
       return;
     }
 
@@ -622,7 +636,6 @@ export class AIWindowTabStatesManager {
     const stateUpdate = {
       conversation,
       conversationId,
-      keepSidebarOpen: true,
     };
     // When a fullpage conversation moves to the sidebar, the sidebar's
     // ai-window also fires this event with mode "sidebar". Writing that
@@ -747,9 +760,10 @@ export class AIWindowTabStatesManager {
         const isSidebarOpen = lazy.AIWindowUI.isSidebarOpen(this.#window);
         const isFullPageMode = tabState.state.mode === "fullpage";
 
-        // keepSidebarOpen is only set to false by an explicit user action
-        // (clicking the Ask button), so it defaults to true when unset.
-        const shouldKeepSidebarOpen = tabState.state.keepSidebarOpen !== false;
+        const shouldKeepSidebarOpen = getKeepSidebarOpenState(
+          tabState.state,
+          lazy.sidebarOpenByDefault
+        );
 
         if (isFullPageMode && isAiWindowUrl && isSidebarOpen) {
           lazy.AIWindowUI.closeSidebar(this.#window);

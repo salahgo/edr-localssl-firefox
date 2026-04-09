@@ -13,6 +13,7 @@ const {
   parseChatHistoryViewRows,
   parseJSONOrNull,
   getRoleLabel,
+  getKeepSidebarOpenState,
 } = ChromeUtils.importESModule(
   "moz-src:///browser/components/aiwindow/ui/modules/ChatUtils.sys.mjs"
 );
@@ -271,5 +272,37 @@ add_task(function test_parseChatHistoryViewRows() {
     soft.equal(viewRows[2].createdDate, 168298919);
     soft.equal(viewRows[2].updatedDate, 168298919);
     soft.deepEqual(viewRows[2].urls, [new URL("https://www.firefox.com")]);
+  });
+});
+
+// [state, sidebarOpenByDefault, expected, message]
+const keepSidebarPermutations = [
+  [false, false, false, "falsy state, pref false: defers to pref"],
+  [false, true, true, "falsy state, pref true: defers to pref"],
+  [true, false, false, "truthy non-object state, pref false: defers to pref"],
+  [true, true, true, "truthy non-object state, pref true: defers to pref"],
+  [undefined, false, false, "undefined state, pref false: defers to pref"],
+  [undefined, true, true, "undefined state, pref true: defers to pref"],
+  [
+    { keepSidebarOpen: true },
+    false,
+    true,
+    "explicit true overrides pref false",
+  ],
+  [{ keepSidebarOpen: true }, true, true, "explicit true with pref true"],
+  [{ keepSidebarOpen: false }, false, false, "explicit false with pref false"],
+  [
+    { keepSidebarOpen: false },
+    true,
+    false,
+    "explicit false overrides pref true",
+  ],
+  [{}, false, false, "no keepSidebarOpen in state, pref false: defers to pref"],
+  [{}, true, true, "no keepSidebarOpen in state, pref true: defers to pref"],
+];
+
+keepSidebarPermutations.forEach(([state, pref, expected, message]) => {
+  add_task(function () {
+    Assert.equal(getKeepSidebarOpenState(state, pref), expected, message);
   });
 });
