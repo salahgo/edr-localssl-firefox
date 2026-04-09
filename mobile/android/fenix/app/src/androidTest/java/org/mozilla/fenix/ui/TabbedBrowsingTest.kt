@@ -131,7 +131,9 @@ class TabbedBrowsingTest {
             verifyExistingOpenTabs(webPages[1].title)
             swipeTabRight(webPages[0].title)
             verifySnackBarText("Tab closed")
+            waitForAppWindowToBeUpdated()
             clickSnackbarButton(composeTestRule, "UNDO")
+            waitForAppWindowToBeUpdated()
             verifyExistingOpenTabs(webPages[0].title)
             verifyExistingOpenTabs(webPages[1].title)
             swipeTabRight(webPages[0].title)
@@ -140,7 +142,9 @@ class TabbedBrowsingTest {
             verifyExistingOpenTabs(webPages[1].title)
             swipeTabLeft(webPages[1].title)
             verifySnackBarText("Tab closed")
+            waitForAppWindowToBeUpdated()
             clickSnackbarButton(composeTestRule, "UNDO")
+            waitForAppWindowToBeUpdated()
         }
         browserScreen(composeTestRule) {
             verifyPageContent(webPages[1].content)
