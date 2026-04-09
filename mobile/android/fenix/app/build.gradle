@@ -840,14 +840,6 @@ tasks.matching { it.name.startsWith("generateSafeArgs") }.configureEach {
     finalizedBy tasks.named("suppressUselessCastInSafeArgs")
 }
 
-if (gradle.hasProperty('localProperties.dependencySubstitutions.geckoviewTopsrcdir')) {
-    if (gradle.hasProperty('localProperties.dependencySubstitutions.geckoviewTopobjdir')) {
-        ext.topobjdir = gradle."localProperties.dependencySubstitutions.geckoviewTopobjdir"
-    }
-    ext.topsrcdir = gradle."localProperties.dependencySubstitutions.geckoviewTopsrcdir"
-    apply from: "${topsrcdir}/substitute-local-geckoview.gradle"
-}
-
 def getSupportedLocales() {
     // This isn't running as a task, instead the array is build when the gradle file is parsed.
     // https://github.com/mozilla-mobile/fenix/issues/14175
