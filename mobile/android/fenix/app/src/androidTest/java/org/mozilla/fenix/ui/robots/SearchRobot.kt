@@ -203,30 +203,15 @@ class SearchRobot(private val composeTestRule: ComposeTestRule) {
      */
     @OptIn(ExperimentalTestApi::class)
     fun verifySearchSuggestionsAreDisplayed(vararg searchSuggestions: String) {
-        this@SearchRobot.composeTestRule.waitForIdle()
+        composeTestRule.waitForIdle()
         for (searchSuggestion in searchSuggestions) {
-            Log.i(
-                TAG,
-                "verifySearchSuggestionsAreDisplayed: Trying to perform \"Close soft keyboard\" action.",
-            )
+            Log.i(TAG, "verifySearchSuggestionsAreDisplayed: Trying to perform \"Close soft keyboard\" action.")
             closeSoftKeyboard()
-            Log.i(
-                TAG,
-                "verifySearchSuggestionsAreDisplayed: Performed \"Close soft keyboard\" action.",
-            )
-            Log.i(
-                TAG,
-                "verifySearchSuggestionsAreDisplayed: Waiting for $waitingTime ms until $searchSuggestion search suggestion exists.",
-            )
-            this@SearchRobot.composeTestRule.waitUntilExactlyOneExists(hasText(searchSuggestion), waitingTime)
-            this@SearchRobot.composeTestRule.onAllNodesWithTag("mozac.awesomebar.suggestion")
-                .assertAny(
-                    hasText(searchSuggestion, substring = true),
-                )
-            Log.i(
-                TAG,
-                "verifySearchSuggestionsAreDisplayed: Verified $searchSuggestion search suggestion exists.",
-            )
+            Log.i(TAG, "verifySearchSuggestionsAreDisplayed: Performed \"Close soft keyboard\" action.")
+            Log.i(TAG, "verifySearchSuggestionsAreDisplayed: Waiting for $waitingTime ms until $searchSuggestion search suggestion exists.")
+            composeTestRule.onAllNodesWithTag("mozac.awesomebar.suggestion")
+                .assertAny(hasText(searchSuggestion, substring = true))
+            Log.i(TAG, "verifySearchSuggestionsAreDisplayed: Verified $searchSuggestion search suggestion exists.")
         }
     }
 

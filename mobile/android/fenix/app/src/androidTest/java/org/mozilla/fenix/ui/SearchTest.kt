@@ -687,10 +687,15 @@ class SearchTest {
         val firstPage = searchMockServerRule.server.getGenericAsset(1)
         val secondPage = searchMockServerRule.server.getGenericAsset(2)
 
-        createTabItem(firstPage.url.toString())
         createBookmarkItem(secondPage.url.toString(), secondPage.title, 1u)
 
-        homeScreen(composeTestRule) {
+        navigationToolbar(composeTestRule) {
+        }.enterURLAndEnterToBrowser(firstPage.url) {
+            verifyTabCounter("1")
+        }.openThreeDotMenu {
+        }.clickBookmarksButton {
+            verifyBookmarkTitle(secondPage.title)
+        }.goBackToHomeScreen {
         }.openSearch {
             typeSearch("generic")
             verifyTheSuggestionsHeader(firefoxSuggestHeader)
