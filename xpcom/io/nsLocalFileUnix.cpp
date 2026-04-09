@@ -1464,12 +1464,12 @@ nsLocalFile::SetLastModifiedTimeOfLink(PRTime aLastModTimeOfLink) {
 
 NS_IMETHODIMP
 nsLocalFile::GetCreationTime(PRTime* aCreationTime) {
-  return GetCreationTimeImpl(aCreationTime, false);
+  return GetCreationTimeImpl(aCreationTime, true);
 }
 
 NS_IMETHODIMP
 nsLocalFile::GetCreationTimeOfLink(PRTime* aCreationTimeOfLink) {
-  return GetCreationTimeImpl(aCreationTimeOfLink, /* aFollowLinks = */ true);
+  return GetCreationTimeImpl(aCreationTimeOfLink, false);
 }
 
 nsresult nsLocalFile::GetCreationTimeImpl(PRTime* aCreationTime,
