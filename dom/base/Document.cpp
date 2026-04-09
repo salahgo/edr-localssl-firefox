@@ -13510,7 +13510,7 @@ bool Document::CanRewriteURL(nsIURI* aTargetURL, bool aReportErrors) const {
   nsAutoCString scheme;
   nsresult rv = mDocumentURI->GetScheme(scheme);
   NS_ENSURE_SUCCESS(rv, false);
-  if (!aTargetURL->SchemeIs(scheme.get())) {
+  if (!aTargetURL || !aTargetURL->SchemeIs(scheme.get())) {
     return false;
   }
 
