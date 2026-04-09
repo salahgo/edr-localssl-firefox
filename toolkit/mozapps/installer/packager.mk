@@ -185,10 +185,6 @@ hg-bundle:
 	$(MKDIR) -p $(DIST)/$(PKG_SRCPACK_PATH)
 	$(CREATE_HG_BUNDLE_CMD)
 
-source-upload:
-	$(MAKE) upload UPLOAD_FILES='$(SOURCE_UPLOAD_FILES)' CHECKSUM_FILE='$(SOURCE_CHECKSUM_FILE)'
-
-
 ALL_LOCALES = $(if $(filter en-US,$(LOCALES)),$(LOCALES),$(LOCALES) en-US)
 
 # Firefox uses @RESPATH@.

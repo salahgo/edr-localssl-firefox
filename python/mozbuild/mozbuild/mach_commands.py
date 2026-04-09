@@ -1449,7 +1449,12 @@ def android_gtest(
     type=str,
     help="Force archive name.",
 )
-def source_package(command_context, verbose=False, output=None):
+@CommandArgument(
+    "--upload",
+    type=str,
+    help="Compute package check sum and move both to the given location.",
+)
+def source_package(command_context, verbose=False, output=None, upload=""):
     substs = command_context.substs
     if conditions.is_jsshell(command_context):
         if output:
@@ -1473,6 +1478,14 @@ def source_package(command_context, verbose=False, output=None):
             },
             ensure_exit_code=0,
         )
+        if upload:
+            command_context.log(
+                logging.ERROR,
+                "source-package-unsupported-upload",
+                {},
+                "Source package upload is currently supported only for Firefox",
+            )
+            return 1
     elif substs.get("MOZ_WIDGET_TOOLKIT"):
         if output:
             if not output.endswith(".tar.xz"):
@@ -1542,6 +1555,19 @@ def source_package(command_context, verbose=False, output=None):
             ensure_exit_code=True,
             pass_thru=True,
         )
+        if upload:
+            checksum_path = archive_path[: -len(".tar.xz")] + ".checksums"
+            command_context._run_make(
+                directory="browser/installer",
+                target=[
+                    "upload",
+                    f"UPLOAD_PATH={upload}",
+                    f"UPLOAD_FILES={archive_path}",
+                    f"CHECKSUM_FILE={checksum_path}",
+                ],
+                ensure_exit_code=True,
+            )
+
     else:
         command_context.log(
             logging.ERROR,

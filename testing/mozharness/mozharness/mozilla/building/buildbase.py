@@ -883,18 +883,9 @@ items from that key's value."
                 "mach",
                 "source-package",
                 "--output=source.tar.xz",
+                f"--upload={env['UPLOAD_PATH']}",
             ],
             cwd=dirs["abs_src_dir"],
-            env=env,
-            output_timeout=60 * 45,
-            halt_on_failure=True,
-        )
-        self.run_command(
-            command=[
-                "make",
-                "source-upload",
-            ],
-            cwd=dirs["abs_obj_dir"],
             env=env,
             output_timeout=60 * 45,
             halt_on_failure=True,
