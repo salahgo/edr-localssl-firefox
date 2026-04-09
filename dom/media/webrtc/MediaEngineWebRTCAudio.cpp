@@ -823,7 +823,7 @@ void AudioInputProcessing::ProcessOutputData(AudioProcessingTrack* aTrack,
       std::min<uint32_t>(aChunk.ChannelCount(), MAX_CHANNELS);
   if (channelCount != mOutputBufferChannelCount ||
       channelCount * framesPerPacket != mOutputBuffer.Length()) {
-    MOZ_RELEASE_ASSERT(mOutputBuffer.SetLength(channelCount * framesPerPacket));
+    mOutputBuffer.SetLength(channelCount * framesPerPacket);
     mOutputBufferChannelCount = channelCount;
     // It's ok to drop the audio still in the packetizer here: if this changes,
     // we changed devices or something.
@@ -931,8 +931,12 @@ void AudioInputProcessing::PacketizeAndProcess(AudioProcessingTrack* aTrack,
     mPacketCount++;
     uint32_t samplesPerPacket =
         mPacketizerInput->mPacketSize * mPacketizerInput->mChannels;
-    MOZ_ASSERT(mInputBuffer.Length() == samplesPerPacket);
-    MOZ_ASSERT(mDeinterleavedBuffer.Length() == samplesPerPacket);
+    if (mInputBuffer.Length() < samplesPerPacket) {
+      mInputBuffer.SetLength(samplesPerPacket);
+    }
+    if (mDeinterleavedBuffer.Length() < samplesPerPacket) {
+      mDeinterleavedBuffer.SetLength(samplesPerPacket);
+    }
     float* packet = mInputBuffer.Data();
     mPacketizerInput->Output(packet);
 
@@ -1228,10 +1232,6 @@ void AudioInputProcessing::EnsurePacketizer(AudioProcessingTrack* aTrack) {
   }
 
   mPacketizerInput.emplace(GetPacketSize(aTrack->mSampleRate), channelCount);
-  MOZ_RELEASE_ASSERT(
-      mInputBuffer.SetLength(mPacketizerInput->mPacketSize * channelCount));
-  MOZ_RELEASE_ASSERT(mDeinterleavedBuffer.SetLength(
-      mPacketizerInput->mPacketSize * channelCount));
 
   if (needPreBuffering) {
     LOG_FRAME(

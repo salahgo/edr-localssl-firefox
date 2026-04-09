@@ -57,7 +57,7 @@ class AudioCompactor {
       uint32_t framesCopied = aCopyFunc(buffer.get(), samples);
 
       NS_ASSERTION(framesCopied <= aFrames, "functor copied too many frames");
-      MOZ_RELEASE_ASSERT(buffer.SetLength(size_t(framesCopied) * aChannels));
+      buffer.SetLength(size_t(framesCopied) * aChannels);
 
       auto duration = media::TimeUnit(framesCopied, aSampleRate);
       if (!duration.IsValid()) {
