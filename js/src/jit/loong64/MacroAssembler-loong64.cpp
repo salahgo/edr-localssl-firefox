@@ -866,84 +866,87 @@ void MacroAssemblerLOONG64::ma_mulPtrTestOverflow(Register rd, Register rj,
 FaultingCodeOffset MacroAssemblerLOONG64::ma_load(
     Register dest, Address address, LoadStoreSize size,
     LoadStoreExtension extension) {
-  int32_t encodedOffset;
-  Register base;
   FaultingCodeOffset fco;
-
-  // TODO: use as_ldx_b/h/w/d, could decrease as_add_d instr.
   UseScratchRegisterScope temps(*this);
   switch (size) {
     case SizeByte:
     case SizeHalfWord:
-      if (!is_intN(address.offset, 12)) {
-        Register scratch = temps.Acquire();
-        ma_li(scratch, Imm32(address.offset));
-        as_add_d(scratch, address.base, scratch);
-        base = scratch;
-        encodedOffset = 0;
-      } else {
-        encodedOffset = address.offset;
-        base = address.base;
-      }
-
-      fco = FaultingCodeOffset(currentOffset());
-      if (size == SizeByte) {
-        if (ZeroExtend == extension) {
-          as_ld_bu(dest, base, encodedOffset);
+      if (is_intN(address.offset, 12)) {
+        // This load can be represented by `ld.{b[u],h[u]} rd, rj, si12`.
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeByte) {
+          if (extension == ZeroExtend) {
+            as_ld_bu(dest, address.base, address.offset);
+          } else {
+            as_ld_b(dest, address.base, address.offset);
+          }
         } else {
-          as_ld_b(dest, base, encodedOffset);
+          if (extension == ZeroExtend) {
+            as_ld_hu(dest, address.base, address.offset);
+          } else {
+            as_ld_h(dest, address.base, address.offset);
+          }
         }
       } else {
-        if (ZeroExtend == extension) {
-          as_ld_hu(dest, base, encodedOffset);
+        // The offset to this load needs to be built in a separate register.
+        Register scratch = temps.Acquire();
+        ma_li(scratch, Imm32(address.offset));
+
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeByte) {
+          if (extension == ZeroExtend) {
+            as_ldx_bu(dest, address.base, scratch);
+          } else {
+            as_ldx_b(dest, address.base, scratch);
+          }
         } else {
-          as_ld_h(dest, base, encodedOffset);
+          if (extension == ZeroExtend) {
+            as_ldx_hu(dest, address.base, scratch);
+          } else {
+            as_ldx_h(dest, address.base, scratch);
+          }
         }
       }
       break;
     case SizeWord:
     case SizeDouble:
-      if ((address.offset & 0x3) == 0 &&
-          (size == SizeDouble ||
-           (size == SizeWord && SignExtend == extension))) {
-        if (!Imm16::IsInSignedRange(address.offset)) {
-          Register scratch = temps.Acquire();
-          ma_li(scratch, Imm32(address.offset));
-          as_add_d(scratch, address.base, scratch);
-          base = scratch;
-          encodedOffset = 0;
-        } else {
-          encodedOffset = address.offset;
-          base = address.base;
-        }
-
+      if (is_intN(address.offset, 12)) {
+        // This load can be represented by `ld.{w[u],d} rd, rj, si12`.
         fco = FaultingCodeOffset(currentOffset());
         if (size == SizeWord) {
-          as_ldptr_w(dest, base, encodedOffset);
-        } else {
-          as_ldptr_d(dest, base, encodedOffset);
-        }
-      } else {
-        if (!is_intN(address.offset, 12)) {
-          Register scratch = temps.Acquire();
-          ma_li(scratch, Imm32(address.offset));
-          as_add_d(scratch, address.base, scratch);
-          base = scratch;
-          encodedOffset = 0;
-        } else {
-          encodedOffset = address.offset;
-          base = address.base;
-        }
-
-        fco = FaultingCodeOffset(currentOffset());
-        if (size == SizeWord) {
-          if (ZeroExtend == extension) {
-            as_ld_wu(dest, base, encodedOffset);
+          if (extension == ZeroExtend) {
+            as_ld_wu(dest, address.base, address.offset);
           } else {
-            as_ld_w(dest, base, encodedOffset);
+            as_ld_w(dest, address.base, address.offset);
           }
         } else {
-          as_ld_d(dest, base, encodedOffset);
+          as_ld_d(dest, address.base, address.offset);
+        }
+      } else if (is_intN(address.offset, 16) && (address.offset & 0x3) == 0 &&
+                 (size == SizeDouble ||
+                  (size == SizeWord && extension == SignExtend))) {
+        // This load is aligned to 4 bytes and can be represented by
+        // `ldptr.{w,d} rd, rj, si14`.
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeWord) {
+          as_ldptr_w(dest, address.base, address.offset);
+        } else {
+          as_ldptr_d(dest, address.base, address.offset);
+        }
+      } else {
+        // The offset to this load needs to be built in a separate register.
+        Register scratch = temps.Acquire();
+        ma_li(scratch, Imm32(address.offset));
+
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeWord) {
+          if (extension == ZeroExtend) {
+            as_ldx_wu(dest, address.base, scratch);
+          } else {
+            as_ldx_w(dest, address.base, scratch);
+          }
+        } else {
+          as_ldx_d(dest, address.base, scratch);
         }
       }
       break;
@@ -956,70 +959,61 @@ FaultingCodeOffset MacroAssemblerLOONG64::ma_load(
 FaultingCodeOffset MacroAssemblerLOONG64::ma_store(
     Register data, Address address, LoadStoreSize size,
     LoadStoreExtension extension) {
-  int32_t encodedOffset;
-  Register base;
   FaultingCodeOffset fco;
-
-  // TODO: use as_stx_b/h/w/d, could decrease as_add_d instr.
   UseScratchRegisterScope temps(*this);
   switch (size) {
     case SizeByte:
     case SizeHalfWord:
-      if (!is_intN(address.offset, 12)) {
+      if (is_intN(address.offset, 12)) {
+        // This store can be represented by `st.{b,h} rd, rj, si12`.
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeByte) {
+          as_st_b(data, address.base, address.offset);
+        } else {
+          as_st_h(data, address.base, address.offset);
+        }
+      } else {
+        // The offset to this store needs to be built in a separate register.
         Register scratch = temps.Acquire();
         ma_li(scratch, Imm32(address.offset));
-        as_add_d(scratch, address.base, scratch);
-        base = scratch;
-        encodedOffset = 0;
-      } else {
-        encodedOffset = address.offset;
-        base = address.base;
-      }
 
-      fco = FaultingCodeOffset(currentOffset());
-      if (size == SizeByte) {
-        as_st_b(data, base, encodedOffset);
-      } else {
-        as_st_h(data, base, encodedOffset);
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeByte) {
+          as_stx_b(data, address.base, scratch);
+        } else {
+          as_stx_h(data, address.base, scratch);
+        }
       }
       break;
     case SizeWord:
     case SizeDouble:
-      if ((address.offset & 0x3) == 0) {
-        if (!Imm16::IsInSignedRange(address.offset)) {
-          Register scratch = temps.Acquire();
-          ma_li(scratch, Imm32(address.offset));
-          as_add_d(scratch, address.base, scratch);
-          base = scratch;
-          encodedOffset = 0;
-        } else {
-          encodedOffset = address.offset;
-          base = address.base;
-        }
-
+      if (is_intN(address.offset, 12)) {
+        // This store can be represented by `st.{w,d} rd, rj, si12`.
         fco = FaultingCodeOffset(currentOffset());
         if (size == SizeWord) {
-          as_stptr_w(data, base, encodedOffset);
+          as_st_w(data, address.base, address.offset);
         } else {
-          as_stptr_d(data, base, encodedOffset);
+          as_st_d(data, address.base, address.offset);
+        }
+      } else if (is_intN(address.offset, 16) && (address.offset & 0x3) == 0) {
+        // This store is aligned to 4 bytes and can be represented by
+        // `stptr.{w,d} rd, rj, si14`.
+        fco = FaultingCodeOffset(currentOffset());
+        if (size == SizeWord) {
+          as_stptr_w(data, address.base, address.offset);
+        } else {
+          as_stptr_d(data, address.base, address.offset);
         }
       } else {
-        if (!is_intN(address.offset, 12)) {
-          Register scratch = temps.Acquire();
-          ma_li(scratch, Imm32(address.offset));
-          as_add_d(scratch, address.base, scratch);
-          base = scratch;
-          encodedOffset = 0;
-        } else {
-          encodedOffset = address.offset;
-          base = address.base;
-        }
+        // The offset to this store needs to be built in a separate register.
+        Register scratch = temps.Acquire();
+        ma_li(scratch, Imm32(address.offset));
 
         fco = FaultingCodeOffset(currentOffset());
         if (size == SizeWord) {
-          as_st_w(data, base, encodedOffset);
+          as_stx_w(data, address.base, scratch);
         } else {
-          as_st_d(data, base, encodedOffset);
+          as_stx_d(data, address.base, scratch);
         }
       }
       break;
