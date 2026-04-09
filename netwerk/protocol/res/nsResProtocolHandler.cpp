@@ -24,7 +24,6 @@ using mozilla::dom::ContentParent;
 mozilla::StaticRefPtr<nsResProtocolHandler> nsResProtocolHandler::sSingleton;
 
 already_AddRefed<nsResProtocolHandler> nsResProtocolHandler::GetSingleton() {
-  MOZ_ASSERT(NS_IsMainThread());
   if (!sSingleton) {
     RefPtr<nsResProtocolHandler> handler = new nsResProtocolHandler();
     if (NS_WARN_IF(NS_FAILED(handler->Init()))) {
