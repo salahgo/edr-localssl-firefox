@@ -485,8 +485,19 @@ add_task(async function test_moving_tabs() {
   gBrowser.moveTabTo(tab1, { tabIndex: 3 });
   Assert.deepEqual(
     gBrowser.tabs,
+    [startingTab, tab3, tab4, tab1, tab2],
+    "Moving a splitview tab forwards moves both tabs in the splitview"
+  );
+  ok(
+    tab1.splitview && tab2.splitview,
+    "Tab 1 and tab 2 are still in a splitview"
+  );
+
+  gBrowser.moveTabTo(tab1, { tabIndex: 1 });
+  Assert.deepEqual(
+    gBrowser.tabs,
     [startingTab, tab1, tab2, tab3, tab4],
-    "Moving a splitview tab moves both tabs in the splitview"
+    "Moving a splitview tab backwards moves both tabs in the splitview"
   );
   ok(
     tab1.splitview && tab2.splitview,

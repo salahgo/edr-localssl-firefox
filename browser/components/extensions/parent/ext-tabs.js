@@ -1256,6 +1256,12 @@ this.tabs = class extends ExtensionAPIPersistent {
                 // to the same split view. Reverse if needed:
                 wantReversedSplit = otherTabInSplit._tPos === insertionPoint;
               }
+              if (wantReversedSplit) {
+                // Split views move as one unit, but if the API call describes
+                // a destination within a split view, reverse the tabs within.
+                splitview.reverseTabs();
+                splitviewTabs = splitview.tabs;
+              }
             }
             if (isSameWindow) {
               // If the window we are moving is the same, just move the tab.
@@ -1288,11 +1294,6 @@ this.tabs = class extends ExtensionAPIPersistent {
               splitview ? splitviewTabs.at(-1)._tPos : nativeTab._tPos
             );
             if (splitview) {
-              if (wantReversedSplit) {
-                // Split views move as one unit, but if the API call describes
-                // a destination within a split view, reverse the tabs within.
-                splitview.reverseTabs();
-              }
               for (const tab of splitviewTabs) {
                 let tabIsInTabsToMove = tab === nativeTab;
                 let i = 0;
