@@ -106,6 +106,8 @@
 #include "mozilla/dom/PContentPermissionRequestParent.h"
 #include "mozilla/dom/PCycleCollectWithLogsParent.h"
 #include "mozilla/dom/ParentProcessMessageManager.h"
+#include "mozilla/dom/PermissionObserver.h"
+#include "mozilla/dom/PermissionStatusBinding.h"
 #include "mozilla/dom/Permissions.h"
 #include "mozilla/dom/ProcessMessageManager.h"
 #include "mozilla/dom/PushNotifier.h"
@@ -7896,8 +7898,17 @@ IPCResult ContentParent::RecvGetSystemIcon(nsIURI* aURI,
 
 IPCResult ContentParent::RecvGetSystemGeolocationPermissionBehavior(
     GetSystemGeolocationPermissionBehaviorResolver&& aResolver) {
+  PermissionObserver::EnsureMonitoringInParent(PermissionName::Geolocation);
   aResolver(Geolocation::GetLocationOSPermission());
   return IPC_OK();
+}
+
+/* static */
+void ContentParent::BroadcastSystemPermissionChanged(PermissionName aName,
+                                                     PermissionState aState) {
+  for (auto* cp : AllProcesses(eLive)) {
+    (void)cp->SendSystemPermissionChanged(aName, aState);
+  }
 }
 
 IPCResult ContentParent::RecvRequestGeolocationPermissionFromUser(

@@ -829,6 +829,9 @@ class ContentChild final : public PContentChild,
   void AddProfileToProcessName(const nsACString& aProfile);
   mozilla::ipc::IPCResult RecvFlushFOGData(FlushFOGDataResolver&& aResolver);
 
+  mozilla::ipc::IPCResult RecvSystemPermissionChanged(PermissionName aName,
+                                                      PermissionState aState);
+
   mozilla::ipc::IPCResult RecvUpdateMediaCodecsSupported(
       RemoteMediaIn aLocation, const media::MediaCodecsSupported& aSupported);
 

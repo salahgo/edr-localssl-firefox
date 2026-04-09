@@ -57,6 +57,7 @@ class PermissionStatusSink {
   bool MaybeAffectedByBrowserIdOnMainThread(uint64_t aBrowserId);
 
   void PermissionChangedOnMainThread();
+  void SystemPermissionChangedOnMainThread(PermissionState aState);
 
   PermissionName Name() const { return mPermissionName; }
 

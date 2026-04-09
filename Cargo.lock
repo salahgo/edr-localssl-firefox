@@ -8472,6 +8472,7 @@ name = "widget_windows"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "moz_task",
  "nserror",
  "nsstring",
  "thin-vec",

@@ -128,6 +128,8 @@ using mozilla::Telemetry::ChildEventData from "mozilla/TelemetryComms.h";
 using mozilla::TimeStamp from "mozilla/TimeStamp.h";
 using mozilla::dom::geolocation::SystemGeolocationPermissionBehavior from "mozilla/dom/GeolocationIPCUtils.h";
 using mozilla::dom::geolocation::GeolocationPermissionStatus from "mozilla/dom/GeolocationIPCUtils.h";
+using mozilla::dom::PermissionName from "mozilla/dom/PermissionMessageUtils.h";
+using mozilla::dom::PermissionState from "mozilla/dom/PermissionMessageUtils.h";
 
 #if defined(XP_WIN)
 [MoveOnly] using mozilla::UntrustedModulesData from "mozilla/UntrustedModulesData.h";
@@ -1939,6 +1941,10 @@ child:
     // Tells the child to flush any pending data. Used in tests and ping
     // assembly. Buffer contains bincoded Rust structs.
     async FlushFOGData() returns (ByteBuf buf);
+
+    // Notifies content processes when an OS-level permission changes,
+    // so that PermissionStatus objects can fire onchange events.
+    async SystemPermissionChanged(PermissionName aName, PermissionState aState);
 
 parent:
     async SetContainerFeaturePolicy(MaybeDiscardedBrowsingContext aContainerContext,

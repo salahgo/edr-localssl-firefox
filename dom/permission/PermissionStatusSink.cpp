@@ -364,14 +364,37 @@ PermissionStatusSink::ComputeSystemState() {
                 spsPromisePrivate->Resolve(PermissionState::Granted, __func__);
               });
         } else {
+          // No ContentChild. Fall back to Granted.
           spsPromisePrivate->Resolve(PermissionState::Granted, __func__);
         }
       }));
   if (NS_FAILED(rv)) {
     spsPromisePrivate->Resolve(PermissionState::Granted, __func__);
   }
-
   return spsPromisePrivate;
+}
+
+void PermissionStatusSink::SystemPermissionChangedOnMainThread(
+    PermissionState aState) {
+  MOZ_ASSERT(NS_IsMainThread());
+
+  if (StaticPrefs::dom_permissions_testing_enabled()) {
+    return;
+  }
+
+  if (!mSerialEventTarget->IsOnCurrentThread()) {
+    MutexAutoLock lock(mMutex);
+    if (!mWorkerRef) {
+      return;
+    }
+  }
+
+  mSerialEventTarget->Dispatch(
+      NS_NewRunnableFunction(__func__, [self = RefPtr(this), aState]() {
+        if (self->mPermissionStatus) {
+          self->mPermissionStatus->SystemPermissionChanged(aState);
+        }
+      }));
 }
 
 }  // namespace mozilla::dom

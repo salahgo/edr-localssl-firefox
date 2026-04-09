@@ -228,6 +228,8 @@
 #include "PermissionMessageUtils.h"
 #include "mozilla/Permission.h"
 #include "mozilla/PermissionManager.h"
+#include "mozilla/dom/PermissionObserver.h"
+#include "mozilla/dom/PermissionStatusBinding.h"
 
 #if defined(MOZ_WIDGET_ANDROID)
 #  include <sched.h>
@@ -4752,6 +4754,12 @@ JSActorManager* ContentChild::AsJSActorManager() { return this; }
 
 IPCResult ContentChild::RecvFlushFOGData(FlushFOGDataResolver&& aResolver) {
   glean::FlushFOGData(std::move(aResolver));
+  return IPC_OK();
+}
+
+IPCResult ContentChild::RecvSystemPermissionChanged(PermissionName aName,
+                                                    PermissionState aState) {
+  PermissionObserver::NotifySystemPermissionChanged(aName, aState);
   return IPC_OK();
 }
 
