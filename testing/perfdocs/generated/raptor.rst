@@ -1102,7 +1102,7 @@ Standard benchmarks are third-party tests (i.e. Speedometer) that we have integr
    * **page cycles**: 1
    * **page timeout**: 2000000
    * **repository**: https://github.com/webkit/jetstream
-   * **repository revision**: a3f5c45465f5271bed385321a0587bd4202682d6
+   * **repository revision**: 3967678fa8ab98d847ab33cf3728dba726fa854b
    * **subtest alert threshold**: 5.0
    * **subtest lower is better**: true
    * **subtest unit**: ms
@@ -1410,7 +1410,7 @@ Standard benchmarks are third-party tests (i.e. Speedometer) that we have integr
    * **page timeout**: 2000000
    * **preferences**: dom.max_script_run_time=0
    * **repository**: https://github.com/webkit/jetstream
-   * **repository revision**: a3f5c45465f5271bed385321a0587bd4202682d6
+   * **repository revision**: 3967678fa8ab98d847ab33cf3728dba726fa854b
    * **subtest alert threshold**: 5.0
    * **subtest lower is better**: true
    * **subtest unit**: ms
