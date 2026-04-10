@@ -52,11 +52,6 @@ MAY_RESOLVE_HOOK_NAME = "_mayResolve"
 NEW_ENUMERATE_HOOK_NAME = "_newEnumerate"
 INSTANCE_RESERVED_SLOTS = 1
 
-# This size is arbitrary. It is a power of 2 to make using it as a modulo
-# operand cheap, and is usually around 1/3-1/5th of the set size (sometimes
-# smaller for very large sets).
-GLOBAL_NAMES_PHF_SIZE = 256
-
 # If you have to change this list (which you shouldn't!), make sure it
 # continues to match the list in test_Object.prototype_props.html
 JS_OBJECT_PROTOTYPE_PROPERTIES = [
@@ -18895,7 +18890,7 @@ class CGGlobalNames(CGGeneric):
             return
 
         # Build the perfect hash function.
-        phf = PerfectHash(entries, GLOBAL_NAMES_PHF_SIZE)
+        phf = PerfectHash(entries)
 
         # Generate code for the PHF
         phfCodegen = phf.codegen(
