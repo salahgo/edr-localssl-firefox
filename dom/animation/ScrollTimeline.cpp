@@ -30,24 +30,23 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(ScrollTimeline,
                                                 AnimationTimeline)
   tmp->Teardown();
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mDocument)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK(mScrollerInfo.ElementForCycleCollection())
+  NS_IMPL_CYCLE_COLLECTION_UNLINK(mSource.ElementForCycleCollection())
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(ScrollTimeline,
                                                   AnimationTimeline)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mDocument)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mScrollerInfo.ElementForCycleCollection())
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mSource.ElementForCycleCollection())
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMPL_ISUPPORTS_CYCLE_COLLECTION_INHERITED_0(ScrollTimeline,
                                                AnimationTimeline)
 
-ScrollTimeline::ScrollTimeline(Document* aDocument,
-                               const ScrollerInfo& aScrollerInfo,
+ScrollTimeline::ScrollTimeline(Document* aDocument, const Scroller& aScroller,
                                StyleScrollAxis aAxis)
     : AnimationTimeline(aDocument->GetParentObject(),
                         aDocument->GetScopeObject()->GetRTPCallerType()),
       mDocument(aDocument),
-      mScrollerInfo(aScrollerInfo),
+      mSource(aScroller),
       mAxis(aAxis) {
   MOZ_ASSERT(aDocument);
 
@@ -59,9 +58,6 @@ std::pair<const Element*, PseudoStyleRequest>
 ScrollTimeline::FindNearestScroller(Element* aSubject,
                                     const PseudoStyleRequest& aPseudoRequest) {
   MOZ_ASSERT(aSubject);
-  if (!aSubject->GetPrimaryFrame()) {
-    return {nullptr, PseudoStyleRequest{}};
-  }
   Element* subject = aSubject->GetPseudoElement(aPseudoRequest);
   Element* curr = subject->GetFlattenedTreeParentElement();
   Element* root = subject->OwnerDoc()->GetDocumentElement();
@@ -85,7 +81,29 @@ already_AddRefed<ScrollTimeline> ScrollTimeline::MakeAnonymous(
     Document* aDocument, const NonOwningAnimationTarget& aTarget,
     StyleScrollAxis aAxis, StyleScroller aScroller) {
   MOZ_ASSERT(aTarget);
-  auto scroller = ScrollerInfo::Anonymous(aScroller, aTarget);
+  Scroller scroller;
+  switch (aScroller) {
+    case StyleScroller::Root:
+      // Specifies to use the document viewport as the scroll container.
+      //
+      // We use the owner doc of the animation target. This may be different
+      // from |mDocument| after we implement ScrollTimeline interface for
+      // script.
+      scroller =
+          Scroller::Root(aTarget.mElement->OwnerDoc()->GetDocumentElement());
+      break;
+
+    case StyleScroller::Nearest: {
+      auto [element, pseudo] =
+          FindNearestScroller(aTarget.mElement, aTarget.mPseudoRequest);
+      scroller = Scroller::Nearest(const_cast<Element*>(element), pseudo);
+      break;
+    }
+    case StyleScroller::SelfElement:
+      scroller = Scroller::Self(aTarget.mElement, aTarget.mPseudoRequest);
+      break;
+  }
+
   // Each use of scroll() corresponds to its own instance of ScrollTimeline in
   // the Web Animations API, even if multiple elements use scroll() to refer to
   // the same scroll container with the same arguments.
@@ -100,8 +118,7 @@ already_AddRefed<ScrollTimeline> ScrollTimeline::MakeNamed(
     const StyleScrollTimeline& aStyleTimeline) {
   MOZ_ASSERT(NS_IsMainThread());
 
-  ScrollerInfo scroller =
-      ScrollerInfo::Named(aReferenceElement, aPseudoRequest);
+  Scroller scroller = Scroller::Named(aReferenceElement, aPseudoRequest);
   return MakeAndAddRef<ScrollTimeline>(aDocument, std::move(scroller),
                                        aStyleTimeline.GetAxis());
 }
@@ -144,18 +161,15 @@ void ScrollTimeline::WillRefresh() {
 
 bool ScrollTimeline::SourceMatches(
     const Element* aElement, const PseudoStyleRequest& aPseudoRequest) const {
-  if (mScrollerInfo.IsAnonymous()) {
-    // Anonymous timelines are considered unique.
-    return false;
-  }
-  const auto source = mScrollerInfo.Source();
-  return source.mElement == aElement && source.mPseudoRequest == aPseudoRequest;
+  return mSource.Source().mElement == aElement &&
+         mSource.Source().mPseudoRequest == aPseudoRequest;
 }
 
-layers::ScrollDirection ScrollTimeline::State::Axis() const {
-  const auto* e = mSource.mElement;
-  MOZ_ASSERT(e && e->GetPrimaryFrame());
-  const WritingMode wm = e->GetPrimaryFrame()->GetWritingMode();
+layers::ScrollDirection ScrollTimeline::Axis() const {
+  MOZ_ASSERT(mSource && mSource.Source().mElement->GetPrimaryFrame());
+
+  const WritingMode wm =
+      mSource.Source().mElement->GetPrimaryFrame()->GetWritingMode();
   return mAxis == StyleScrollAxis::X ||
                  (!wm.IsVertical() && mAxis == StyleScrollAxis::Inline) ||
                  (wm.IsVertical() && mAxis == StyleScrollAxis::Block)
@@ -163,9 +177,8 @@ layers::ScrollDirection ScrollTimeline::State::Axis() const {
              : layers::ScrollDirection::eVertical;
 }
 
-StyleOverflow ScrollTimeline::State::SourceScrollStyle() const {
-  DebugOnly<const Element*> e = mSource.mElement;
-  MOZ_ASSERT(e && e->GetPrimaryFrame());
+StyleOverflow ScrollTimeline::SourceScrollStyle() const {
+  MOZ_ASSERT(mSource && mSource.Source().mElement->GetPrimaryFrame());
 
   const ScrollContainerFrame* scrollContainerFrame = GetScrollContainerFrame();
   MOZ_ASSERT(scrollContainerFrame);
@@ -177,43 +190,27 @@ StyleOverflow ScrollTimeline::State::SourceScrollStyle() const {
              : scrollStyles.mVertical;
 }
 
-bool ScrollTimeline::State::APZIsActiveForSource() const {
-  auto* e = mSource.mElement;
-  MOZ_ASSERT(e);
+bool ScrollTimeline::APZIsActiveForSource() const {
+  MOZ_ASSERT(mSource);
   return gfxPlatform::AsyncPanZoomEnabled() &&
-         !nsLayoutUtils::ShouldDisableApzForElement(e) &&
-         DisplayPortUtils::HasNonMinimalNonZeroDisplayPort(e);
+         !nsLayoutUtils::ShouldDisableApzForElement(
+             mSource.Source().mElement) &&
+         DisplayPortUtils::HasNonMinimalNonZeroDisplayPort(
+             mSource.Source().mElement);
 }
 
-bool ScrollTimeline::State::ScrollingDirectionIsAvailable() const {
+bool ScrollTimeline::ScrollingDirectionIsAvailable() const {
   const ScrollContainerFrame* scrollContainerFrame = GetScrollContainerFrame();
   MOZ_ASSERT(scrollContainerFrame);
   return scrollContainerFrame->GetAvailableScrollingDirections().contains(
       Axis());
 }
 
-const ScrollContainerFrame* ScrollTimeline::State::GetScrollContainerFrame()
-    const {
-  auto* e = mSource.mElement;
-  if (!e) {
-    return nullptr;
-  }
-
-  if (mIsRoot) {
-    if (const PresShell* presShell = e->OwnerDoc()->GetPresShell()) {
-      return presShell->GetRootScrollContainerFrame();
-    }
-    return nullptr;
-  }
-  return nsLayoutUtils::FindScrollContainerFrameFor(e);
-}
-
 void ScrollTimeline::ReplacePropertiesWith(
     const Element* aReferenceElement, const PseudoStyleRequest& aPseudoRequest,
     const StyleScrollTimeline& aNew) {
-  MOZ_ASSERT(!mScrollerInfo.IsAnonymous());
-  MOZ_ASSERT(aReferenceElement == mScrollerInfo.Source().mElement &&
-             aPseudoRequest == mScrollerInfo.Source().mPseudoRequest);
+  MOZ_ASSERT(aReferenceElement == mSource.Source().mElement &&
+             aPseudoRequest == mSource.Source().mPseudoRequest);
   mAxis = aNew.GetAxis();
 
   for (auto* anim = mAnimationOrder.getFirst(); anim;
@@ -231,20 +228,18 @@ void ScrollTimeline::UpdateCachedCurrentTime() {
 
   mCachedCurrentTime.reset();
 
-  const auto state = GetState();
   // If no layout box, this timeline is inactive.
-  if (const auto* e = state.mSource.mElement; !e || !e->GetPrimaryFrame()) {
+  if (!mSource || !mSource.Source().mElement->GetPrimaryFrame()) {
     return;
   }
 
   // if this is not a scroller container, this timeline is inactive.
-  const ScrollContainerFrame* scrollContainerFrame =
-      state.GetScrollContainerFrame();
+  const ScrollContainerFrame* scrollContainerFrame = GetScrollContainerFrame();
   if (!scrollContainerFrame) {
     return;
   }
 
-  const auto orientation = state.Axis();
+  const auto orientation = Axis();
 
   // If there is no scrollable overflow, then the ScrollTimeline is inactive.
   // https://drafts.csswg.org/scroll-animations-1/#scrolltimeline-interface
@@ -309,6 +304,29 @@ ScrollTimeline::ComputeTimelineData() const {
              : Nothing();
 }
 
+const ScrollContainerFrame* ScrollTimeline::GetScrollContainerFrame() const {
+  if (!mSource) {
+    return nullptr;
+  }
+
+  switch (mSource.mType) {
+    case Scroller::Type::Root:
+      if (const PresShell* presShell =
+              mSource.Source().mElement->OwnerDoc()->GetPresShell()) {
+        return presShell->GetRootScrollContainerFrame();
+      }
+      return nullptr;
+    case Scroller::Type::Nearest:
+    case Scroller::Type::Name:
+    case Scroller::Type::Self:
+      return nsLayoutUtils::FindScrollContainerFrameFor(
+          mSource.Source().mElement);
+  }
+
+  MOZ_ASSERT_UNREACHABLE("Unsupported scroller type");
+  return nullptr;
+}
+
 static nsRefreshDriver* GetRefreshDriver(Document* aDocument) {
   nsPresContext* presContext = aDocument->GetPresContext();
   if (MOZ_UNLIKELY(!presContext)) {
@@ -340,31 +358,6 @@ void ScrollTimeline::NotifyAnimationContentVisibilityChanged(
                " in the document's list of timelines");
     rd->EnsureAnimationUpdate();
   }
-}
-
-NonOwningAnimationTarget ScrollTimeline::ScrollerInfo::Source() const {
-  switch (mType) {
-    case Type::Name:
-      return NonOwningAnimationTarget{mTarget};
-    case Type::Nearest: {
-      auto [element, pseudo] =
-          FindNearestScroller(mTarget.mElement, mTarget.mPseudoRequest);
-      return {const_cast<Element*>(element), pseudo};
-    }
-    case Type::Self:
-      return NonOwningAnimationTarget{mTarget};
-    case Type::Root:
-      break;
-    default:
-      MOZ_ASSERT_UNREACHABLE("Unhandled timeline type");
-  }
-  // Specifies to use the document viewport as the scroll container.
-  //
-  // We use the owner doc of the animation target. This may be different
-  // from |mDocument| after we implement ScrollTimeline interface for
-  // script.
-  return {mTarget.mElement->OwnerDoc()->GetDocumentElement(),
-          PseudoStyleRequest{}};
 }
 
 }  // namespace mozilla::dom

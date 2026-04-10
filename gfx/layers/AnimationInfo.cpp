@@ -313,17 +313,16 @@ static Maybe<ScrollTimelineOptions> GetScrollTimelineOptions(
   }
 
   const dom::ScrollTimeline* timeline = aTimeline->AsScrollTimeline();
-  const auto state = timeline->GetState();
-  MOZ_ASSERT(state.IsActive(),
+  MOZ_ASSERT(timeline->IsActive(),
              "We send scroll animation to the compositor only if its timeline "
              "is active");
 
   ScrollableLayerGuid::ViewID source = ScrollableLayerGuid::NULL_SCROLL_ID;
   DebugOnly<bool> success =
-      nsLayoutUtils::FindIDFor(state.SourceElement(), &source);
+      nsLayoutUtils::FindIDFor(timeline->SourceElement(), &source);
   MOZ_ASSERT(success, "We should have a valid ViewID for the scroller");
 
-  return Some(ScrollTimelineOptions(source, state.Axis()));
+  return Some(ScrollTimelineOptions(source, timeline->Axis()));
 }
 
 static void SetAnimatable(NonCustomCSSPropertyId aProperty,

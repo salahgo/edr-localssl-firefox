@@ -68,8 +68,10 @@ class ScrollTimeline : public AnimationTimeline,
   template <typename T, typename... Args>
   friend already_AddRefed<T> mozilla::MakeAndAddRef(Args&&... aArgs);
 
- protected:
-  struct ScrollerInfo {
+ public:
+  struct Scroller {
+    // FIXME: Bug 1765211. Perhaps we only need root and a specific element.
+    // This depends on how we fix this bug.
     enum class Type : uint8_t {
       Root,
       Nearest,
@@ -79,85 +81,38 @@ class ScrollTimeline : public AnimationTimeline,
     Type mType = Type::Root;
 
    private:
-    // This may be the target being animated, or source (i.e. Providing the
-    // scroll progress). See construction functions `Named` and `Anonymous`
     OwningAnimationTarget mTarget;
-    ScrollerInfo(Type aType, Element* aElement,
-                 const PseudoStyleRequest& aPseudoRequest)
+    Scroller(Type aType, Element* aElement,
+             const PseudoStyleRequest& aPseudoRequest)
         : mType{aType}, mTarget{aElement, aPseudoRequest} {}
 
    public:
-    ScrollerInfo() = default;
+    Scroller() = default;
 
-    bool IsAnonymous() const { return mType != Type::Name; }
-
-    static ScrollerInfo Anonymous(StyleScroller aType,
-                                  const NonOwningAnimationTarget& aTarget) {
-      const auto type = [aType]() {
-        switch (aType) {
-          case StyleScroller::Root:
-            break;
-          case StyleScroller::Nearest:
-            return Type::Nearest;
-          case StyleScroller::SelfElement:
-            return Type::Self;
-          default:
-            MOZ_ASSERT_UNREACHABLE("Unhandled scroller type");
-            break;
-        }
-
-        return Type::Root;
-      }();
-      // Store the animation target - we will look up the source at evaluation
-      // time.
-      return {type, aTarget.mElement, aTarget.mPseudoRequest};
+    static Scroller Root(Element* aDocumentElement) {
+      return {Type::Root, aDocumentElement, PseudoStyleRequest{}};
     }
 
-    static ScrollerInfo Named(Element* aElement,
-                              const PseudoStyleRequest& aPseudoRequest) {
-      // This is assumed to be the source (pseudo) element.
+    static Scroller Nearest(Element* aElement,
+                            const PseudoStyleRequest& aPseudoRequest) {
+      return {Type::Nearest, aElement, aPseudoRequest};
+    }
+
+    static Scroller Named(Element* aElement,
+                          const PseudoStyleRequest& aPseudoRequest) {
       return {Type::Name, aElement, aPseudoRequest};
     }
 
-    NonOwningAnimationTarget Source() const;
-    RefPtr<Element>& ElementForCycleCollection() { return mTarget.mElement; }
-  };
-
- public:
-  // Resolved state of this scroll timeline. Assumed to be short-lived.
-  class State {
-    friend class ScrollTimeline;
-    friend class ViewTimeline;
-
-   public:
-    // A helper to get the physical orientation of this scroll-timeline.
-    layers::ScrollDirection Axis() const;
-    StyleOverflow SourceScrollStyle() const;
-    bool APZIsActiveForSource() const;
-    Element* SourceElement() const {
-      auto* element = mSource.mElement;
-      MOZ_ASSERT(element);
-      return element;
+    static Scroller Self(Element* aElement,
+                         const PseudoStyleRequest& aPseudoRequest) {
+      return {Type::Self, aElement, aPseudoRequest};
     }
-    bool ScrollingDirectionIsAvailable() const;
-    // If the source of a ScrollTimeline is an element whose principal box does
-    // not exist or is not a scroll container, then its phase is the timeline
-    // inactive phase. It is otherwise in the active phase. This returns true if
-    // the timeline is in active phase.
-    // https://drafts.csswg.org/web-animations-1/#inactive-timeline
-    // Note: This function is called only for compositor animations, so we must
-    // have the primary frame (principal box) for the source element if it
-    // exists.
-    bool IsActive() const { return GetScrollContainerFrame(); }
-    const ScrollContainerFrame* GetScrollContainerFrame() const;
 
-   private:
-    State(const NonOwningAnimationTarget& aResolvedSource,
-          StyleScrollAxis aAxis, bool aIsRoot)
-        : mSource{aResolvedSource}, mAxis{aAxis}, mIsRoot{aIsRoot} {}
-    NonOwningAnimationTarget mSource;
-    StyleScrollAxis mAxis;
-    bool mIsRoot;
+    explicit operator bool() const { return mTarget.mElement; }
+    NonOwningAnimationTarget Source() const {
+      return NonOwningAnimationTarget{mTarget};
+    }
+    RefPtr<Element>& ElementForCycleCollection() { return mTarget.mElement; }
   };
 
   static already_AddRefed<ScrollTimeline> MakeAnonymous(
@@ -179,11 +134,6 @@ class ScrollTimeline : public AnimationTimeline,
     // FIXME: Bug 1676794: Implement ScrollTimeline interface.
     return nullptr;
   }
-
-  State GetState() const {
-    return State{mScrollerInfo.Source(), mAxis,
-                 mScrollerInfo.mType == ScrollerInfo::Type::Root};
-  };
 
   // AnimationTimeline methods.
   Nullable<TimeDuration> GetCurrentTimeAsDuration() const override;
@@ -223,19 +173,36 @@ class ScrollTimeline : public AnimationTimeline,
 
   void WillRefresh();
 
+  // If the source of a ScrollTimeline is an element whose principal box does
+  // not exist or is not a scroll container, then its phase is the timeline
+  // inactive phase. It is otherwise in the active phase. This returns true if
+  // the timeline is in active phase.
+  // https://drafts.csswg.org/web-animations-1/#inactive-timeline
+  // Note: This function is called only for compositor animations, so we must
+  // have the primary frame (principal box) for the source element if it exists.
+  bool IsActive() const { return GetScrollContainerFrame(); }
+
   Element* SourceElement() const {
-    auto* element = mScrollerInfo.Source().mElement;
-    MOZ_ASSERT(element);
-    return element;
+    MOZ_ASSERT(mSource);
+    return mSource.Source().mElement;
   }
 
   virtual NonOwningAnimationTarget TimelineTarget() const {
-    MOZ_ASSERT(!mScrollerInfo.IsAnonymous());
-    return mScrollerInfo.Source();
+    MOZ_ASSERT(mSource);
+    return mSource.Source();
   }
 
   bool SourceMatches(const Element* aElement,
                      const PseudoStyleRequest& aPseudoRequest) const;
+
+  // A helper to get the physical orientation of this scroll-timeline.
+  layers::ScrollDirection Axis() const;
+
+  StyleOverflow SourceScrollStyle() const;
+
+  bool APZIsActiveForSource() const;
+
+  bool ScrollingDirectionIsAvailable() const;
 
   void ReplacePropertiesWith(const Element* aReferenceElement,
                              const PseudoStyleRequest& aPseudoRequest,
@@ -256,7 +223,7 @@ class ScrollTimeline : public AnimationTimeline,
  protected:
   virtual ~ScrollTimeline();
   ScrollTimeline() = delete;
-  ScrollTimeline(Document* aDocument, const ScrollerInfo& aScrollerInfo,
+  ScrollTimeline(Document* aDocument, const Scroller& aScroller,
                  StyleScrollAxis aAxis);
 
   void TimelineDataDidChange();
@@ -278,6 +245,8 @@ class ScrollTimeline : public AnimationTimeline,
     }
   }
 
+  const ScrollContainerFrame* GetScrollContainerFrame() const;
+
   static std::pair<const Element*, PseudoStyleRequest> FindNearestScroller(
       Element* aSubject, const PseudoStyleRequest& aPseudoRequest);
 
@@ -286,7 +255,7 @@ class ScrollTimeline : public AnimationTimeline,
   // FIXME: Bug 1765211: We may have to update the source element once the
   // overflow property of the scroll-container is updated when we are using
   // nearest scroller.
-  ScrollerInfo mScrollerInfo;
+  Scroller mSource;
   StyleScrollAxis mAxis;
 
   struct CurrentTimeData {
