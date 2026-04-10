@@ -364,6 +364,12 @@ fun interface ChatService {
                  */
                 @SerialName("user")
                 User,
+
+                /**
+                 * A system-level instruction that shapes model behavior.
+                 */
+                @SerialName("system")
+                System,
             }
 
             companion object {
@@ -373,6 +379,13 @@ fun interface ChatService {
                  * @param content The message content.
                  */
                 fun user(content: String) = Message(Role.User, content)
+
+                /**
+                 * Convenience factory for creating a system message.
+                 *
+                 * @param content The message content.
+                 */
+                fun system(content: String) = Message(Role.System, content)
             }
         }
     }
