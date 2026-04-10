@@ -98,12 +98,6 @@ Function PrepareTelemetryPing
     nsJSON::Set /tree ping "Data" "from_msi" /value true
   ${EndIf}
 
-  !ifdef HAVE_64BIT_BUILD
-    nsJSON::Set /tree ping "Data" "64bit_build" /value true
-  !else
-    nsJSON::Set /tree ping "Data" "64bit_build" /value false
-  !endif
-
   ${If} ${RunningX64}
     nsJSON::Set /tree ping "Data" "64bit_os" /value true
   ${Else}
@@ -202,6 +196,12 @@ Function PrepareFullInstallPing
   nsJSON::Set /tree ping "Data" "installer_type" /value '"full"'
   nsJSON::Set /tree ping "Data" "installer_version" /value '"${AppVersion}"'
 
+  !ifdef HAVE_64BIT_BUILD
+    nsJSON::Set /tree ping "Data" "64bit_build" /value true
+  !else
+    nsJSON::Set /tree ping "Data" "64bit_build" /value false
+  !endif
+
   nsJSON::Set /tree ping "Data" "had_old_install" /value "$HadOldInstall"
 
   ${If} $DefaultInstDir == $INSTDIR
@@ -288,6 +288,13 @@ Function PrepareStubInstallPing
     Pop $0
     nsJSON::Set /tree ping "Data" "funnelcake" /value $0
   !endif
+
+  ${If} $ArchToInstall == ${ARCH_AMD64}
+  ${OrIf} $ArchToInstall == ${ARCH_AARCH64}
+    nsJSON::Set /tree ping "Data" "64bit_build" /value true
+  ${Else}
+    nsJSON::Set /tree ping "Data" "64bit_build" /value false
+  ${EndIf}
 
   nsJSON::Set /tree ping "Data" "download_retries" /value "$DownloadRetryCount"
   nsJSON::Set /tree ping "Data" "bytes_downloaded" /value "$DownloadedBytes"

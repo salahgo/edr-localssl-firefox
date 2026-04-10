@@ -5,6 +5,7 @@ Function TelemetryTests
   ${UnitTest} TestGenerateUUID
   ${UnitTest} TestCommonPingHttpDetails
   ${UnitTest} TestSilentTelemetryField
+  ${UnitTest} Test64BitBuildTelemetryField
 FunctionEnd
 
 Function FakePingInfo
@@ -119,4 +120,24 @@ Function TestSilentTelemetryField
 
   Pop $1
   Pop $0
+FunctionEnd
+
+Function Test64BitBuildTelemetryField
+  ; This currently only runs for the stub installer, so the full-installer part
+  ; isn't tested.
+  Push $ArchToInstall
+
+  StrCpy $ArchToInstall ${ARCH_X86}
+  !insertmacro MakeTelemetryPing PrepareStubInstallPing
+  ${AssertTelemetryData} "64bit_build" "value" "false"
+
+  StrCpy $ArchToInstall ${ARCH_AMD64}
+  !insertmacro MakeTelemetryPing PrepareStubInstallPing
+  ${AssertTelemetryData} "64bit_build" "value" "true"
+
+  StrCpy $ArchToInstall ${ARCH_AARCH64}
+  !insertmacro MakeTelemetryPing PrepareStubInstallPing
+  ${AssertTelemetryData} "64bit_build" "value" "true"
+
+  Pop $ArchToInstall
 FunctionEnd
