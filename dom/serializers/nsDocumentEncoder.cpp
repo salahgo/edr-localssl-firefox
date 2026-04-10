@@ -967,7 +967,6 @@ nsresult nsDocumentEncoder::NodeSerializer::SerializeToStringRecursive(
       aNode, GetAllowRangeCrossShadowBoundary(mFlags));
 
   if (shadowRoot) {
-    MOZ_ASSERT(StaticPrefs::dom_shadowdom_selection_across_boundary_enabled());
     // Serialize the ShadowRoot first when the entire node needs to be
     // serialized.
     SerializeToStringRecursive(shadowRoot, aSerializeRoot, aMaxLength);

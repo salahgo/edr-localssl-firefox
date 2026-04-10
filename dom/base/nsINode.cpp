@@ -351,7 +351,6 @@ static const nsINode* GetClosestCommonInclusiveAncestorForRangeInSelection(
   while (aNode &&
          !aNode->IsClosestCommonInclusiveAncestorForRangeInSelection()) {
     const bool isNodeInFlattenedShadowTree =
-        StaticPrefs::dom_shadowdom_selection_across_boundary_enabled() &&
         (aNode->IsInShadowTree() ||
          (aNode->IsContent() && aNode->AsContent()->GetAssignedSlot()));
 
@@ -361,15 +360,11 @@ static const nsINode* GetClosestCommonInclusiveAncestorForRangeInSelection(
       return nullptr;
     }
 
-    if (StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()) {
-      if (aNode->IsContent() && aNode->AsContent()->GetAssignedSlot()) {
-        aNode = aNode->AsContent()->GetAssignedSlot();
-      } else {
-        aNode = aNode->GetParentOrShadowHostNode();
-      }
-      continue;
+    if (aNode->IsContent() && aNode->AsContent()->GetAssignedSlot()) {
+      aNode = aNode->AsContent()->GetAssignedSlot();
+    } else {
+      aNode = aNode->GetParentOrShadowHostNode();
     }
-    aNode = aNode->GetParentNode();
   }
   return aNode;
 }
@@ -395,13 +390,8 @@ class IsItemInRangeComparator {
     auto ComparePoints = [](const nsINode* aNode1, const uint32_t aOffset1,
                             const nsINode* aNode2, const uint32_t aOffset2,
                             nsContentUtils::NodeIndexCache* aCache) {
-      if (StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()) {
-        return nsContentUtils::ComparePointsWithIndices<TreeKind::Flat>(
-            aNode1, aOffset1, aNode2, aOffset2, aCache);
-      }
-      return nsContentUtils::ComparePointsWithIndices<
-          TreeKind::ShadowIncludingDOM>(aNode1, aOffset1, aNode2, aOffset2,
-                                        aCache);
+      return nsContentUtils::ComparePointsWithIndices<TreeKind::Flat>(
+          aNode1, aOffset1, aNode2, aOffset2, aCache);
     };
 
     Maybe<int32_t> cmp = ComparePoints(
@@ -510,11 +500,7 @@ bool nsINode::IsSelected(const uint32_t aStartOffset, const uint32_t aEndOffset,
         auto ComparePoints = [](const ConstRawRangeBoundary& aBoundary1,
                                 const RangeBoundary& aBoundary2,
                                 nsContentUtils::NodeIndexCache* aCache) {
-          if (StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()) {
-            return nsContentUtils::ComparePoints<TreeKind::Flat>(
-                aBoundary1, aBoundary2, aCache);
-          }
-          return nsContentUtils::ComparePoints<TreeKind::ShadowIncludingDOM>(
+          return nsContentUtils::ComparePoints<TreeKind::Flat>(
               aBoundary1, aBoundary2, aCache);
         };
 
@@ -4160,10 +4146,6 @@ void nsINode::NotifyDevToolsOfRemovalsOfChildren() {
 }
 
 ShadowRoot* nsINode::GetShadowRootForSelection() const {
-  if (!StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()) {
-    return nullptr;
-  }
-
   ShadowRoot* shadowRoot = GetShadowRoot();
   if (!shadowRoot) {
     return nullptr;

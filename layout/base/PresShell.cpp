@@ -5030,11 +5030,8 @@ UniquePtr<RangePaintInfo> PresShell::CreateRangePaintInfo(
     ancestorFrame = rootFrame;
   } else {
     nsINode* ancestor =
-        StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()
-            ? nsContentUtils::GetClosestCommonShadowIncludingInclusiveAncestor(
-                  startContainer, endContainer)
-            : nsContentUtils::GetClosestCommonInclusiveAncestor(startContainer,
-                                                                endContainer);
+        nsContentUtils::GetClosestCommonShadowIncludingInclusiveAncestor(
+            startContainer, endContainer);
     NS_ASSERTION(!ancestor || ancestor->IsContent(),
                  "common ancestor is not content");
 
@@ -5068,9 +5065,7 @@ UniquePtr<RangePaintInfo> PresShell::CreateRangePaintInfo(
   info->mBuilder.EnterPresShell(ancestorFrame);
 
   ContentSubtreeIterator subtreeIter;
-  nsresult rv = StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()
-                    ? subtreeIter.InitWithAllowCrossShadowBoundary(aRange)
-                    : subtreeIter.Init(aRange);
+  nsresult rv = subtreeIter.InitWithAllowCrossShadowBoundary(aRange);
   if (NS_FAILED(rv)) {
     return nullptr;
   }

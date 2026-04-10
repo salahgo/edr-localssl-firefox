@@ -9275,11 +9275,9 @@ const nsFrameSelection* nsIFrame::GetConstFrameSelection() const {
 bool nsIFrame::IsFrameSelected() const {
   NS_ASSERTION(!GetContent() || GetContent()->IsMaybeSelected(),
                "use the public IsSelected() instead");
-  if (StaticPrefs::dom_shadowdom_selection_across_boundary_enabled()) {
-    if (const ShadowRoot* shadowRoot =
-            GetContent()->GetShadowRootForSelection()) {
-      return shadowRoot->IsSelected(0, shadowRoot->GetChildCount());
-    }
+  if (const ShadowRoot* shadowRoot =
+          GetContent()->GetShadowRootForSelection()) {
+    return shadowRoot->IsSelected(0, shadowRoot->GetChildCount());
   }
   return GetContent()->IsSelected(0, GetContent()->GetChildCount());
 }

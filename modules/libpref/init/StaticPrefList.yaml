@@ -5704,14 +5704,6 @@
   value: true
   mirror: always
 
-# Whether allowing selection across the boundary
-# between shadow DOM and light DOM.
-# This is based on https://github.com/mfreed7/shadow-dom-selection
-- name: dom.shadowdom.selection_across_boundary.enabled
-  type: bool
-  value: true
-  mirror: always
-
 # If true, when user selects a range, `Selection` will split the range to
 # exclude unselectable content from the range.
 - name: dom.selection.exclude_non_selectable_nodes

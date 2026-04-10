@@ -41,7 +41,6 @@ namespace mozilla {
 class AccessibleCaretEventHub;
 class ErrorResult;
 class HTMLEditor;
-class PostContentIterator;
 enum class CaretAssociationHint;
 enum class TableSelectionMode : uint32_t;
 struct AutoPrepareFocusRange;
@@ -473,9 +472,6 @@ class Selection final : public nsSupportsWeakReference,
 
   // Returns whether both normal range and cross-shadow-boundary
   // range are collapsed.
-  //
-  // If StaticPrefs::dom_shadowdom_selection_across_boundary_enabled is
-  // disabled, this method always returns result as nsRange::IsCollapsed.
   bool AreNormalAndCrossShadowBoundaryRangesCollapsed() const {
     if (!IsCollapsed()) {
       return false;
@@ -958,13 +954,6 @@ class Selection final : public nsSupportsWeakReference,
   void SetAnchorFocusRange(size_t aIndex);
   void RemoveAnchorFocusRange() { mAnchorFocusRange = nullptr; }
   void SelectFramesOf(nsIContent* aContent, bool aSelected) const;
-
-  /**
-   * https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant.
-   */
-  nsresult SelectFramesOfInclusiveDescendantsOfContent(
-      PostContentIterator& aPostOrderIter, nsIContent* aContent,
-      bool aSelected) const;
 
   void SelectFramesOfFlattenedTreeOfContent(nsIContent* aContent,
                                             bool aSelected) const;
