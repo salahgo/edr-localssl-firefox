@@ -11,9 +11,9 @@ Function FakePingInfo
   nsJSON::Set /tree ping "Data" "another_ping_for_testing" /value '"it works"'
 FunctionEnd
 
-!macro PrepareTestTelemetryPing
+!macro MakeTelemetryPing Callback
   Push "~~ sentinel ~~"
-  GetFunctionAddress $0 FakePingInfo
+  GetFunctionAddress $0 ${Callback}
   Push $0
   Call PrepareTelemetryPing
 
@@ -65,7 +65,7 @@ FunctionEnd
 Function TestCommonPingHttpDetails
   Push $0
 
-  !insertmacro PrepareTestTelemetryPing
+  !insertmacro MakeTelemetryPing FakePingInfo
 
   nsJSON::Get /tree ping "Url" /end
   Pop $0
@@ -104,11 +104,11 @@ Function TestSilentTelemetryField
   ${EndIf}
 
   SetSilent silent
-  !insertmacro PrepareTestTelemetryPing
+  !insertmacro MakeTelemetryPing FakePingInfo
   ${AssertTelemetryData} "silent" "value" "true"
 
   SetSilent normal
-  !insertmacro PrepareTestTelemetryPing
+  !insertmacro MakeTelemetryPing FakePingInfo
   ${AssertTelemetryData} "silent" "value" "false"
 
   ${If} $1 == "silent"
