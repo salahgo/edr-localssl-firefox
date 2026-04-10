@@ -1483,8 +1483,8 @@ class Toolbox extends EventEmitter {
   }
 
   _getDebugTargetData() {
-    const url = new URL(this.win.location);
-    const remoteId = url.searchParams.get("remoteId");
+    const url = URL.parse(this.win.location);
+    const remoteId = url ? url.searchParams.get("remoteId") : null;
     const runtimeInfo = remoteClientManager.getRuntimeInfoByRemoteId(remoteId);
     const connectionType =
       remoteClientManager.getConnectionTypeByRemoteId(remoteId);
