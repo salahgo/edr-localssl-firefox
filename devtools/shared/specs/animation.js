@@ -17,7 +17,7 @@ const {
 types.addDictType("animationMutationChange", {
   // The type of change ("added" or "removed").
   type: "string",
-  // The changed AnimationPlayerActor.
+  // The changed AnimationActor.
   player: "animationplayer",
 });
 

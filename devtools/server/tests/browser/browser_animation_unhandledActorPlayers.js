@@ -3,7 +3,7 @@
 
 "use strict";
 
-// Check that calling AnimationsActor method taking AnimationPlayerActor arrays (pauseSome,
+// Check that calling AnimationsActor method taking AnimationActor arrays (pauseSome,
 // playSome, setCurrentTimes) with instances that are not handled by
 // the AnimationsActor anymore doesn't throw nor trigger unexpected animations (see Bug 2001590).
 

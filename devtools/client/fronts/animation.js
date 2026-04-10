@@ -75,7 +75,7 @@ class AnimationPlayerFront extends FrontClassWithSpec(animationPlayerSpec) {
   }
 
   /**
-   * Executed when the AnimationPlayerActor emits a "changed" event. Used to
+   * Executed when the AnimationActor emits a "changed" event. Used to
    * update the local knowledge of the state.
    */
   onChanged(partialState) {
