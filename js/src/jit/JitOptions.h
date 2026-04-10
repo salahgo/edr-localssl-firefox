@@ -66,6 +66,7 @@ struct DefaultJitOptions {
   bool disableCacheIR;
   bool disableStubFolding;
   bool disableStubFoldingLoadsAndStores;
+  bool disableSink;
   bool disableRedundantShapeGuards;
   bool disableRedundantGCBarriers;
   bool disableBailoutLoopCheck;
