@@ -42,7 +42,7 @@ installer_type (both)
   Which type of installer generated this ping (full or stub)
 
 installer_version (full)
-  Version of the installer itself [#stubversion]_
+  Version of the installer itself [#stubversion]_. From stub installers, this will be the empty string.
 
 build_channel (both)
   Channel the installer was built with the branding for ("release", "beta", "nightly", or "default")
@@ -53,9 +53,6 @@ update_channel (both)
 locale (both)
   Locale of the installer and of the installed product, in AB_CD format
 
-ping_version (stub)
-  Version of the stub ping, currently 13
-
 stub_build_id (stub)
   Build ID of the stub installer.
 
@@ -65,9 +62,7 @@ Application fields
 version, build_id (both)
   Version number and Build ID of the installed product, from ``application.ini``. This is **not** the version of the installer itself, see stub_build_id.
 
-  stub: 0 if the installation failed
-
-  full: ``""`` if not found [#versionfailure]_
+  If the installation failed, this will be ``""`` [#versionfailure]_ (except from old stub installers, which send '0').
 
 _64bit_build (both)
   True if a 64-bit build was selected for installation.
@@ -87,14 +82,14 @@ _64bit_os (both)
 os_version (both)
   Version number of Windows in ``major.minor.build`` format [#win10build]_
 
-service_pack (stub)
+service_pack (both)
   Latest Windows service pack installed on the machine.
 
 server_os (both)
   True if the installed OS is a server version of Windows.
 
 windows_ubr (both)
-  The Windows Update Build Revision of the installation device.
+  The Windows Update Build Revision of the installation device. This will be -1 if it could not be found.
 
 
 Event fields
@@ -124,8 +119,6 @@ set_default (both)
 new_default (both)
   True if the new installation is now the default browser (registered to handle the http protocol).
 
-  full: Checks the association using ``AppAssocReg::QueryCurrentDefault`` and :abbr:`HKCU (HKEY_CURRENT_USER)`.
-
   stub: [DEPRECATED] [#stubnewdefault]_
 
 old_default (both)
@@ -134,9 +127,7 @@ old_default (both)
 had_old_install (both)
   True if at least one existing installation of Firefox was found on the system prior to this installation.
 
-  full: Checks for the installation directory given in the ``Software\Mozilla\${BrandFullName}`` registry keys, either :abbr:`HKLM` or :abbr:`HKCU`
-
-  stub: Checks for the installation directory given in the ``Software\Mozilla\${BrandFullName}`` registry keys, either :abbr:`HKLM` or :abbr:`HKCU`
+  both: Checks for the installation directory given in the ``Software\Mozilla\${BrandFullName}`` registry keys, either :abbr:`HKLM` or :abbr:`HKCU`
 
 old_version, old_build_id (stub)
   Version number and Build ID (from ``application.ini``) of a previous installation of Firefox in the install directory, 0 if not found
@@ -267,6 +258,8 @@ no_write_access (stub)
 old_running (stub)
   [DEPRECATED] True if the installation succeeded and we weren't able to launch the newly installed application because a copy of Firefox was already running. This should always be false since the check for a running copy was `removed <https://bugzilla.mozilla.org/show_bug.cgi?id=1601806>`_ in Firefox 74.
 
+ping_version (stub)
+  [DEPRECATED] Version of the stub ping using the former StubUri system. The latest version is 14.
 
 ---------
 Footnotes
