@@ -488,6 +488,7 @@ export class SidebarState {
       // Launcher not supported in legacy sidebar.
       this.#props.launcherVisible = false;
       this.#launcherContainerEl.hidden = true;
+      this.#updateTabbrowser(false);
       return;
     }
     this.#props.launcherVisible = visible;
