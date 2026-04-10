@@ -4673,6 +4673,18 @@ nsCSSFrameConstructor::FindSVGData(const Element& aElement,
 
   nsAtom* tag = aElement.NodeInfo()->NameAtom();
 
+  if (aElement.OwnerDoc()->IsSVGGlyphsDocument()) {
+    // SVG elements that are explicitly not supported in svg-glyphs documents.
+    // (Partially applies the restrictions mentioned at
+    // https://learn.microsoft.com/en-us/typography/opentype/spec/svg#svg-capability-requirements-and-restrictions
+    if (tag == nsGkAtoms::text || tag == nsGkAtoms::tspan ||
+        tag == nsGkAtoms::textPath || tag == nsGkAtoms::a ||
+        tag == nsGkAtoms::foreignObject || tag == nsGkAtoms::svgSwitch ||
+        tag == nsGkAtoms::view) {
+      return &sSuppressData;
+    }
+  }
+
   // XXXbz should this really be based on the tag of the parent frame's content?
   // Should it not be based on the type of the parent frame (e.g. whether it's
   // an SVG frame)?
