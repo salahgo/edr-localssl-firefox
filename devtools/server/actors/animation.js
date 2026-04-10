@@ -23,7 +23,7 @@
 
 const { Actor } = require("resource://devtools/shared/protocol.js");
 const {
-  animationPlayerSpec,
+  animationSpec,
   animationsSpec,
 } = require("resource://devtools/shared/specs/animation.js");
 
@@ -91,7 +91,7 @@ class AnimationActor extends Actor {
    * @param {number} createdTime: The time at which the animation was created
    */
   constructor(animationsActor, animation, createdTime) {
-    super(animationsActor.conn, animationPlayerSpec);
+    super(animationsActor.conn, animationSpec);
 
     this.onAnimationMutation = this.onAnimationMutation.bind(this);
 
