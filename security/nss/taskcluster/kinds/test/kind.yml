@@ -146,11 +146,11 @@ tasks:
                 - build
             with-attributes:
                 build_platform:
-                    - linux32
-                    - linux32-make
                     - linux64
                     - linux64-make
-                    - linux64-asan
+                build_type:
+                    - opt
+                    - opt-make
                 nspr: [false]
                 dbm: [false]
                 cc: [false]
@@ -172,11 +172,11 @@ tasks:
                 - build
             with-attributes:
                 build_platform:
-                    - linux32
-                    - linux32-make
                     - linux64
                     - linux64-make
-                    - linux64-asan
+                build_type:
+                    - opt
+                    - opt-make
                 nspr: [false]
                 dbm: [false]
                 cc: [false]

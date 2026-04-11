@@ -20,7 +20,6 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     clang \
-    clang-tidy \
     clang-tools \
     cmake \
     curl \
