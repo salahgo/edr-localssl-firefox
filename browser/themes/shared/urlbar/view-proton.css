@@ -228,7 +228,8 @@
       }
     }
 
-    &[has-url] > .urlbarView-row-inner > .urlbarView-url {
+    &[has-url] > .urlbarView-row-inner > .urlbarView-url,
+    &[has-explanation] > .urlbarView-row-inner > .urlbarView-explanation {
       margin-top: 2px;
 
       /* urlbarView-url is forced to be LTR for RTL locales, so set the padding based on
@@ -295,7 +296,8 @@
   direction: ltr !important;
 }
 
-.urlbarView-url:-moz-locale-dir(rtl) {
+.urlbarView-url:-moz-locale-dir(rtl),
+.urlbarView-explanation:-moz-locale-dir(rtl) {
   /* .urlbarView-url can grow due to `flex-grow: 1`, so without `text-align:
      right`, the URL text would be left-aligned within .urlbarView-url for RTL
      due to the `direction: ltr` rule.  .urlbarView-title does not have this
@@ -834,9 +836,10 @@
   }
 }
 
-/* URLs */
+/* URLs and result explanations */
 
-.urlbarView-url {
+.urlbarView-url,
+.urlbarView-explanation {
   flex-grow: 1;
   flex-shrink: 1;
   font-size: var(--urlbarView-small-font-size);
@@ -855,6 +858,19 @@
     /* Use visibility:collapse instead of display:none since the latter can
        confuse the overflow state of these elements when their content
        changes while they're hidden (bug 1549787). */
+    visibility: collapse;
+  }
+}
+
+.urlbarView-explanation {
+  visibility: collapse;
+}
+
+.urlbarView-row[has-explanation]:is([selected], :hover) > .urlbarView-row-inner {
+  > .urlbarView-explanation {
+    visibility: visible;
+  }
+  > .urlbarView-url {
     visibility: collapse;
   }
 }

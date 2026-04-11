@@ -602,6 +602,12 @@ urlbar:
         branch: default
         pref: browser.urlbar.recentsearches.maxResults
       description: The maximum number of recent searches to show.
+    resultExplanationsFeatureGate:
+      type: boolean
+      fallbackPref: browser.urlbar.resultExplanations.featureGate
+      description: >-
+        When selecting and hovering over certain types of urlbar results,
+        replace their URLs with strings that explain why they're shown.
     semanticHistoryEnable:
       type: boolean
       setPref:

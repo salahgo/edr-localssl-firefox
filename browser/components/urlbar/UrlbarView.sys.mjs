@@ -1536,6 +1536,16 @@ export class UrlbarView {
     url.className = "urlbarView-url";
     item._content.appendChild(url);
     item._elements.set("url", url);
+
+    if (lazy.UrlbarPrefs.get("resultExplanationsFeatureGate")) {
+      let explanation = this.#createElement("span");
+      explanation.classList.add(
+        "urlbarView-explanation",
+        "urlbarView-overflowable"
+      );
+      item._content.appendChild(explanation);
+      item._elements.set("explanation", explanation);
+    }
   }
 
   /**
@@ -1774,6 +1784,16 @@ export class UrlbarView {
     url.className = "urlbarView-url";
     top.appendChild(url);
     item._elements.set("url", url);
+
+    if (lazy.UrlbarPrefs.get("resultExplanationsFeatureGate")) {
+      let explanation = this.#createElement("span");
+      explanation.classList.add(
+        "urlbarView-explanation",
+        "urlbarView-overflowable"
+      );
+      top.appendChild(explanation);
+      item._elements.set("explanation", explanation);
+    }
 
     let description = this.#createElement("div");
     description.classList.add("urlbarView-row-body-description");
@@ -2485,6 +2505,34 @@ export class UrlbarView {
     } else {
       url.textContent = "";
       this.#updateOverflowTooltip(url, "");
+    }
+
+    let explanation = item._elements.get("explanation");
+    if (explanation && setURL && result.payload.lastVisit) {
+      item.toggleAttribute("has-explanation", true);
+      let { isRelative, formattedDate } = lazy.UrlbarUtils.formatDate(
+        new Date(result.payload.lastVisit)
+      );
+      if (isRelative) {
+        this.document.l10n.setAttributes(
+          explanation,
+          "urlbar-result-explanation-last-visited-relative",
+          { date: formattedDate }
+        );
+      } else {
+        this.document.l10n.setAttributes(
+          explanation,
+          "urlbar-result-explanation-last-visited-absolute",
+          { date: formattedDate }
+        );
+      }
+    } else {
+      if (explanation) {
+        explanation.removeAttribute("data-l10n-id");
+        explanation.removeAttribute("data-l10n-args");
+        explanation.textContent = "";
+      }
+      item.toggleAttribute("has-explanation", false);
     }
 
     title.toggleAttribute("is-url", isVisitAction);
