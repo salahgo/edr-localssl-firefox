@@ -1037,7 +1037,7 @@ struct ParamTraits<mozilla::layers::CompositorOptions> {
 
 template <>
 struct ParamTraits<mozilla::layers::OverlaySupportType>
-    : public ContiguousEnumSerializerInclusive<
+    : public ContiguousEnumSerializer<
           mozilla::layers::OverlaySupportType,
           mozilla::layers::OverlaySupportType::None,
           mozilla::layers::OverlaySupportType::MAX> {};
