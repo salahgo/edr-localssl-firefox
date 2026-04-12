@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import { IPPAuthProvider } from "moz-src:///toolkit/components/ipprotection/IPPAuthProvider.sys.mjs";
+import { GUARDIAN_EXPERIMENT_TYPE } from "moz-src:///toolkit/components/ipprotection/GuardianClient.sys.mjs";
 
 const lazy = {};
 
@@ -16,6 +17,8 @@ ChromeUtils.defineESModuleGetters(lazy, {
     "moz-src:///toolkit/components/ipprotection/fxa/IPPEnrollAndEntitleManager.sys.mjs",
   IPPSignInWatcher:
     "moz-src:///toolkit/components/ipprotection/fxa/IPPSignInWatcher.sys.mjs",
+  IPProtectionService:
+    "moz-src:///toolkit/components/ipprotection/IPProtectionService.sys.mjs",
 });
 
 /**
@@ -23,14 +26,60 @@ ChromeUtils.defineESModuleGetters(lazy, {
  * enrollment via Guardian, and FxA-specific proxy bypass rules.
  */
 class IPPFxaAuthProviderSingleton extends IPPAuthProvider {
+  #signInWatcher = null;
+  #enrollFn = null;
+
+  /**
+   * @param {object} [signInWatcher] - Custom sign-in watcher. Defaults to IPPSignInWatcher.
+   * @param {Function} [enrollFn] - Custom enroll function. Defaults to the FxA hidden-window flow.
+   */
+  constructor(signInWatcher = null, enrollFn = null) {
+    super();
+    this.#signInWatcher = signInWatcher;
+    this.#enrollFn = enrollFn ?? IPPFxaAuthProviderSingleton.#defaultEnroll;
+  }
+
+  get signInWatcher() {
+    return this.#signInWatcher ?? lazy.IPPSignInWatcher;
+  }
+
+  async enroll(abortSignal) {
+    return this.#enrollFn(abortSignal);
+  }
+
+  /**
+   * Enrolls the current FxA account with Guardian.
+   *
+   * Static to avoid changing internal state of the singleton.
+   *
+   * @param {AbortSignal} [abortSignal=null] - a signal to indicate the enrollment should be aborted
+   * @returns {Promise<object>} status
+   * @returns {boolean} status.enrollment - True if enrollment succeeded.
+   * @returns {string} [status.error] - Error message if enrollment failed.
+   */
+  static async #defaultEnroll(abortSignal = null) {
+    try {
+      const enrollment = await lazy.IPProtectionService.guardian.enrollWithFxa(
+        GUARDIAN_EXPERIMENT_TYPE,
+        abortSignal
+      );
+      if (!enrollment?.ok) {
+        return { enrollment: null, error: enrollment?.error };
+      }
+    } catch (error) {
+      return { enrollment: null, error: error?.message };
+    }
+    return { enrollment: true };
+  }
+
   get helpers() {
-    return [lazy.IPPSignInWatcher, lazy.IPPEnrollAndEntitleManager];
+    return [this.signInWatcher, lazy.IPPEnrollAndEntitleManager];
   }
 
   get isReady() {
     // For non authenticated users, we don't know yet their enroll state so the UI
     // is shown and they have to login.
-    if (!lazy.IPPSignInWatcher.isSignedIn) {
+    if (!this.signInWatcher.isSignedIn) {
       return false;
     }
 
@@ -101,4 +150,4 @@ class IPPFxaAuthProviderSingleton extends IPPAuthProvider {
 
 const IPPFxaAuthProvider = new IPPFxaAuthProviderSingleton();
 
-export { IPPFxaAuthProvider };
+export { IPPFxaAuthProvider, IPPFxaAuthProviderSingleton };
