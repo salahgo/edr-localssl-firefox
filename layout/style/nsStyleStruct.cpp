@@ -3390,7 +3390,7 @@ nsChangeHint nsStyleUIReset::CalcDifference(
     hint |= nsChangeHint_RepaintFrame;
   }
   if (mFieldSizing != aNewData.mFieldSizing) {
-    hint |= nsChangeHint_NeutralChange;
+    hint |= nsChangeHint_ReflowChangesSizeOrPosition;
   }
   if (mScrollbarWidth != aNewData.mScrollbarWidth) {
     // For scrollbar-width change, we need some special handling similar
