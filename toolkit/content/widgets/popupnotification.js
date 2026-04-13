@@ -29,10 +29,9 @@
         ".popup-notification-learnmore-link": "href=learnmoreurl",
         ".popup-notification-warning": "hidden=warninghidden,text=warninglabel",
         ".popup-notification-secondary-button":
-          "label=secondarybuttonlabel,accesskey=secondarybuttonaccesskey,hidden=secondarybuttonhidden,dropmarkerhidden",
-        ".popup-notification-dropmarker": "hidden=dropmarkerhidden",
+          "label=secondarybuttonlabel,accesskey=secondarybuttonaccesskey,hidden=secondarybuttonhidden",
         ".popup-notification-primary-button":
-          "label=buttonlabel,accesskey=buttonaccesskey,default=buttonhighlight,disabled=mainactiondisabled",
+          "label=buttonlabel,accesskey=buttonaccesskey,disabled=mainactiondisabled",
       };
     }
 
@@ -46,6 +45,10 @@
       // DOM Localization will overwrite the values.
       if (name === "buttonlabel" || name === "buttonaccesskey") {
         this.button?.removeAttribute("data-l10n-id");
+      }
+
+      if (name === "dropmarkerhidden" && this.secondaryButton) {
+        this.secondaryButton.type = newValue !== null ? "default" : "split";
       }
 
       super.attributeChangedCallback(name, oldValue, newValue);
@@ -89,13 +92,13 @@
       </hbox>
       <hbox class="popup-notification-footer-container"></hbox>
       <html:moz-button-group class="panel-footer">
-        <button class="popup-notification-secondary-button footer-button"/>
-        <button type="menu" class="popup-notification-dropmarker footer-button" data-l10n-id="popup-notification-more-actions-button">
-          <menupopup position="after_end" data-l10n-id="popup-notification-more-actions-button">
-          </menupopup>
-        </button>
-        <button class="popup-notification-primary-button primary footer-button" data-l10n-id="popup-notification-default-button2"/>
+        <html:moz-button type="split" class="popup-notification-secondary-button">
+        </html:moz-button>
+        <html:moz-button type="primary" class="popup-notification-primary-button" data-l10n-id="popup-notification-default-button2">
+        </html:moz-button>
       </html:moz-button-group>
+      <menupopup class="popup-notification-more-actions-popup" position="after_end" data-l10n-id="popup-notification-more-actions-button">
+      </menupopup>
       `;
     }
 
@@ -129,10 +132,15 @@
       this.secondaryButton = this.querySelector(
         ".popup-notification-secondary-button"
       );
+      this.secondaryButton.type = this.hasAttribute("dropmarkerhidden")
+        ? "default"
+        : "split";
       this.checkbox = this.querySelector(".popup-notification-checkbox");
       this.closebutton = this.querySelector(".popup-notification-closebutton");
-      this.menubutton = this.querySelector(".popup-notification-dropmarker");
-      this.menupopup = this.menubutton.querySelector("menupopup");
+      this.menubutton = this.secondaryButton;
+      this.menupopup = this.querySelector(
+        ".popup-notification-more-actions-popup"
+      );
 
       let popupnotificationfooter = this.querySelector(
         "popupnotificationfooter"
@@ -167,15 +175,28 @@
         });
         // Give listeners the chance to prevent the default behavior.
         if (this.dispatchEvent(customEvent)) {
-          PopupNotifications._onButtonEvent(event, type);
+          PopupNotifications._onButtonEvent(event, type, "button", this);
         }
       };
 
-      this.button.addEventListener("command", event =>
+      this.button.addEventListener("click", event =>
         customEventDelegator("buttoncommand", event)
       );
-      this.secondaryButton.addEventListener("command", event =>
-        customEventDelegator("secondarybuttoncommand", event)
+      this.secondaryButton.addEventListener(
+        "click",
+        event => {
+          if (
+            this.secondaryButton.chevronButtonEl?.contains(event.originalTarget)
+          ) {
+            this.menupopup.openPopup(
+              this.secondaryButton.chevronButtonEl,
+              "after_end"
+            );
+          } else {
+            customEventDelegator("secondarybuttoncommand", event);
+          }
+        },
+        { capture: true }
       );
       this.checkbox.addEventListener("command", event => {
         PopupNotifications._onCheckboxCommand(event);
@@ -183,7 +204,7 @@
       this.closebutton.addEventListener("command", event => {
         PopupNotifications._dismiss(event, true);
       });
-      this.menubutton.addEventListener("popupshown", event => {
+      this.menupopup.addEventListener("popupshown", event => {
         PopupNotifications._onButtonEvent(event, "dropmarkerpopupshown");
       });
       this.menupopup.addEventListener("command", event => {
