@@ -85,15 +85,17 @@ export class SidebarTabList extends FxviewTabListBase {
     }
 
     // Update or clear multi-selection (depending on whether shift key is used).
-    if (this.multiSelect && (e.code === "ArrowUp" || e.code === "ArrowDown")) {
+    const accelKeyDown = e.getModifierState("Accel");
+    if (
+      this.multiSelect &&
+      (e.code === "ArrowUp" || e.code === "ArrowDown") &&
+      !accelKeyDown
+    ) {
       this.#updateSelection(e, stayedInList);
     }
 
     // (Ctrl / Cmd) + A should select all rows.
-    if (
-      e.getModifierState("Accel") &&
-      e.key.toUpperCase() === this.selectAllShortcut
-    ) {
+    if (accelKeyDown && e.key.toUpperCase() === this.selectAllShortcut) {
       e.preventDefault();
       this.selectAll();
     }
@@ -168,6 +170,21 @@ export class SidebarTabList extends FxviewTabListBase {
         })
       );
     }
+  }
+
+  toggleRowSelection(guid) {
+    if (this.selectedGuids.has(guid)) {
+      this.selectedGuids.delete(guid);
+    } else {
+      this.selectedGuids.add(guid);
+    }
+    this.requestVirtualListUpdate();
+    this.dispatchEvent(
+      new CustomEvent("update-selection", {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   clearSelection() {

@@ -247,14 +247,22 @@ export class SidebarHistory extends SidebarPage {
       );
       return;
     }
+    const anchorEvent = new CustomEvent("set-anchor", {
+      bubbles: true,
+      composed: true,
+      detail: { guid: row.guid },
+    });
+    if (
+      (originalEvent.type === "click" &&
+        originalEvent.getModifierState("Accel")) ||
+      (originalEvent.type === "keydown" && originalEvent.code === "Space")
+    ) {
+      list.toggleRowSelection(row.guid);
+      list.dispatchEvent(anchorEvent);
+      return;
+    }
+    list.dispatchEvent(anchorEvent);
     this.handleNavigateToLink(e);
-    list.dispatchEvent(
-      new CustomEvent("set-anchor", {
-        bubbles: true,
-        composed: true,
-        detail: { guid: row.guid },
-      })
-    );
   }
 
   onSecondaryAction(e) {

@@ -148,7 +148,7 @@ export class SidebarTreeView {
         this.#focusLastVisibleRow();
         break;
     }
-    if (this.multiSelect) {
+    if (this.multiSelect && !event.getModifierState("Accel")) {
       this.#updateSelection(event, focusedRow);
     }
   }
