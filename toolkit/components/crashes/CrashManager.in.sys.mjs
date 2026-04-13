@@ -737,7 +737,15 @@ CrashManager.prototype = Object.freeze({
     // separately in lib-crash for Fenix (and potentially other GeckoView
     // users).
     this._gleanPingPromise = null;
-    if (AppConstants.platform !== "android" && !this._disableGleanPing) {
+    const telemetryEnabled = Services.prefs.getBoolPref(
+      "datareporting.healthreport.uploadEnabled",
+      true
+    );
+    if (
+      telemetryEnabled &&
+      AppConstants.platform !== "android" &&
+      !this._disableGleanPing
+    ) {
       const pingMeta = Cu.cloneInto(metadata, {});
       // Delete unused fields from legacy telemetry
       delete pingMeta.TelemetryEnvironment;

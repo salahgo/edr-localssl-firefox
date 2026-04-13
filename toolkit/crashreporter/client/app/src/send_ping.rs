@@ -20,6 +20,8 @@ pub fn main() {
     let _glean_handle = glean::InitOptions {
         data_dir: data_path.into(),
         locale: None,
+        // Assume that this is only invoked to send a ping when upload is enabled.
+        upload_enabled: true,
     }
     .init()
     .expect("failed to acquire Glean store");
