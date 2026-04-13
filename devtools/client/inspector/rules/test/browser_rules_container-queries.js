@@ -47,7 +47,7 @@ const TEST_URI = `
       }
     }
 
-    @container mycontainer (width > 1px), containeralias (height > 1px), (inline-size > 42px), unknowncontainer (width > 0px) {
+    @container mycontainer (width > 1px), containeralias (height > 13000px), (inline-size > 42px), unknowncontainer (width > 0px) {
       h3, [test-hint="multi-condition-container-query"] {
         background-color: navy;
       }
@@ -204,7 +204,7 @@ add_task(async function () {
     {
       selector: `h3, [test-hint="multi-condition-container-query"]`,
       ancestorRulesData: [
-        "@container mycontainer (width > 1px), containeralias (height > 1px), (inline-size > 42px), unknowncontainer (width > 0px) {",
+        "@container mycontainer (width > 1px), containeralias (height > 13000px), (inline-size > 42px), unknowncontainer (width > 0px) {",
       ],
     },
     {
@@ -241,6 +241,8 @@ add_task(async function () {
       `inline-size: ${bodyInlineSize}`,
       `block-size: ${bodyBlockSize}`,
     ],
+    // condition is "(height > 13000px)", which is unmatched
+    unmatched: true,
   });
 
   await assertQueryContainerTooltip({

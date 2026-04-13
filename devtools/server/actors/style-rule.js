@@ -727,6 +727,10 @@ class StyleRuleActor extends Actor {
           conditions: Array.from(rawRule.conditions).map((condition, i) => ({
             containerName: condition.name,
             containerQuery: condition.query,
+            matched: rawRule.queryConditionMatchesElement(
+              this.currentlySelectedElement,
+              i
+            ),
             hasContainer: !!rawRule.queryContainerFor(
               this.currentlySelectedElement,
               i
