@@ -1548,9 +1548,7 @@ void nsHttpHandler::PrefsChanged(const char* pref) {
         acceptEncodings.Append(acceptDictionaryEncodings);
         rv = SetAcceptEncodings(acceptEncodings.get(), true, true);
       }
-      if (NS_FAILED(rv)) {
-        LOG(("Getting network accept-encoding.dictionary pref failed %u", rv));
-      }
+      MOZ_ASSERT(NS_SUCCEEDED(rv));
     }
   }
 
