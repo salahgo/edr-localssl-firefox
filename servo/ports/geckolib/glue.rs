@@ -7000,7 +7000,6 @@ fn create_context_for_animation<'a>(
     per_doc_data: &'a PerDocumentStyleDataImpl,
     style: &'a ComputedValues,
     parent_style: Option<&'a ComputedValues>,
-    for_smil_animation: bool,
     rule_cache_conditions: &'a mut RuleCacheConditions,
     container_size_query: ContainerSizeQuery<'a>,
 ) -> Context<'a> {
@@ -7011,7 +7010,6 @@ fn create_context_for_animation<'a>(
             style,
             parent_style,
         ),
-        for_smil_animation,
         per_doc_data.stylist.quirks_mode(),
         rule_cache_conditions,
         container_size_query,
@@ -7104,7 +7102,6 @@ pub extern "C" fn Servo_GetComputedKeyframeValues(
         &data,
         &style,
         parent_style,
-        /* for_smil_animation = */ false,
         &mut conditions,
         container_size_query,
     );
@@ -7242,7 +7239,6 @@ pub extern "C" fn Servo_GetAnimationValues(
         &data,
         &style,
         parent_style,
-        /* for_smil_animation = */ true,
         &mut conditions,
         container_size_query,
     );
@@ -7288,7 +7284,6 @@ pub extern "C" fn Servo_AnimationValue_Compute(
         &data,
         style,
         parent_style,
-        /* for_smil_animation = */ false,
         &mut conditions,
         container_size_query,
     );
