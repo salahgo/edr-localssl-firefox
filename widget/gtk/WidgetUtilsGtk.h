@@ -88,7 +88,7 @@ bool IsCancelledGError(GError* aGError);
 // Used by startup notifications
 nsCString SynthesizeStartupToken();
 void FindLatestUserTime(GdkDisplay* aDisplay, uintptr_t aWindow,
-                        unsigned long* aLatestTime);
+                        uint32_t* aLatestTime);
 #endif
 
 }  // namespace mozilla::widget
