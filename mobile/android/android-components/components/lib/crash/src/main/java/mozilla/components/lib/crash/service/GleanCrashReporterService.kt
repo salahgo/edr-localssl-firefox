@@ -45,6 +45,7 @@ class GleanCrashReporterService(
     private val appChannel: String? = null,
     private val appVersion: String? = null,
     private val appBuildId: String? = null,
+    private val isUploadEnabled: Boolean = true,
     ) : CrashTelemetryService {
     companion object {
         // This file is stored in the application's data directory, so it should be located in the
@@ -252,7 +253,7 @@ class GleanCrashReporterService(
         }
     }
 
-    private fun getNativeCrashTools() = NativeCrashTools.load(context, appBuildId, appVersion)
+    private fun getNativeCrashTools() = NativeCrashTools.load(context, appBuildId, appVersion, isUploadEnabled)
 
     private fun getExtrasJson(path: String): JsonObject? {
         val extrasFile = File(path)
@@ -342,5 +343,9 @@ class GleanCrashReporterService(
 
     override fun record(throwable: Throwable) {
         recordCrashAction(GleanCrashAction.Count(CAUGHT_EXCEPTION_KEY))
+    }
+
+    override fun setTelemetryEnabled(enabled: Boolean) {
+        getNativeCrashTools()?.setPingCollectionEnabled(enabled)
     }
 }
