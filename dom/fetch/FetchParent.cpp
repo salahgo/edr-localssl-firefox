@@ -11,7 +11,6 @@
 #include "mozilla/dom/ClientInfo.h"
 #include "mozilla/dom/FetchTypes.h"
 #include "mozilla/dom/PerformanceTimingTypes.h"
-#include "mozilla/dom/ProcessIsolation.h"
 #include "mozilla/dom/ServiceWorkerDescriptor.h"
 #include "mozilla/ipc/BackgroundParent.h"
 #include "nsThreadUtils.h"
@@ -96,19 +95,6 @@ IPCResult FetchParent::RecvFetchOp(FetchOpArgs&& aArgs) {
   MOZ_ASSERT(!mIsDone);
   if (mActorDestroyed) {
     return IPC_OK();
-  }
-
-  auto principalOrErr = PrincipalInfoToPrincipal(aArgs.principalInfo());
-  if (principalOrErr.isErr()) {
-    return IPC_FAIL(this, "RecvFetchOp failed deserializing principalInfo");
-  }
-  nsCOMPtr<nsIPrincipal> principal = principalOrErr.unwrap();
-
-  RefPtr<ThreadsafeContentParentHandle> contentHandle =
-      BackgroundParent::GetContentParentHandle(Manager());
-  if (contentHandle && !ValidatePrincipalCouldPotentiallyBeLoadedBy(
-                           principal, contentHandle->GetRemoteType(), {})) {
-    return IPC_FAIL(this, "RecvFetchOp principal not allowed for remote type");
   }
 
   mRequest = MakeSafeRefPtr<InternalRequest>(std::move(aArgs.request()));
