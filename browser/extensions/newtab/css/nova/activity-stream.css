@@ -11445,21 +11445,21 @@ main section {
   margin-block-end: 0;
 }
 .nova-enabled .top-site-outer .top-site-button {
+  display: grid;
+  grid-template-rows: var(--col-width) auto;
   padding: 0;
-  justify-content: flex-end;
 }
 .nova-enabled .top-site-outer .tile {
+  align-self: end;
   box-shadow: var(--card-box-shadow);
   border: var(--border-width) solid var(--button-border-color-ghost);
-  margin-block-start: var(--space-medium);
-  transition: width 100ms ease-out, height 100ms ease-out, margin-block-start 100ms ease-out;
+  transition: width 100ms ease-out, height 100ms ease-out;
 }
 .nova-enabled .top-site-outer:is(:hover, :focus-within, .active) .tile {
   /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
   width: var(--col-width);
   /* stylelint-disable-next-line stylelint-plugin-mozilla/use-design-tokens */
   height: var(--col-width);
-  margin-block-start: 0;
   border-color: var(--button-border-color-ghost-hover);
 }
 .nova-enabled .top-site-outer:is(:hover, :focus-within, .active) .icon-pin-small,
