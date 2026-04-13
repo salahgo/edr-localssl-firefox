@@ -286,10 +286,7 @@ class ReportBrokenSiteHelper {
   }
 
   async awaitPreviewViewOpened() {
-    await Promise.all([
-      BrowserTestUtils.waitForEvent(this.sentView, "ViewShown"),
-      BrowserTestUtils.waitForEvent(this.okayButton, "focus"),
-    ]);
+    await BrowserTestUtils.waitForEvent(this.previewView, "ViewShown");
   }
 
   async awaitReportSentViewOpened() {

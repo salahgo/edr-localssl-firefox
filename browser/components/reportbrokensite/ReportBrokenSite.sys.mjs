@@ -767,7 +767,6 @@ export var ReportBrokenSite = new (class ReportBrokenSite {
 
       const summary = state.createElement("summary");
       summary.innerText = name;
-      summary.dataset.capturesFocus = "true";
       details.appendChild(summary);
 
       const info = state.createElement("div");
