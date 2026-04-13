@@ -499,15 +499,6 @@ EventLoopNestingLevel:
     type: quantity
     unit: levels
 
-FileSystemAccessRequestPath:
-  description: >
-    The anonymized path that was rejected by FileSystemSecurity due to
-    containing path traversal sequences.
-  type: string
-  scope: ping
-  bugs:
-    - 2029047
-
 FontName:
   description: >
     Set before attempting to load a font to help diagnose crashes during loading.

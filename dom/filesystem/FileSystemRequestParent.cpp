@@ -14,9 +14,7 @@
 #include "mozilla/dom/FileSystemSecurity.h"
 #include "mozilla/dom/OSFileSystem.h"
 #include "mozilla/dom/PFileSystemParams.h"
-#include "mozilla/dom/quota/QuotaCommon.h"
 #include "mozilla/ipc/BackgroundParent.h"
-#include "nsExceptionHandler.h"
 #include "nsProxyRelease.h"
 
 using namespace mozilla::ipc;
@@ -102,9 +100,6 @@ class CheckPermissionRunnable final : public Runnable {
           AssertIsOnMainThread();
           if (RefPtr<ContentParent> contentParent =
                   mContentHandle->GetContentParent()) {
-            CrashReporter::RecordAnnotationNSCString(
-                CrashReporter::Annotation::FileSystemAccessRequestPath,
-                quota::AnonymizedCString(NS_ConvertUTF16toUTF8(mPath)));
             contentParent->KillHard("This path is not allowed.");
           }
           return NS_OK;

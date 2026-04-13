@@ -128,7 +128,6 @@
 #include "mozilla/dom/notification/NotificationUtils.h"
 #include "mozilla/dom/nsMixedContentBlocker.h"
 #include "mozilla/dom/power/PowerManagerService.h"
-#include "mozilla/dom/quota/QuotaCommon.h"
 #include "mozilla/dom/quota/QuotaManagerService.h"
 #include "mozilla/extensions/ExtensionsParent.h"
 #include "mozilla/extensions/StreamFilterParent.h"
@@ -188,7 +187,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsDocShell.h"
 #include "nsEmbedCID.h"
-#include "nsExceptionHandler.h"
 #include "nsFocusManager.h"
 #include "nsFrameLoader.h"
 #include "nsFrameMessageManager.h"
@@ -5894,9 +5892,6 @@ mozilla::ipc::IPCResult ContentParent::RecvGetFilesRequest(
 
     for (const auto& directoryPath : aDirectoryPaths) {
       if (!fss->ContentProcessHasAccessTo(ChildID(), directoryPath)) {
-        CrashReporter::RecordAnnotationNSCString(
-            CrashReporter::Annotation::FileSystemAccessRequestPath,
-            quota::AnonymizedCString(NS_ConvertUTF16toUTF8(directoryPath)));
         return IPC_FAIL(this, "ContentProcessHasAccessTo failed.");
       }
     }
