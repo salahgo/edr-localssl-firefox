@@ -51,6 +51,8 @@ support-files = [
 
 ["test_add_preexisting_cert.js"]
 
+["test_aegis_enterprise.js"]
+
 ["test_allow_all_cert_errors.js"]
 run-sequentially = ["true"] # hardcoded ports
 

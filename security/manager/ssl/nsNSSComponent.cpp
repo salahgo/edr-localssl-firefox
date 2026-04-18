@@ -7,6 +7,7 @@
 
 #include "BinaryPath.h"
 #include "CryptoTask.h"
+#include "enterprise/policy/EnterprisePolicyService.h"
 #include "EnterpriseRoots.h"
 #include "ExtendedValidation.h"
 #include "NSSCertDBTrustDomain.h"
@@ -886,6 +887,7 @@ nsresult CommonInit() {
 
   mozilla::pkix::RegisterErrorTable();
   nsSSLIOLayerHelpers::GlobalInit();
+  enterprise::EnterprisePolicyService::GetInstance().ReloadFromPrefs();
 
   return NS_OK;
 }
@@ -1727,6 +1729,8 @@ nsNSSComponent::Observe(nsISupports* aSubject, const char* aTopic,
       MutexAutoLock lock(mMutex);
       mMitmDetecionEnabled =
           Preferences::GetBool("security.pki.mitm_canary_issuer.enabled", true);
+    } else if (prefName.Find("security.aegis.") == 0) {
+      enterprise::EnterprisePolicyService::GetInstance().ReloadFromPrefs();
     } else {
       clearSessionCache = false;
     }

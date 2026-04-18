@@ -9,6 +9,7 @@
 #include "AppTrustDomain.h"
 #include "CTKnownLogs.h"
 #include "CTLogVerifier.h"
+#include "EnterprisePolicyService.h"
 #include "ExtendedValidation.h"
 #include "MultiLogCTVerifier.h"
 #include "NSSCertDBTrustDomain.h"
@@ -548,6 +549,13 @@ Result CertVerifier::VerifyCert(
           ? NSSCertDBTrustDomain::RevocationCheckLocalOnly
       : !mOCSPStrict ? NSSCertDBTrustDomain::RevocationCheckMayFetch
                      : NSSCertDBTrustDomain::RevocationCheckRequired;
+  bool requireEnterpriseHardFailRevocation =
+      usage == VerifyUsage::TLSServer && hostname &&
+      enterprise::EnterprisePolicyService::GetInstance()
+          .ShouldRequireHardFailRevocation(nsDependentCString(hostname));
+  if (requireEnterpriseHardFailRevocation) {
+    defaultRevCheckMode = NSSCertDBTrustDomain::RevocationCheckRequired;
+  }
 
   Input stapledOCSPResponseInput;
   const Input* stapledOCSPResponse = nullptr;
@@ -602,6 +610,9 @@ Result CertVerifier::VerifyCert(
               ? NSSCertDBTrustDomain::RevocationCheckLocalOnly
           : !mOCSPStrict ? NSSCertDBTrustDomain::RevocationCheckMayFetch
                          : NSSCertDBTrustDomain::RevocationCheckRequired;
+      if (requireEnterpriseHardFailRevocation) {
+        evRevCheckMode = NSSCertDBTrustDomain::RevocationCheckRequired;
+      }
 
       nsTArray<CertPolicyId> evPolicies;
       GetKnownEVPolicies(certBytes, evPolicies);
@@ -886,6 +897,10 @@ Result CertVerifier::VerifySSLServerCert(
   if (hostname.IsEmpty()) {
     return Result::FATAL_ERROR_INVALID_ARGS;
   }
+  auto noteEnterpriseFailure = [&hostname](Result aResult) {
+    enterprise::EnterprisePolicyService::GetInstance().NoteTLSValidationFailure(
+        hostname, aResult);
+  };
 
   // CreateCertErrorRunnable assumes that CheckCertHostname is only called
   // if VerifyCert succeeded.
@@ -908,6 +923,7 @@ Result CertVerifier::VerifySSLServerCert(
     EndEntityOrCA notUsedForPaths = EndEntityOrCA::MustBeEndEntity;
     BackCert peerBackCert(peerCertInput, notUsedForPaths, nullptr);
     if (peerBackCert.Init() != Success) {
+      noteEnterpriseFailure(rv);
       return rv;
     }
     if ((rv == Result::ERROR_UNKNOWN_ISSUER ||
@@ -917,6 +933,7 @@ Result CertVerifier::VerifySSLServerCert(
       // In this case we didn't find any issuer for the certificate, or we did
       // find other certificates with the same subject but different keys, and
       // the certificate is self-signed.
+      noteEnterpriseFailure(Result::ERROR_SELF_SIGNED_CERT);
       return Result::ERROR_SELF_SIGNED_CERT;
     }
     if (rv == Result::ERROR_UNKNOWN_ISSUER) {
@@ -928,6 +945,7 @@ Result CertVerifier::VerifySSLServerCert(
       nsCOMPtr<nsINSSComponent> component(
           do_GetService(PSM_COMPONENT_CONTRACTID));
       if (!component) {
+        noteEnterpriseFailure(Result::FATAL_ERROR_LIBRARY_FAILURE);
         return Result::FATAL_ERROR_LIBRARY_FAILURE;
       }
       // IssuerMatchesMitmCanary succeeds if the issuer matches the canary and
@@ -936,10 +954,12 @@ Result CertVerifier::VerifySSLServerCert(
       SECItem issuerNameItem = UnsafeMapInputToSECItem(issuerNameInput);
       UniquePORTString issuerName(CERT_DerNameToAscii(&issuerNameItem));
       if (!issuerName) {
+        noteEnterpriseFailure(Result::ERROR_BAD_DER);
         return Result::ERROR_BAD_DER;
       }
       nsresult rv = component->IssuerMatchesMitmCanary(issuerName.get());
       if (NS_SUCCEEDED(rv)) {
+        noteEnterpriseFailure(Result::ERROR_MITM_DETECTED);
         return Result::ERROR_MITM_DETECTED;
       }
     }
@@ -952,15 +972,18 @@ Result CertVerifier::VerifySSLServerCert(
       Result hostnameResult =
           CheckCertHostnameHelper(peerCertInput, hostname, false);
       if (hostnameResult != Success) {
+        noteEnterpriseFailure(hostnameResult);
         return hostnameResult;
       }
     }
+    noteEnterpriseFailure(rv);
     return rv;
   }
 
   if (dcInfo) {
     rv = IsDelegatedCredentialAcceptable(*dcInfo);
     if (rv != Success) {
+      noteEnterpriseFailure(rv);
       return rv;
     }
   }
@@ -972,6 +995,7 @@ Result CertVerifier::VerifySSLServerCert(
                                        stapledOCSPResponse->Length());
     if (rv != Success) {
       // The stapled OCSP response was too big.
+      noteEnterpriseFailure(Result::ERROR_OCSP_MALFORMED_RESPONSE);
       return Result::ERROR_OCSP_MALFORMED_RESPONSE;
     }
     responseInputPtr = &stapledOCSPResponseInput;
@@ -980,6 +1004,7 @@ Result CertVerifier::VerifySSLServerCert(
   if (!(flags & FLAG_TLS_IGNORE_STATUS_REQUEST)) {
     rv = CheckTLSFeaturesAreSatisfied(peerCertInput, responseInputPtr);
     if (rv != Success) {
+      noteEnterpriseFailure(rv);
       return rv;
     }
   }
@@ -990,6 +1015,13 @@ Result CertVerifier::VerifySSLServerCert(
       isBuiltChainRootBuiltInRoot) {
     *isBuiltChainRootBuiltInRoot = isBuiltChainRootBuiltInRootLocal;
   }
+  if (rv != Success) {
+    noteEnterpriseFailure(rv);
+    return rv;
+  }
+
+  rv = enterprise::EnterprisePolicyService::GetInstance()
+           .MaybeEnforceSuccessfulTLS(hostname, builtChain);
   if (rv != Success) {
     return rv;
   }
