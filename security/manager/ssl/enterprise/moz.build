@@ -1,0 +1,27 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+UNIFIED_SOURCES += [
+    "pki/EnterpriseCertUtils.cpp",
+    "pki/EnterprisePolicyEvaluator.cpp",
+    "policy/EnterpriseBundleLoader.cpp",
+    "policy/EnterprisePolicyService.cpp",
+    "telemetry/EnterpriseTelemetryLogger.cpp",
+]
+
+LOCAL_INCLUDES += [
+    "/security/certverifier",
+    "/security/manager/ssl",
+    "/security/manager/ssl/enterprise/pki",
+    "/security/manager/ssl/enterprise/policy",
+    "/security/manager/ssl/enterprise/telemetry",
+    "/security/nss/lib/certdb",
+    "/toolkit/components/jsoncpp/include",
+]
+
+USE_LIBS += [
+    "jsoncpp",
+]
+
+FINAL_LIBRARY = "xul"
