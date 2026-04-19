@@ -1,0 +1,20 @@
+services:
+  cert-init:
+    image: alpine:3.20
+    container_name: aegis-nginx-ca-cert-init
+    working_dir: /work
+    command: ["sh", "/work/scripts/generate-certs.sh"]
+    volumes:
+      - ./generated/certs:/work/certs
+      - ./scripts/generate-certs.sh:/work/scripts/generate-certs.sh:ro
+
+  local-web:
+    image: nginx:1.27-alpine
+    container_name: aegis-nginx-ca-web
+    ports:
+      - "4445:443"
+    volumes:
+      - ./generated/certs:/etc/nginx/certs:ro
+      - ./site/index.html:/usr/share/nginx/html/index.html:ro
+      - ./site/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped

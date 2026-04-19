@@ -1,0 +1,7 @@
+generated/*
+generated/certs/*
+generated/firefox-profile/*
+!generated/certs/
+!generated/firefox-profile/
+!generated/certs/.gitkeep
+!generated/firefox-profile/.gitkeep

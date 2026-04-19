@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aegis Nginx Local CA Lab</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top, #1d4ed8, #0f172a 58%);
+      }
+
+      main {
+        max-width: 42rem;
+        margin: 2rem;
+        padding: 2rem;
+        border-radius: 1rem;
+        background: rgba(15, 23, 42, 0.88);
+        color: #e2e8f0;
+        box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.35);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 2rem;
+      }
+
+      p,
+      li {
+        line-height: 1.6;
+      }
+
+      code {
+        font-family: Consolas, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Aegis Nginx Local CA Lab</h1>
+      <p>
+        This page is served by Nginx with a certificate issued by a lab-local
+        root CA. If your Firefox build shows this page with a secure lock, the
+        local CA is trusted and the Aegis bundle approved it for
+        <code>localhost</code>.
+      </p>
+      <p>Quick checks:</p>
+      <ul>
+        <li>The certificate should chain to <code>Aegis Nginx Lab Root CA</code>.</li>
+        <li>With the default bundle, the connection should succeed.</li>
+        <li>With <code>-OmitRootApproval</code>, the same site should be blocked by Aegis.</li>
+      </ul>
+    </main>
+  </body>
+</html>
