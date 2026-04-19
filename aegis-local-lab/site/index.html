@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aegis Local SSL Lab</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(160deg, #0f172a, #1e293b 55%, #334155);
+      }
+
+      main {
+        max-width: 42rem;
+        margin: 2rem;
+        padding: 2rem;
+        border-radius: 1rem;
+        background: rgba(15, 23, 42, 0.86);
+        color: #e2e8f0;
+        box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.35);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 2rem;
+      }
+
+      p,
+      li {
+        line-height: 1.6;
+      }
+
+      code {
+        font-family: Consolas, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Aegis Local SSL Lab</h1>
+      <p>
+        This page is served by the optional <code>local-web</code> container.
+        If your custom Firefox build shows this page without a certificate
+        warning, the trusted CA and the Aegis policy bundle both allowed the
+        connection for <code>localhost</code>.
+      </p>
+      <p>Quick checks:</p>
+      <ul>
+        <li>The certificate should chain to the EJBCA Management CA.</li>
+        <li>
+          With a bundle built using <code>New-AegisPolicyBundle.ps1</code>, the
+          connection should succeed.
+        </li>
+        <li>
+          With <code>-OmitRootApproval</code>, the same hostname should be
+          blocked by enterprise policy.
+        </li>
+      </ul>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+services:
+  ejbca:
+    image: keyfactor/ejbca-ce:latest
+    container_name: aegis-ejbca
+    hostname: localhost
+    environment:
+      TLS_SETUP_ENABLED: "simple"
+      DATABASE_JDBC_URL: "jdbc:h2:/mnt/persistent/ejbcadb;DB_CLOSE_DELAY=-1"
+      LOG_LEVEL_APP: INFO
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./runtime/ejbca:/mnt/persistent
+    restart: unless-stopped
+
+  local-web:
+    image: nginx:1.27-alpine
+    container_name: aegis-local-web
+    profiles:
+      - web
+    depends_on:
+      - ejbca
+    ports:
+      - "4443:443"
+    volumes:
+      - ./generated/web:/etc/nginx/certs:ro
+      - ./site/index.html:/usr/share/nginx/html/index.html:ro
+      - ./site/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped

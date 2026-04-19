@@ -1,0 +1,11 @@
+generated/*
+!generated/firefox-profile/
+!generated/web/
+generated/firefox-profile/*
+generated/web/*
+!generated/firefox-profile/.gitkeep
+!generated/web/.gitkeep
+runtime/*
+!runtime/ejbca/
+runtime/ejbca/*
+!runtime/ejbca/.gitkeep
